@@ -1,4 +1,5 @@
-/*
+/** @file src/config.h
+ *
  * Copyright (c) 2014 Bartek Fabiszewski
  * http://www.fabiszewski.net
  *
@@ -7,12 +8,9 @@
  * See <http://www.gnu.org/licenses/>
  */
 
-#ifndef libmobi_write_h
-#define libmobi_write_h
+#ifndef mobi_config_h
+#define mobi_config_h
 
-#include "config.h"
-#include "mobi.h"
-#include "buffer.h"
-
+#include "../config.h"
 
 #endif

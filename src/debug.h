@@ -1,27 +1,54 @@
-//
-//  debug.h
-//  mobi
-//
-//  Created by Bartek on 02.04.14.
-//  Copyright (c) 2014 Bartek. All rights reserved.
-//
+/** @file debug.h
+ *
+ * Copyright (c) 2014 Bartek Fabiszewski
+ * http://www.fabiszewski.net
+ *
+ * This file is part of libmobi.
+ * Licensed under LGPL, either version 3, or any later.
+ * See <http://www.gnu.org/licenses/>
+ */
 
-#ifndef mobi_debug_h
-#define mobi_debug_h
+#ifndef libmobi_debug_h
+#define libmobi_debug_h
 
-#include <stdio.h>
+#include "config.h"
+#include "mobi.h"
 
-#define MOBI_DEBUG 0
-#if MOBI_DEBUG
-#define free(x) debug_free(x,__FILE__,__LINE__)
-void debug_free(void *ptr, char *file, int line);
-#define malloc(x) debug_malloc(x, __FILE__, __LINE__ )
-void *debug_malloc(size_t size, char *file, int line);
-#define realloc(x, y) debug_realloc(x, y, __FILE__, __LINE__ )
-void *debug_realloc(void *ptr, size_t size, char *file, int line);
-#define calloc(x, y) debug_calloc(x, y, __FILE__, __LINE__ )
-void *debug_calloc(size_t num, size_t size, char *file, int line);
+#ifndef MOBI_DEBUG
+#define MOBI_DEBUG 0 /**< Turn on debugging, set this on by running "configure --enable-debug" */
 #endif
 
+#if MOBI_DEBUG_ALLOC
+/**
+ @defgroup mobi_debug Debug wrappers for memory allocation functions
+ 
+ Set this on by running "configure --enable-debug-alloc"
+ @{
+ */
+#define free(x) debug_free(x, __FILE__, __LINE__)
+#define malloc(x) debug_malloc(x, __FILE__, __LINE__)
+#define realloc(x, y) debug_realloc(x, y, __FILE__, __LINE__)
+#define calloc(x, y) debug_calloc(x, y, __FILE__, __LINE__)
+/** @} */
+#endif
+
+void debug_free(void *ptr, const char *file, const int line);
+void *debug_malloc(const size_t size, const char *file, const int line);
+void *debug_realloc(void *ptr, const size_t size, const char *file, const int line);
+void *debug_calloc(const size_t num, const size_t size, const char *file, const int line);
+
+/**
+ @brief Macro for printing debug info to stderr. Wrapper for fprintf
+ @param[in] fmt Format
+ @param[in] ... Additional arguments
+ */
+#if (MOBI_DEBUG)
+#define debug_print(fmt, ...) { \
+    fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+    __LINE__, __func__, __VA_ARGS__); \
+}
+#else
+#define debug_print(fmt, ...)
+#endif
 
 #endif

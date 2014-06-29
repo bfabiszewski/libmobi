@@ -1,27 +1,38 @@
-//
-//  write.c
-//  mobi
-//
-//  Created by Bartek on 25.03.14.
-//  Copyright (c) 2014 Bartek. All rights reserved.
-//
+/*
+ * Copyright (c) 2014 Bartek Fabiszewski
+ * http://www.fabiszewski.net
+ *
+ * This file is part of libmobi.
+ * Licensed under LGPL, either version 3, or any later.
+ * See <http://www.gnu.org/licenses/>
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include "write.h"
+#include "util.h"
 
+
+/* 
+   I focus my development on reading functions.
+   Below are just a bunch of a quick tests,
+   which will probably disappear or be thoroughly modified
+   when I get to coding true writing routines.
+*/
+
+/* FIXME test */
+/* buffer should be passed to this func */
 MOBIBuffer * serialize_palmdb_header(void) {
     MOBIBuffer *buf;
-    size_t len;
-    char title[PALMDB_NAME_SIZE_MAX];
-    strcpy(title, "TITLE");
-    len = strlen(title);
+    const char title[PALMDB_NAME_SIZE_MAX] = "TITLE";
+    const size_t len = strlen(title);
     
-    uint32_t curtime = (uint32_t)(time(NULL) + EPOCH_MAC_DIFF);
-    uint32_t uid = 0xff;
-    uint32_t rec_count = 1;
+    const uint32_t curtime = (uint32_t) time(NULL);
+    const uint32_t uid = 0xff;
+    const uint32_t rec_count = 1;
     buf = buffer_init(PALMDB_HEADER_LEN);
     if (buf == NULL) {
         return NULL;
@@ -30,9 +41,9 @@ MOBIBuffer * serialize_palmdb_header(void) {
     buffer_addzeros(buf, PALMDB_NAME_SIZE_MAX - len);
     buffer_add16(buf, PALMDB_ATTRIBUTE_DEFAULT);
     buffer_add16(buf, PALMDB_VERSION_DEFAULT);
-    buffer_add32(buf, curtime); // ctime
-    buffer_add32(buf, curtime); // mtime
-    buffer_add32(buf, 0); // btime
+    buffer_add32(buf, curtime); /* ctime */
+    buffer_add32(buf, curtime); /* mtime */
+    buffer_add32(buf, 0); /* btime */
     buffer_add32(buf, PALMDB_MODNUM_DEFAULT);
     buffer_add32(buf, PALMDB_APPINFO_DEFAULT);
     buffer_add32(buf, PALMDB_SORTINFO_DEFAULT);
@@ -44,11 +55,11 @@ MOBIBuffer * serialize_palmdb_header(void) {
     return buf;
 }
 
+/* FIXME test */
 MOBIBuffer * serialize_record0_header(void) {
-    MOBIBuffer *buf;
     uint32_t text_length = 0;
     uint16_t record_count = 0;
-    buf = buffer_init(RECORD0_HEADER_LEN);
+    MOBIBuffer *buf = buffer_init(RECORD0_HEADER_LEN);
     if (buf == NULL) {
         return NULL;
     }
@@ -56,7 +67,7 @@ MOBIBuffer * serialize_record0_header(void) {
     buffer_add16(buf, 0);
     buffer_add32(buf, text_length);
     buffer_add16(buf, record_count);
-    buffer_add16(buf, RECORD0_RECORD_SIZE_MAX);
+    buffer_add16(buf, RECORD0_TEXT_SIZE_MAX);
     buffer_add16(buf, RECORD0_NO_ENCRYPTION);
     buffer_add16(buf, 0);
     return buf;
@@ -70,11 +81,12 @@ void buffer_output(FILE *file, MOBIBuffer *buf) {
     buffer_free(buf);
 }
 
-MOBIPdbRecord * build_pdbrecord(size_t offset) {
+/* FIXME test */
+MOBIPdbRecord * build_pdbrecord(uint32_t offset) {
     MOBIPdbRecord *record = NULL;
     record = malloc(sizeof(MOBIPdbRecord));
-    record->data = malloc(RECORD0_RECORD_SIZE_MAX);
-    strncpy(record->data, "<html><body>test</body></html>", RECORD0_RECORD_SIZE_MAX);
+    record->data = malloc(RECORD0_TEXT_SIZE_MAX);
+    memcpy(record->data, "<html><body>test</body></html>", RECORD0_TEXT_SIZE_MAX);
     if (record->data == NULL) {
 		free(record);
 		return NULL;
@@ -87,30 +99,27 @@ MOBIPdbRecord * build_pdbrecord(size_t offset) {
 }
 
 MOBIBuffer * serialize_record_info(MOBIPdbRecord *rec) {
-    MOBIBuffer *buf;
-    buf = buffer_init(8);
+    MOBIBuffer *buf = buffer_init(8);
     if (buf == NULL) {
         return NULL;
     }
-    buffer_add32(buf, (uint32_t) rec->offset);
-    //skip attributes, always 0;
+    buffer_add32(buf, rec->offset);
+    /* skip attributes, always 0; */
     buffer_add32(buf, rec->uid);
     return buf;
 }
 
 MOBIBuffer * serialize_pdbrecord(MOBIPdbRecord *rec) {
-    MOBIBuffer *buf;
-    buf = buffer_init(RECORD0_RECORD_SIZE_MAX);
+    MOBIBuffer *buf = buffer_init(RECORD0_TEXT_SIZE_MAX);
     if (buf) {
-        buffer_addstring(buf, rec->data);
+        buffer_addraw(buf, rec->data, rec->size);
     }
     return buf;
 }
 
 MOBIBuffer * serialize_file_end(void) {
-    MOBIBuffer *buf;
-    char end[] = { 233, 142, 13, 10 };
-    buf = buffer_init(4);
+    const unsigned char end[4] = EOF_MAGIC;
+    MOBIBuffer *buf = buffer_init(4);
     if (buf) {
         buffer_addraw(buf, end, 4);
     }
@@ -118,15 +127,17 @@ MOBIBuffer * serialize_file_end(void) {
 }
 
 
+/* FIXME test */
 void write_mobi(void) {
-    FILE *file;
-    MOBIBuffer *buf;
-    MOBIPdbRecord *rec;
-    file = fopen("/Users/baf/src/mobi_test/test.mobi","wb");
-    buf = serialize_palmdb_header();
+    FILE *file = fopen("test.mobi","wb");
+    if (file == NULL) {
+        printf("Could not open file for writing\n");
+        return;
+    }
+    MOBIBuffer *buf = serialize_palmdb_header();
     printf("Writing palmdb header\n");
     buffer_output(file, buf);
-    rec = build_pdbrecord(PALMDB_HEADER_LEN + PDB_RECORD_INFO_SIZE + 2);
+    MOBIPdbRecord *rec = build_pdbrecord(PALMDB_HEADER_LEN + PALMDB_RECORD_INFO_SIZE + 2);
     buf = serialize_record_info(rec);
     buf->maxlen += 2;
     buffer_addzeros(buf, 2);
@@ -136,7 +147,7 @@ void write_mobi(void) {
     printf("Writing record0 header\n");
     buffer_output(file, buf);
     buf = serialize_pdbrecord(rec);
-    // TODO: improve freeing of rec buffer, see buffer_free
+    /* TODO: improve freeing of rec buffer, see buffer_free */
     free(rec->data);
     free(rec);
     printf("Writing pdb record\n");

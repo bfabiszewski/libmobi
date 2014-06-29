@@ -1,29 +1,27 @@
-//
-//  compression.h
-//  mobi
-//
-//  Created by Bartek on 27.03.14.
-//  Copyright (c) 2014 Bartek. All rights reserved.
-//
+/** @file compression.h
+ *
+ * Copyright (c) 2014 Bartek Fabiszewski
+ * http://www.fabiszewski.net
+ *
+ * This file is part of libmobi.
+ * Licensed under LGPL, either version 3, or any later.
+ * See <http://www.gnu.org/licenses/>
+ */
 
-#ifndef mobi_lz77_h
-#define mobi_lz77_h
+#ifndef libmobi_compression_h
+#define libmobi_compression_h
 
-#include <stdlib.h>
-#include <stdint.h>
+#include "config.h"
+#include "mobi.h"
 
-typedef struct {
-    size_t index_count;
-    size_t index_read;
-    size_t code_length;
-    uint32_t table1[256];
-    uint32_t mincode_table[33];
-    uint32_t maxcode_table[33];
-    uint16_t *symbol_offsets;
-    char **symbols;
-} MOBIHuffCdic;
+#ifndef MOBI_INLINE
+#define MOBI_INLINE /**< Syntax for compiler inline keyword from config.h */
+#endif
 
-size_t mobi_decompress_lz77(char *out, const char *in, size_t len);
-size_t mobi_decompress_huffman(char *out, const char *in, size_t len, MOBIHuffCdic *huffcdic, size_t depth);
+/* FIXME: what is the reasonable value? */
+#define MOBI_HUFFMAN_MAXDEPTH 15 /**< Maximal recursion level for huffman decompression routine */
+
+MOBI_RET mobi_decompress_lz77(unsigned char *out, const unsigned char *in, size_t *len_out, const size_t len_in);
+MOBI_RET mobi_decompress_huffman(unsigned char *out, const unsigned char *in, size_t *len_out, size_t len_in, const MOBIHuffCdic *huffcdic);
 
 #endif

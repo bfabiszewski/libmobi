@@ -1,109 +1,147 @@
-//
-//  compression.c
-//  mobi
-//
-//  Created by Bartek on 27.03.14.
-//  Copyright (c) 2014 Bartek. All rights reserved.
-//
+/** @file compression.c
+ *  @brief Functions handling compression
+ *
+ * Copyright (c) 2014 Bartek Fabiszewski
+ * http://www.fabiszewski.net
+ *
+ * This file is part of libmobi.
+ * Licensed under LGPL, either version 3, or any later.
+ * See <http://www.gnu.org/licenses/>
+ */
 
 #include <string.h>
-#include <stdio.h>
-
 #include "compression.h"
+#include "buffer.h"
 #include "mobi.h"
+#include "debug.h"
 
 
-// PalmDOC version of LZ77 compression
-// Decompressor based on this algorithm:
-// http://en.wikibooks.org/wiki/Data_Compression/Dictionary_compression#PalmDoc
-//
-size_t mobi_decompress_lz77(char *out, const char *in, size_t len) {
-    size_t start_in = (size_t) in;
-    size_t start_out = (size_t) out;
-    while ((size_t) in - start_in < len) {
-        uint8_t val = (uint8_t) in[0];
-        // byte pair: space + char
-        if (val >= 0xc0) {
-            *(out++) = ' ';
-            *(out++) = val ^ 0x80;
-            in++;
+/** 
+ @brief Decompressor fo PalmDOC version of LZ77 compression
+
+ Decompressor based on this algorithm:
+ http://en.wikibooks.org/wiki/Data_Compression/Dictionary_compression#PalmDoc
+
+ @param[out] out Decompressed destination data
+ @param[in] in Compressed source data
+ @param[in,out] len_out Size of the memory reserved for decompressed data.
+ On return it is set to actual size of decompressed data
+ @param[in] len_in Size of compressed data
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_decompress_lz77(unsigned char *out, const unsigned char *in, size_t *len_out, const size_t len_in) {
+    MOBI_RET ret = MOBI_SUCCESS;
+    MOBIBuffer *buf_in = buffer_init_null(len_in);
+    if (buf_in == NULL) {
+        return MOBI_MALLOC_FAILED;
+    }
+    MOBIBuffer *buf_out = buffer_init_null(*len_out);
+    if (buf_out == NULL) {
+        buffer_free_null(buf_in);
+        return MOBI_MALLOC_FAILED;
+    }
+    /* FIXME: is it ok to cast const to non-const here */
+    /* or is there a better way? */
+    buf_in->data = (unsigned char *) in;
+    buf_out->data = out;
+    while (ret == MOBI_SUCCESS && buf_in->offset < buf_in->maxlen) {
+        uint8_t byte = buffer_get8(buf_in);
+        /* byte pair: space + char */
+        if (byte >= 0xc0) {
+            buffer_add8(buf_out, ' ');
+            buffer_add8(buf_out, byte ^ 0x80);
         }
-        // length, distance pair
-        // 0x8000 + (distance << 3) + ((length-3) & 0x07)
-        else if (val >= 0x80) {
-            uint16_t distance = ((((in[0] << 8) | ((uint8_t)in[1])) >> 3) & 0x7ff);
-            uint8_t length = (in[1] & 0x7) + 3;
-            while (length-- > 0) {
-                *(out) = *(out - distance);
-                out++;
+        /* length, distance pair */
+        /* 0x8000 + (distance << 3) + ((length-3) & 0x07) */
+        else if (byte >= 0x80) {
+            uint8_t next = buffer_get8(buf_in);
+            uint16_t distance = ((((byte << 8) | ((uint8_t)next)) >> 3) & 0x7ff);
+            uint8_t length = (next & 0x7) + 3;
+            while (length--) {
+                buffer_add8(buf_out, *(buf_out->data + buf_out->offset - distance));
             }
-            in += 2;
         }
-        // single char, not modified
-        else if (val >= 0x09) {
-            *(out++) = *(in++);
+        /* single char, not modified */
+        else if (byte >= 0x09) {
+            buffer_add8(buf_out, byte);
         }
-        // n chars not modified
-        else if (val >= 0x01) {
-            memcpy(out, ++in, val);
-            out += val;
-            in += val;
+        /* val chars not modified */
+        else if (byte >= 0x01) {
+            buffer_copy(buf_out, buf_in, byte);
         }
-        // char '\0', not modified
+        /* char '\0', not modified */
         else {
-            *(out++) = *(in++);
+            buffer_copy8(buf_out, buf_in);
+        }
+        if (buf_in->error || buf_out->error) {
+            ret = MOBI_BUFFER_END;
         }
     }
-    return (size_t) out - start_out;
+    *len_out = buf_out->offset;
+    buffer_free_null(buf_out);
+    buffer_free_null(buf_in);
+    return ret;
 }
 
-uint64_t _fill_buffer(const char *in, size_t len) {
-    uint32_t in1 = 0L;
-    uint32_t in2 = 0L;
-    len = (len < 8) ? len : 8;
-    size_t i = 0;
-    while (i < len && i < 4) {
-        in1 |= (uint8_t) in[i] << ((3-i) * 8);
-        i++;
+/**
+ @brief Read at most 8 bytes from buffer, big-endian
+ 
+ If buffer data is shorter returned value is padded with zeroes
+ 
+ @param[in] buf MOBIBuffer structure to read from
+ @return 64-bit value
+ */
+static MOBI_INLINE uint64_t buffer_fill64(MOBIBuffer *buf) {
+    uint64_t val = 0;
+    uint8_t i = 8;
+    size_t bytesleft = buf->maxlen - buf->offset;
+    unsigned char *ptr = buf->data + buf->offset;
+    while (i-- && bytesleft--) {
+        val |= (uint64_t) *ptr++ << (i * 8);
     }
-    while (i < len) {
-        in2 |= (uint8_t) in[i] << ((3-i) * 8);
-        i++;
-    }
-    return (uint64_t) in1 << 32 | in2;
+    /* increase counter by 4 bytes only, 4 bytes overlap on each call */
+    buf->offset += 4;
+    return val;
 }
 
-int shortcnt = 0;
-
-// Mobi version of Huffman coding
-// Decompressor and HUFF/CDIC records parsing based on:
-// perl EBook::Tools::Mobipocket
-// python mobiunpack.py, calibre
-size_t mobi_decompress_huffman(char *out, const char *in, size_t len, MOBIHuffCdic *huffcdic, size_t depth) {
-    size_t start_out = (size_t) out;
+/**
+ @brief Internal function for huff/cdic decompression
+ 
+ Decompressor and HUFF/CDIC records parsing based on:
+ perl EBook::Tools::Mobipocket
+ python mobiunpack.py, calibre
+ 
+ @param[out] buf_out MOBIBuffer structure with decompressed data
+ @param[in] buf_in MOBIBuffer structure with compressed data
+ @param[in] huffcdic MOBIHuffCdic structure with parsed data from huff/cdic records
+ @param[in] depth Depth of current recursion level
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_decompress_huffman_internal(MOBIBuffer *buf_out, MOBIBuffer *buf_in, const MOBIHuffCdic *huffcdic, size_t depth) {
+    if (depth > MOBI_HUFFMAN_MAXDEPTH) {
+        debug_print("Too many levels of recursion: %zu\n", depth);
+        return MOBI_DATA_CORRUPT;
+    }
+    MOBI_RET ret = MOBI_SUCCESS;
     int8_t bitcount = 32;
-    int32_t bitsleft = (int32_t) len * 8;
-    uint32_t t1, offset;
-    uint32_t code, maxcode, symbol_length;
-    uint8_t code_length = 0, i;
-    uint32_t index;
-    uint64_t buffer;
-    buffer = _fill_buffer(in, len);
-    while (1) {
+    /* this cast should be safe: max record size is 4096 */
+    int bitsleft = (int) (buf_in->maxlen * 8);
+    uint8_t code_length = 0;
+    uint64_t buffer = buffer_fill64(buf_in);
+    while (ret == MOBI_SUCCESS) {
         if (bitcount <= 0) {
             bitcount += 32;
-            in += 4;
-            buffer = _fill_buffer(in, (bitsleft + (8 - 1)) / 8);
+            buffer = buffer_fill64(buf_in);
         }
-        code = (buffer >> bitcount) & 0xffffffff;
-        // lookup code in table1
-        t1 = huffcdic->table1[code >> 24];
-        // get maxcode and codelen from t1
+        uint32_t code = (buffer >> bitcount) & 0xffffffffU;
+        /* lookup code in table1 */
+        uint32_t t1 = huffcdic->table1[code >> 24];
+        /* get maxcode and codelen from t1 */
         code_length = t1 & 0x1f;
-        maxcode = (((t1 >> 8) + 1) << (32 - code_length)) - 1;
-        // check termination bit
+        uint32_t maxcode = (((t1 >> 8) + 1) << (32 - code_length)) - 1;
+        /* check termination bit */
         if (!(t1 & 0x80)) {
-            // get offset from mincode, maxcode tables
+            /* get offset from mincode, maxcode tables */
             while (code < huffcdic->mincode_table[code_length]) {
                 code_length++;
             }
@@ -114,26 +152,67 @@ size_t mobi_decompress_huffman(char *out, const char *in, size_t len, MOBIHuffCd
         if (bitsleft < 0) {
             break;
         }
-        // get index for symbol offset
-        index = (maxcode - code) >> (32 - code_length);
-        // check which part of cdic to use
-        i = index >> huffcdic->code_length;
-        // get offset
-        offset = huffcdic->symbol_offsets[index];
-        symbol_length = (uint8_t) huffcdic->symbols[i][offset] << 8 | (uint8_t) huffcdic->symbols[i][offset + 1];
-        // 1st bit is is_decompressed flag
+        /* get index for symbol offset */
+        uint32_t index = (uint32_t) (maxcode - code) >> (32 - code_length);
+        /* check which part of cdic to use */
+        uint8_t cdic_index = (uint8_t) ((uint32_t)index >> huffcdic->code_length);
+        /* get offset */
+        uint32_t offset = huffcdic->symbol_offsets[index];
+        uint32_t symbol_length = (uint32_t) huffcdic->symbols[cdic_index][offset] << 8 | (uint32_t) huffcdic->symbols[cdic_index][offset + 1];
+        /* 1st bit is is_decompressed flag */
         int is_decompressed = symbol_length >> 15;
-        // get rid of flag
+        /* get rid of flag */
         symbol_length &= 0x7fff;
         if (is_decompressed) {
-            memcpy(out, (huffcdic->symbols[i] + offset + 2), symbol_length);
-            out += symbol_length;
+            /* symbol is at (offset + 2), 2 bytes used earlier for symbol length */
+            buffer_addraw(buf_out, (huffcdic->symbols[cdic_index] + offset + 2), symbol_length);
+            ret = buf_out->error;
         } else {
-            // symbol is compressed
-            // TODO cache uncompressed symbols?
-            out += mobi_decompress_huffman(out, (huffcdic->symbols[i] + offset + 2), (symbol_length), huffcdic, depth + 1);
+            /* symbol is compressed */
+            /* TODO cache uncompressed symbols? */
+            MOBIBuffer buf_sym;
+            buf_sym.data = huffcdic->symbols[cdic_index] + offset + 2;
+            buf_sym.offset = 0;
+            buf_sym.maxlen = symbol_length;
+            buf_sym.error = MOBI_SUCCESS;
+            ret = mobi_decompress_huffman_internal(buf_out, &buf_sym, huffcdic, depth + 1);
         }
     }
-    return (size_t) out - start_out;
+    return ret;
+}
 
+/**
+ @brief Decompressor for huff/cdic compressed text records
+ 
+ Decompressor and HUFF/CDIC records parsing based on:
+ perl EBook::Tools::Mobipocket
+ python mobiunpack.py, calibre
+ 
+ @param[out] out Decompressed destination data
+ @param[in] in Compressed source data
+ @param[in,out] len_out Size of the memory reserved for decompressed data.
+ On return it is set to actual size of decompressed data
+ @param[in] len_in Size of compressed data
+ @param[in] huffcdic MOBIHuffCdic structure with parsed data from huff/cdic records
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_decompress_huffman(unsigned char *out, const unsigned char *in, size_t *len_out, size_t len_in, const MOBIHuffCdic *huffcdic) {
+    MOBIBuffer *buf_in = buffer_init_null(len_in);
+    if (buf_in == NULL) {
+        return MOBI_MALLOC_FAILED;
+    }
+    MOBIBuffer *buf_out = buffer_init_null(*len_out);
+    if (buf_out == NULL) {
+        buffer_free_null(buf_in);
+        return MOBI_MALLOC_FAILED;
+    }
+    /* FIXME: is it ok to cast const to non-const here */
+    /* or is there a better way? */
+    buf_in->data = (unsigned char *) in;
+    buf_out->data = out;
+    MOBI_RET ret = mobi_decompress_huffman_internal(buf_out, buf_in, huffcdic, 0);
+    *len_out = buf_out->offset;
+    buffer_free_null(buf_out);
+    buffer_free_null(buf_in);
+    return ret;
 }
