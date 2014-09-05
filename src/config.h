@@ -11,6 +11,8 @@
 #ifndef mobi_config_h
 #define mobi_config_h
 
+#ifdef HAVE_CONFIG_H
 #include "../config.h"
+#endif
 
 #endif

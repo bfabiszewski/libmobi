@@ -21,6 +21,9 @@
 #include <sys/stat.h>
 /* include libmobi header */
 #include <mobi.h>
+#ifdef HAVE_CONFIG_H
+#include "../config.h"
+#endif
 
 #ifdef HAVE_SYS_RESOURCE_H
 /* rusage */
