@@ -448,6 +448,13 @@ void buffer_copy(MOBIBuffer *dest, MOBIBuffer *source, const size_t len) {
     source->offset += len;
 }
 
+/**
+ @brief Check if buffer data header contains magic signature
+ 
+ @param[in] buf MOBIBuffer buffer containing data
+ @param[in] magic Magic signature
+ @return boolean true on match, false otherwise
+ */
 bool buffer_match_magic(MOBIBuffer *buf, const char *magic) {
     const size_t magic_length = strlen(magic);
     if (buf->offset + magic_length > buf->maxlen) {
