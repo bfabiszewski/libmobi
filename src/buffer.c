@@ -492,7 +492,7 @@ void buffer_free_null(MOBIBuffer *buf) {
 /**
  @brief Initializer for MOBIArray structure
  
- It allocates memory for structure and for data: array of size_t variables.
+ It allocates memory for structure and for data: array of uint32_t variables.
  Memory should be freed with array_free().
  
  @param[in] len Initial size of the array
