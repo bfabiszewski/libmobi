@@ -524,10 +524,7 @@ MOBIArray * array_init(const size_t len) {
 }
 
 /**
- @brief Initializer for MOBIBuffer structure
- 
- It allocates memory for structure and for data.
- Memory should be freed with buffer_free().
+ @brief Inserts value into MOBIArray array
  
  @param[in,out] arr MOBIArray array
  @param[in] value Value to be inserted

@@ -1488,7 +1488,7 @@ MOBI_RET mobi_reconstruct_links(const MOBIRawml *rawml) {
     }
     MOBI_RET ret;
     if (rawml->version != MOBI_NOTSET && rawml->version >= 8) {
-        /* kf8 gimnastics */
+        /* kf8 gymnastics */
         ret = mobi_reconstruct_links_kf8(rawml);
     } else {
         /* kf7 format and older */
