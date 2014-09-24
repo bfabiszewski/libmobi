@@ -835,9 +835,7 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
 }
 
 /**
- @brief Skan html part and build arrays of filepos link target offsets and attribute offsets.
- 
- If links or offsets array is null it will not be filled with data
+ @brief Scan html part and build array of filepos link target offsets
  
  @param[in,out] links MOBIArray structure for link target offsets array
  @param[in] part MOBIPart html part structure
@@ -869,7 +867,7 @@ MOBI_RET mobi_get_filepos_array(MOBIArray *links, const MOBIPart *part) {
 }
 
 /**
- @brief Skan ncx part and build array of filepos link target offsets.
+ @brief Scan ncx part and build array of filepos link target offsets.
  
  @param[in,out] links MOBIArray structure for link target offsets array
  @param[in] part MOBIPart html part structure
