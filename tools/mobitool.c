@@ -377,6 +377,11 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
             }
             printf("part%05zu.%s\n", curr->uid, file_meta.extension);
             fwrite(curr->data, 1, curr->size, file);
+            if (ferror(file)) {
+                printf("Error writing: %s\n", partname);
+                perror(NULL);
+                return ERROR;
+            }
             fclose(file);
             curr = curr->next;
         }
@@ -396,6 +401,11 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
             }
             printf("flow%05zu.%s\n", curr->uid, file_meta.extension);
             fwrite(curr->data, 1, curr->size, file);
+            if (ferror(file)) {
+                printf("Error writing: %s\n", partname);
+                perror(NULL);
+                return ERROR;
+            }
             fclose(file);
             curr = curr->next;
         }
@@ -415,6 +425,11 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
                 }
                 printf("resource%05zu.%s\n", curr->uid, file_meta.extension);
                 fwrite(curr->data, 1, curr->size, file);
+                if (ferror(file)) {
+                    printf("Error writing: %s\n", partname);
+                    perror(NULL);
+                    return ERROR;
+                }
                 fclose(file);
             }
             curr = curr->next;

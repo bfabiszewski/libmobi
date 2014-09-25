@@ -1019,26 +1019,6 @@ typedef struct MOBIFragment {
     struct MOBIFragment *next; /**< Link to next fragment */
 } MOBIFragment;
 
-/**
- @brief Allocate fragment, fill with data, append to linked list
- 
- @param[in] curr Last fragment in linked list
- @param[in] fragment Fragment data
- @param[in] size Size data
- @param[in] is_malloc is_maloc data
- @return Fragment structure filled with data
- */
-static MOBIFragment * mobi_list_add(MOBIFragment *curr, unsigned char *fragment, const size_t size, const bool is_malloc) {
-    curr->next = calloc(1, sizeof(MOBIFragment));
-    if (curr->next == NULL) {
-        return NULL;
-    }
-    MOBIFragment *next = curr->next;
-    next->fragment = fragment;
-    next->size = size;
-    next->is_malloc = is_malloc;
-    return next;
-}
 
 /**
  @brief Allocate fragment, fill with data and return
@@ -1060,6 +1040,30 @@ static MOBIFragment * mobi_list_init(unsigned char *fragment, const size_t size,
 }
 
 /**
+ @brief Allocate fragment, fill with data, append to linked list
+ 
+ @param[in] curr Last fragment in linked list
+ @param[in] fragment Fragment data
+ @param[in] size Size data
+ @param[in] is_malloc is_maloc data
+ @return Fragment structure filled with data
+ */
+static MOBIFragment * mobi_list_add(MOBIFragment *curr, unsigned char *fragment, const size_t size, const bool is_malloc) {
+    if (!curr) {
+        return mobi_list_init(fragment, size, is_malloc);
+    }
+    curr->next = calloc(1, sizeof(MOBIFragment));
+    if (curr->next == NULL) {
+        return NULL;
+    }
+    MOBIFragment *next = curr->next;
+    next->fragment = fragment;
+    next->size = size;
+    next->is_malloc = is_malloc;
+    return next;
+}
+
+/**
  @brief Delete fragment from linked list
  
  @param[in] curr Fragment to be deleted
@@ -1073,6 +1077,17 @@ static MOBIFragment * mobi_list_del(MOBIFragment *curr) {
     }
     free(del);
     return curr;
+}
+
+/**
+ @brief Delete all fragments from linked list
+ 
+ @param[in] first First fragment from the list
+ */
+static void mobi_list_del_all(MOBIFragment *first) {
+    while (first) {
+        first = mobi_list_del(first);
+    }
 }
 
 /**
@@ -1145,18 +1160,11 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
                 }
                 if (target) {
                     /* first chunk */
-                    if (!curr) {
-                        curr = mobi_list_init(data_in, size, false);
-                        if (curr == NULL) {
-                            return MOBI_MALLOC_FAILED;
-                        }
-                        first = curr;
-                    } else {
-                        curr = mobi_list_add(curr, data_in, size, false);
-                        if (curr == NULL) {
-                            return MOBI_MALLOC_FAILED;
-                        }
+                    curr = mobi_list_add(curr, data_in, size, false);
+                    if (curr == NULL) {
+                        return MOBI_MALLOC_FAILED;
                     }
+                    if (!first) { first = curr; }
                     part_size += curr->size;
                     /* second chunk */
                     /* strip quotes if is_url */
@@ -1164,9 +1172,7 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
                                          (unsigned char *) strdup(link + result.is_url),
                                          strlen(link) - 2 * result.is_url, true);
                     if (curr == NULL) {
-                        while (first) {
-                            first = mobi_list_del(first);
-                        }
+                        mobi_list_del_all(first);
                         return MOBI_MALLOC_FAILED;
                     }
                     part_size += curr->size;
@@ -1302,9 +1308,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                 break;
             default:
                 debug_print("Unknown link target: %s\n", attribute);
-                while (first) {
-                    first = mobi_list_del(first);
-                }
+                mobi_list_del_all(first);
                 return MOBI_DATA_CORRUPT;
                 break;
         }
@@ -1318,27 +1322,17 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
             }
             /* first chunk */
             if (data_links < data_in) {
-                while (first) {
-                    first = mobi_list_del(first);
-                }
+                mobi_list_del_all(first);
                 return MOBI_DATA_CORRUPT;
             }
             size_t chunk_size = (size_t) (data_links - data_in);
-            if (!curr) {
-                curr = mobi_list_init(data_in, chunk_size, false);
-                if (curr == NULL) {
-                    return MOBI_MALLOC_FAILED;
-                }
-                first = curr;
-            } else {
-                curr = mobi_list_add(curr, data_in, chunk_size, false);
-                if (curr == NULL) {
-                    while (first) {
-                        first = mobi_list_del(first);
-                    }
-                    return MOBI_MALLOC_FAILED;
-                }
+            
+            curr = mobi_list_add(curr, data_in, chunk_size, false);
+            if (curr == NULL) {
+                mobi_list_del_all(first);
+                return MOBI_MALLOC_FAILED;
             }
+            if (!first) { first = curr; }
             data_in = data_links;
             new_size += curr->size;
             /* second chunk */
@@ -1348,45 +1342,30 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                                  (unsigned char *) strdup(anchor),
                                  strlen(anchor), true);
             if (curr == NULL) {
-                while (first) {
-                    first = mobi_list_del(first);
-                }
+                mobi_list_del_all(first);
                 return MOBI_MALLOC_FAILED;
             }
             new_size += curr->size;
             i++;
         }
         if (data_cur < data_in) {
-            while (first) {
-                first = mobi_list_del(first);
-            }
+            mobi_list_del_all(first);
             return MOBI_DATA_CORRUPT;
         }
         size_t size = (size_t) (data_cur - data_in);
-        if (!curr) {
-            curr = mobi_list_init(data_in, size, false);
-            if (curr == NULL) {
-                return MOBI_MALLOC_FAILED;
-            }
-            first = curr;
-        } else {
-            curr = mobi_list_add(curr, data_in, size, false);
-            if (curr == NULL) {
-                while (first) {
-                    first = mobi_list_del(first);
-                }
-                return MOBI_MALLOC_FAILED;
-            }
+        curr = mobi_list_add(curr, data_in, size, false);
+        if (curr == NULL) {
+            mobi_list_del_all(first);
+            return MOBI_MALLOC_FAILED;
         }
+        if (!first) { first = curr; }
         new_size += curr->size;
         /* second chunk */
         curr = mobi_list_add(curr,
                              (unsigned char *) strdup(link),
                              strlen(link), true);
         if (curr == NULL) {
-            while (first) {
-                first = mobi_list_del(first);
-            }
+            mobi_list_del_all(first);
             return MOBI_MALLOC_FAILED;
         }
         new_size += curr->size;
@@ -1401,27 +1380,16 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         }
         /* first chunk */
         if (data_links < data_in) {
-            while (first) {
-                first = mobi_list_del(first);
-            }
+            mobi_list_del_all(first);
             return MOBI_DATA_CORRUPT;
         }
         size_t chunk_size = (size_t) (data_links - data_in);
-        if (!curr) {
-            curr = mobi_list_init(data_in, chunk_size, false);
-            if (curr == NULL) {
-                return MOBI_MALLOC_FAILED;
-            }
-            first = curr;
-        } else {
-            curr = mobi_list_add(curr, data_in, chunk_size, false);
-            if (curr == NULL) {
-                while (first) {
-                    first = mobi_list_del(first);
-                }
-                return MOBI_MALLOC_FAILED;
-            }
+        curr = mobi_list_add(curr, data_in, chunk_size, false);
+        if (curr == NULL) {
+            mobi_list_del_all(first);
+            return MOBI_MALLOC_FAILED;
         }
+        if (!first) { first = curr; }
         data_in = data_links;
         new_size += curr->size;
         /* second chunk */
@@ -1431,9 +1399,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                              (unsigned char *) strdup(anchor),
                              strlen(anchor), true);
         if (curr == NULL) {
-            while (first) {
-                first = mobi_list_del(first);
-            }
+            mobi_list_del_all(first);
             return MOBI_MALLOC_FAILED;
         }
         new_size += curr->size;
@@ -1443,17 +1409,13 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
     if (first && first->fragment) {
         /* last chunk */
         if (part->data + part->size < data_in) {
-            while (first) {
-                first = mobi_list_del(first);
-            }
+            mobi_list_del_all(first);
             return MOBI_DATA_CORRUPT;
         }
         size_t size = (size_t) (part->data + part->size - data_in);
         curr = mobi_list_add(curr, data_in, size, false);
         if (curr == NULL) {
-            while (first) {
-                first = mobi_list_del(first);
-            }
+            mobi_list_del_all(first);
             return MOBI_MALLOC_FAILED;
         }
         new_size += curr->size;
@@ -1496,6 +1458,74 @@ MOBI_RET mobi_reconstruct_links(const MOBIRawml *rawml) {
 }
 
 /**
+ @brief Call callback function for each text record
+ 
+ @param[in,out] rawml Structure rawml will be filled with reconstructed parts and resources
+ @param[in,out] cb Callback function
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_iterate_txtparts(MOBIRawml *rawml, MOBI_RET (*cb) (MOBIPart *)) {
+    MOBIPart *parts[] = {
+        rawml->markup, /* html files */
+        rawml->flow->next /* css, skip first unparsed html part */
+    };
+    size_t i;
+    for (i = 0; i < 2; i++) {
+        MOBIPart *part = parts[i];
+        while (part) {
+            if (part->type == T_HTML || part->type == T_CSS) {
+                MOBI_RET ret = cb(part);
+                if (ret != MOBI_SUCCESS) {
+                    return ret;
+                }
+            }
+            part = part->next;
+        }
+    }
+    return MOBI_SUCCESS;
+}
+
+/**
+ @brief Convert MOBIPart part data to utf8
+ 
+ @param[in,out] part MOBIPart part
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_markup_to_utf8(MOBIPart *part) {
+    if (part == NULL) {
+        return MOBI_INIT_FAILED;
+    }
+    unsigned char *text = part->data;
+    size_t length = part->size;
+    /* extreme case in which each input character is converted
+     to 3-byte utf-8 sequence */
+    size_t out_length = 3 * length + 1;
+    char *out_text = malloc(out_length);
+    if (out_text == NULL) {
+        debug_print("%s", "Memory allocation failed\n");
+        return MOBI_MALLOC_FAILED;
+    }
+    MOBI_RET ret = mobi_cp1252_to_utf8(out_text, (const char *) text, &out_length, length);
+    free(text);
+    if (ret != MOBI_SUCCESS || out_length == 0) {
+        debug_print("%s", "conversion from cp1252 to utf8 failed\n");
+        free(out_text);
+        return ret;
+    }
+    text = malloc(out_length);
+    if (text == NULL) {
+        debug_print("%s", "Memory allocation failed\n");
+        free(out_text);
+        return MOBI_MALLOC_FAILED;
+    }
+    memcpy(text, out_text, out_length);
+    free(out_text);
+    part->data = text;
+    part->size = out_length;
+    return MOBI_SUCCESS;
+}
+
+/**
  @brief Parse raw records into html flow parts, markup parts, resources and indices
  
  @param[in,out] rawml Structure rawml will be filled with reconstructed parts and resources
@@ -1528,38 +1558,9 @@ MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
         free(text);
         return MOBI_MALLOC_FAILED;
     }
-    /* Work on utf-8 encoded text */
-    if (memcmp(text, REPLICA_MAGIC, 4) != 0 && mobi_is_cp1252(m)) {
-        /* extreme case in which each input character is converted
-         to 3-byte utf-8 sequence */
-        size_t out_length = 3 * length + 1;
-        char *out_text = malloc(out_length);
-        if (out_text == NULL) {
-            debug_print("%s", "Memory allocation failed\n");
-            free(text);
-            return MOBI_MALLOC_FAILED;
-        }
-        ret = mobi_cp1252_to_utf8(out_text, text, &out_length, length);
-        free(text);
-        if (ret != MOBI_SUCCESS || out_length == 0) {
-            debug_print("%s", "conversion from cp1252 to utf8 failed\n");
-            free(out_text);
-            return ret;
-        }
-        text = malloc(out_length + 1);
-        if (text == NULL) {
-            debug_print("%s", "Memory allocation failed\n");
-            free(out_text);
-            return MOBI_MALLOC_FAILED;
-        }
-        memcpy(text, out_text, out_length);
-        free(out_text);
-        text[out_length] = '\0';
-        length = out_length;
-    }
     
     if (mobi_exists_fdst(m)) {
-        /* Skip parsing if section count less than 1 */
+        /* Skip parsing if section count less or equal than 1 */
         if (m->mh->fdst_section_count && *m->mh->fdst_section_count > 1) {
             ret = mobi_parse_fdst(m, rawml);
             if (ret != MOBI_SUCCESS) {
@@ -1649,6 +1650,13 @@ MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
     if (ret != MOBI_SUCCESS) {
         return ret;
     }
+    if (mobi_is_cp1252(m)) {
+        ret = mobi_iterate_txtparts(rawml, mobi_markup_to_utf8);
+        if (ret != MOBI_SUCCESS) {
+            return ret;
+        }
+    }
     return MOBI_SUCCESS;
 }
+
 
