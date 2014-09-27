@@ -1282,9 +1282,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         char *value = strpbrk(attribute, numbers);
         if (value == NULL) {
             debug_print("Unknown link target: %s\n", attribute);
-            while (first) {
-                first = mobi_list_del(first);
-            }
+            mobi_list_del_all(first);
             return MOBI_DATA_CORRUPT;
         }
         size_t target;
