@@ -1338,7 +1338,74 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
 }
 
 /**
- @brief Replace offset-links with html-links in KF7 markup
+ @brief Insert orth index markup to linked list of fragments
+ 
+ @param[in] rawml Structure rawml contains orth index data
+ @param[in,out] first First element of the linked list
+ @param[in,out] new_size Counter to be updated with inserted fragments size
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size_t *new_size) {
+    MOBIFragment *curr = first;
+    size_t i = 0;
+    const size_t count = rawml->orth->entries_count;
+    const char *start_tag1 = "<idx:entry><idx:orth value=\"%s\"></idx:orth></idx:entry>";
+    const char *start_tag2 = "<idx:entry scriptable=\"yes\"><idx:orth value=\"%s\"></idx:orth>";
+    const char *end_tag = "</idx:entry>";
+    const size_t start_tag1_len = strlen(start_tag1) - 2;
+    const size_t start_tag2_len = strlen(start_tag2) - 2;
+    const size_t end_tag_len = strlen(end_tag);
+    uint32_t prev_startpos = 0;
+    while (i < count) {
+        const MOBIIndexEntry *orth_entry = &rawml->orth->entries[i];
+        const char *label = orth_entry->label;
+        uint32_t entry_startpos;
+        MOBI_RET ret = mobi_get_indxentry_tagvalue(&entry_startpos, orth_entry, INDX_TAG_ORTH_STARTPOS);
+        if (ret != MOBI_SUCCESS) {
+            return ret;
+        }
+        uint32_t entry_textlen = 0;
+        mobi_get_indxentry_tagvalue(&entry_textlen, orth_entry, INDX_TAG_ORTH_ENDPOS);
+        size_t entry_length;
+        char *start_tag;
+        if (entry_textlen == 0) {
+            entry_length = start_tag1_len + strlen(label);
+            start_tag = (char *) start_tag1;
+        } else {
+            entry_length = start_tag2_len + strlen(label);
+            start_tag = (char *) start_tag2;
+        }
+        char *entry_text = malloc(entry_length + 1);
+        sprintf(entry_text, start_tag, label);
+        if (entry_startpos < prev_startpos) {
+            curr = first;
+        }
+        curr = mobi_list_insert(curr, SIZE_MAX,
+                                (unsigned char *) entry_text,
+                                entry_length, true, entry_startpos);
+        prev_startpos = entry_startpos;
+        if (curr == NULL) {
+            return MOBI_MALLOC_FAILED;
+        }
+        *new_size += curr->size;
+        if (entry_textlen > 0) {
+            /* FIXME: avoid end_tag duplication */
+            curr = mobi_list_insert(curr, SIZE_MAX,
+                                    (unsigned char *) strdup(end_tag),
+                                    end_tag_len, true, entry_startpos + entry_textlen);
+            if (curr == NULL) {
+                return MOBI_MALLOC_FAILED;
+            }
+            *new_size += curr->size;
+        }
+        i++;
+    }
+    return MOBI_SUCCESS;
+}
+
+/**
+ @brief Replace offset-links with html-links in KF7 markup.
+ Also reconstruct dictionary markup if present
  
  @param[in,out] rawml Structure rawml will be filled with reconstructed parts and resources
  @return MOBI_RET status code (on success MOBI_SUCCESS)
@@ -1475,62 +1542,10 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
     array_free(links);
     /* insert dictionary markup if present */
     if (rawml->orth) {
-        curr = first;
-        i = 0;
-        const size_t count = rawml->orth->entries_count;
-        char *start_tag;
-        const char *start_tag1 = "<idx:entry><idx:orth value=\"%s\"></idx:orth></idx:entry>";
-        const char *start_tag2 = "<idx:entry scriptable=\"yes\"><idx:orth value=\"%s\"></idx:orth>";
-        const char *end_tag = "</idx:entry>";
-        const size_t start_tag1_len = strlen(start_tag1) - 2;
-        const size_t start_tag2_len = strlen(start_tag2) - 2;
-        const size_t end_tag_len = strlen(end_tag);
-        uint32_t prev_startpos = 0;
-        while (i < count) {
-            const MOBIIndexEntry *orth_entry = &rawml->orth->entries[i];
-            const char *label = orth_entry->label;
-            uint32_t entry_startpos;
-            uint32_t entry_textlen = 0;
-            ret = mobi_get_indxentry_tagvalue(&entry_startpos, orth_entry, INDX_TAG_ORTH_STARTPOS);
-            if (ret != MOBI_SUCCESS) {
-                mobi_list_del_all(first);
-                return ret;
-            }
-            char *entry_text;
-            size_t entry_length;
-            mobi_get_indxentry_tagvalue(&entry_textlen, orth_entry, INDX_TAG_ORTH_ENDPOS);
-            if (entry_textlen == 0) {
-                entry_length = start_tag1_len + strlen(label);
-                start_tag = (char *) start_tag1;
-            } else {
-                entry_length = start_tag2_len + strlen(label);
-                start_tag = (char *) start_tag2;
-            }
-            entry_text = malloc(entry_length + 1);
-            sprintf(entry_text, start_tag, label);
-            if (entry_startpos < prev_startpos) {
-                curr = first;
-            }
-            curr = mobi_list_insert(curr, SIZE_MAX,
-                                    (unsigned char *) entry_text,
-                                    entry_length, true, entry_startpos);
-            prev_startpos = entry_startpos;
-            if (curr == NULL) {
-                mobi_list_del_all(first);
-                return MOBI_MALLOC_FAILED;
-            }
-            new_size += curr->size;
-            if (entry_textlen > 0) {
-                curr = mobi_list_insert(curr, SIZE_MAX,
-                                        (unsigned char *) end_tag,
-                                        end_tag_len, false, entry_startpos + entry_textlen);
-                if (curr == NULL) {
-                    mobi_list_del_all(first);
-                    return MOBI_MALLOC_FAILED;
-                }
-                new_size += curr->size;
-            }
-            i++;
+        ret = mobi_reconstruct_orth(rawml, first, &new_size);
+        if (ret != MOBI_SUCCESS) {
+            mobi_list_del_all(first);
+            return ret;
         }
     }
     if (first && first->next) {
