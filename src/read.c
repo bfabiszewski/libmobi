@@ -677,8 +677,8 @@ MOBI_RET mobi_parse_fdst(const MOBIData *m, MOBIRawml *rawml) {
     }
     rawml->fdst = malloc(sizeof(MOBIFdst));
     rawml->fdst->fdst_section_count = section_count;
-    rawml->fdst->fdst_section_starts = malloc(sizeof(uint32_t) * section_count);
-    rawml->fdst->fdst_section_ends = malloc(sizeof(uint32_t) * section_count);
+    rawml->fdst->fdst_section_starts = malloc(sizeof(*rawml->fdst->fdst_section_starts) * section_count);
+    rawml->fdst->fdst_section_ends = malloc(sizeof(*rawml->fdst->fdst_section_ends) * section_count);
     size_t i = 0;
     while (i < section_count) {
         rawml->fdst->fdst_section_starts[i] = buffer_get32(buf);

@@ -545,7 +545,7 @@ MOBIArray * array_init(const size_t len) {
         debug_print("%s", "Array allocation failed\n");
         return NULL;
     }
-    arr->data = malloc(len * sizeof(uint32_t));
+    arr->data = malloc(len * sizeof(*arr->data));
 	if (arr->data == NULL) {
 		free(arr);
         debug_print("%s", "Array data allocation failed\n");
@@ -569,7 +569,7 @@ MOBI_RET array_insert(MOBIArray *arr, const uint32_t value) {
     }
     if (arr->maxsize == arr->size) {
         arr->maxsize += arr->step;
-        uint32_t *tmp = realloc(arr->data, arr->maxsize * sizeof(uint32_t));
+        uint32_t *tmp = realloc(arr->data, arr->maxsize * sizeof(*arr->data));
         if (!tmp) {
             free(arr->data);
             arr->data = NULL;
@@ -611,7 +611,7 @@ void array_sort(MOBIArray *arr, const bool unique) {
     if (!arr || !arr->data || arr->size == 0) {
         return;
     }
-    qsort(arr->data, arr->size, sizeof(uint32_t), array_compare);
+    qsort(arr->data, arr->size, sizeof(*arr->data), array_compare);
     if (unique) {
         size_t i = 1, j = 1;
         while (i < arr->size) {

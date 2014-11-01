@@ -31,7 +31,7 @@ static MOBI_RET mobi_parse_ordt(MOBIBuffer *buf, MOBIOrdt *ordt) {
     if (buffer_match_magic(buf, ORDT_MAGIC)) {
         debug_print("%s\n", "ORDT1 section found");
         buf->offset += 4;
-        ordt->ordt1 = malloc(ordt->offsets_count * sizeof(*(ordt->ordt1)));
+        ordt->ordt1 = malloc(ordt->offsets_count * sizeof(*ordt->ordt1));
         if (ordt->ordt1 == NULL) {
             debug_print("%s", "Memory allocation failed for ORDT1 offsets\n");
             return MOBI_MALLOC_FAILED;
@@ -47,7 +47,7 @@ static MOBI_RET mobi_parse_ordt(MOBIBuffer *buf, MOBIOrdt *ordt) {
     if (buffer_match_magic(buf, ORDT_MAGIC)) {
         debug_print("%s\n", "ORDT2 section found");
         buf->offset += 4;
-        ordt->ordt2 = malloc(ordt->offsets_count * sizeof(*(ordt->ordt2)));
+        ordt->ordt2 = malloc(ordt->offsets_count * sizeof(*ordt->ordt2));
         if (ordt->ordt2 == NULL) {
             debug_print("%s", "Memory allocation failed for ORDT2 offsets\n");
             return MOBI_MALLOC_FAILED;

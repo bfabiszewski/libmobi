@@ -1436,7 +1436,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
             data_in = result.end;
         }
     }
-    if (first && first->fragment) {
+    if (first) {
         /* last chunk */
         if (part->data + part->size < data_in) {
             mobi_list_del_all(first);
