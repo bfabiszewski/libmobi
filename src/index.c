@@ -180,7 +180,7 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
             }
             length = wctomb(&text[j], wchar);
             if (length < 0) {
-                debug_print("Couldn't convert unichar %u", wchar);
+                debug_print("Couldn't convert unichar %zu", (size_t) wchar);
                 continue;
             }
             j += length;
