@@ -12,11 +12,54 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <locale.h>
 
 #include "index.h"
 #include "util.h"
 #include "memory.h"
 #include "debug.h"
+
+/**
+ @brief Parser of ORDT section of INDX record
+ 
+ @param[in,out] buf MOBIBuffer structure, offset pointing at beginning of TAGX section
+ @param[in,out] ordt MOBIOrdt structure to be filled by the function
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_parse_ordt(MOBIBuffer *buf, MOBIOrdt *ordt) {
+    /* read ORDT1 */
+    if (buffer_match_magic(buf, ORDT_MAGIC)) {
+        debug_print("%s\n", "ORDT1 section found");
+        buf->offset += 4;
+        ordt->ordt1 = malloc(ordt->offsets_count * sizeof(*(ordt->ordt1)));
+        if (ordt->ordt1 == NULL) {
+            debug_print("%s", "Memory allocation failed for ORDT1 offsets\n");
+            return MOBI_MALLOC_FAILED;
+        }
+        size_t i = 0;
+        while (i < ordt->offsets_count) {
+            ordt->ordt1[i++] = buffer_get8(buf);
+        }
+        debug_print("ORDT1: read %zu entries\n", ordt->offsets_count);
+    }
+    /* read ORDT2 */
+    buf->offset = ordt->ordt2_pos;
+    if (buffer_match_magic(buf, ORDT_MAGIC)) {
+        debug_print("%s\n", "ORDT2 section found");
+        buf->offset += 4;
+        ordt->ordt2 = malloc(ordt->offsets_count * sizeof(*(ordt->ordt2)));
+        if (ordt->ordt2 == NULL) {
+            debug_print("%s", "Memory allocation failed for ORDT2 offsets\n");
+            return MOBI_MALLOC_FAILED;
+        }
+        size_t i = 0;
+        while (i < ordt->offsets_count) {
+            ordt->ordt2[i++] = buffer_get16(buf);
+        }
+        debug_print("ORDT2: read %zu entries\n", ordt->offsets_count);
+    }
+    return MOBI_SUCCESS;
+}
 
 /**
  @brief Parser of TAGX section of INDX record
@@ -94,7 +137,7 @@ static MOBI_RET mobi_parse_idxt(MOBIBuffer *buf, MOBIIdxt *idxt, const size_t en
  @param[in] curr_number Sequential number of an index entry for current record
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, const MOBITagx tagx, MOBIBuffer *buf, const size_t curr_number) {
+static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, const MOBITagx *tagx, const MOBIOrdt *ordt, MOBIBuffer *buf, const size_t curr_number) {
     if (indx == NULL) {
         debug_print("%s", "INDX structure not initialized\n");
         return MOBI_INIT_FAILED;
@@ -110,44 +153,84 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
         return MOBI_DATA_CORRUPT;
     }
     buf->maxlen = buf->offset + entry_length;
-    const size_t label_length = buffer_get8(buf);
+    size_t label_length = buffer_get8(buf);
     if (label_length > entry_length) {
         debug_print("Label length too long: %zu\n", label_length);
         return MOBI_DATA_CORRUPT;
     }
+    char text[INDX_LABEL_SIZEMAX];
+    /* FIXME: what is ORDT1 for? */
+    if (ordt->ordt2) {
+        size_t i = 0;
+        int j = 0, length;
+        while (i < label_length) {
+            uint16_t offset;
+            wchar_t wchar;
+            if (ordt->type == 1) {
+                offset = buffer_get8(buf);
+                i++;
+            } else {
+                offset = buffer_get16(buf);
+                i += 2;
+            }
+            if (offset < ordt->offsets_count) {
+                wchar = ordt->ordt2[offset];
+            } else {
+                wchar = offset;
+            }
+            length = wctomb(&text[j], wchar);
+            if (length < 0) {
+                debug_print("Couldn't convert unichar %u", wchar);
+                continue;
+            }
+            j += length;
+            if (j + MB_CUR_MAX >= INDX_LABEL_SIZEMAX) {
+                debug_print("%s\n", "INDX label too long");
+                break;
+            }
+        }
+        text[j] = '\0';
+        label_length = (size_t) j;
+    } else {
+        label_length = buffer_getstring_skipzeroes(text, buf, label_length);
+    }
     indx->entries[entry_number].label = malloc(label_length + 1);
-    buffer_getstring(indx->entries[entry_number].label, buf, label_length);
+    if (indx->entries[entry_number].label == NULL) {
+        debug_print("Memory allocation failed (%zu bytes)\n", label_length);
+        return MOBI_MALLOC_FAILED;
+    }
+    strncpy(indx->entries[entry_number].label, text, label_length + 1);
     debug_print("tag label[%zu]: %s\n", entry_number, indx->entries[entry_number].label);
     unsigned char *control_bytes;
     control_bytes = buf->data + buf->offset;
-    buf->offset += tagx.control_byte_count;
-    if (tagx.tags_count > 0) {
+    buf->offset += tagx->control_byte_count;
+    if (tagx->tags_count > 0) {
         typedef struct {
             uint8_t tag;
             uint8_t tag_value_count;
             uint32_t value_count;
             uint32_t value_bytes;
         } MOBIPtagx;
-        MOBIPtagx ptagx[tagx.tags_count];
+        MOBIPtagx ptagx[tagx->tags_count];
         uint32_t ptagx_count = 0;
         size_t len;
-        indx->entries[entry_number].tags = malloc(tagx.tags_count * sizeof(MOBIIndexTag));
+        indx->entries[entry_number].tags = malloc(tagx->tags_count * sizeof(MOBIIndexTag));
         size_t i = 0;
-        while (i < tagx.tags_count) {
-            if (tagx.tags[i].control_byte == 1) {
+        while (i < tagx->tags_count) {
+            if (tagx->tags[i].control_byte == 1) {
                 control_bytes++;
                 i++;
                 continue;
             }
-            uint32_t value = control_bytes[0] & tagx.tags[i].bitmask;
+            uint32_t value = control_bytes[0] & tagx->tags[i].bitmask;
             if (value != 0) {
                 /* FIXME: is it safe to use MOBI_NOTSET? */
                 uint32_t value_count = MOBI_NOTSET;
                 uint32_t value_bytes = MOBI_NOTSET;
                 /* all bits of masked value are set */
-                if (value == tagx.tags[i].bitmask) {
+                if (value == tagx->tags[i].bitmask) {
                     /* more than 1 bit set */
-                    if (mobi_bitcount(tagx.tags[i].bitmask) > 1) {
+                    if (mobi_bitcount(tagx->tags[i].bitmask) > 1) {
                         /* read value bytes from entry */
                         len = 0;
                         value_bytes = buffer_get_varlen(buf, &len);
@@ -155,15 +238,15 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
                         value_count = 1;
                     }
                 } else {
-                    uint8_t mask = tagx.tags[i].bitmask;
+                    uint8_t mask = tagx->tags[i].bitmask;
                     while ((mask & 1) == 0) {
                         mask >>= 1;
                         value >>= 1;
                     }
                     value_count = value;
                 }
-                ptagx[ptagx_count].tag = tagx.tags[i].tag;
-                ptagx[ptagx_count].tag_value_count = tagx.tags[i].values_count;
+                ptagx[ptagx_count].tag = tagx->tags[i].tag;
+                ptagx[ptagx_count].tag_value_count = tagx->tags[i].values_count;
                 ptagx[ptagx_count].value_count = value_count;
                 ptagx[ptagx_count].value_bytes = value_bytes;
                 ptagx_count++;
@@ -213,7 +296,7 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
                      otherwise TAGX data will be used to parse the record
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBITagx *tagx) {
+MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBITagx *tagx, MOBIOrdt *ordt) {
     MOBI_RET ret;
     MOBIBuffer *buf = buffer_init_null(indx_record->size);
     if (buf == NULL) {
@@ -246,22 +329,33 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     indx->ligt_offset = buffer_get32(buf); /* 44: LIGT offset */
     indx->ordt_entries_count = buffer_get32(buf); /* 48: ORDT entries count */
     indx->cncx_records_count = buffer_get32(buf); /* 52: CNCX entries count */
-    //buf->offset += 124; /* 56: unknown */
-    // 164: ocnt
-    // 168: ORDT entries count
-    // 172: ORDT1 offset
-    // 176: ORDT2 offset
-    // 180: otagx
+    buf->offset = 164; /* 56: unknown */
+    uint32_t ordt_type = buffer_get32(buf); /* 164: ORDT type */
+    uint32_t ordt_entries_count = buffer_get32(buf); /* 168: ORDT entries count */
+    uint32_t ordt1_offset = buffer_get32(buf); /* 172: ORDT1 offset */
+    uint32_t ordt2_offset = buffer_get32(buf); /* 176: ORDT2 offset */
     //uint32_t tagx_offset = buffer_get32(buf); /* 180: TAGX offset ? */
-    /* FIXME: in dictionaries offset is moved by this value */
-    //tagx_offset += buffer_get32(buf);
-    /* buf->offset += 4; // 184: zeroes */
+    
     buf->offset = header_length;
     
     /* TAGX metadata */
-    /* if record contains TAGX section, read it and return */
+    /* if record contains TAGX section, read it (and ORDT) and return */
     if (buffer_match_magic(buf, TAGX_MAGIC)) {
         ret = mobi_parse_tagx(buf, tagx);
+        if (ret != MOBI_SUCCESS) {
+            buffer_free_null(buf);
+            return ret;
+        }
+        if (indx->encoding == MOBI_UTF16 || ordt_entries_count > 0) {
+            /* parse ORDT sections */
+            buf->offset = ordt1_offset;
+            ordt->offsets_count = ordt_entries_count;
+            ordt->type = ordt_type;
+            ordt->ordt1_pos = ordt1_offset;
+            ordt->ordt2_pos = ordt2_offset;
+            ret = mobi_parse_ordt(buf, ordt);
+            debug_print("ORDT: %u, %u, %u, %u\n", ordt_type, ordt_entries_count, ordt1_offset, ordt2_offset);
+        }
         buffer_free_null(buf);
         indx->entries_count = entries_count;
         return ret;
@@ -292,13 +386,17 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
             }
         }
         size_t i = 0;
+        /* UTF-8 aware locale is needed by wctomb() in mobi_parse_index_entry() */
+        char *saved_locale = setlocale(LC_CTYPE, NULL);
+        setlocale(LC_CTYPE, "en_US.UTF-8");
         while (i < entries_count) {
-            ret = mobi_parse_index_entry(indx, idxt, *tagx, buf, i++);
+            ret = mobi_parse_index_entry(indx, idxt, tagx, ordt, buf, i++);
             if (ret != MOBI_SUCCESS) {
                 buffer_free_null(buf);
                 return ret;
             }
         }
+        setlocale(LC_CTYPE, saved_locale);
         indx->entries_count += entries_count;
 
     }
@@ -316,15 +414,26 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
  */
 MOBI_RET mobi_parse_index(const MOBIData *m, MOBIIndx *indx, const size_t indx_record_number) {
     MOBI_RET ret;
-    /* tagx.tags array will be allocated in mobi_parse_tagx */
-    MOBITagx tagx = {.tags = NULL};
+    /* tagx->tags array will be allocated in mobi_parse_tagx */
+    MOBITagx *tagx = calloc(1, sizeof(MOBITagx));
+    if (tagx == NULL) {
+        mobi_free_indx(indx);
+        return MOBI_MALLOC_FAILED;
+    }
+    /* ordt->ordt1 and ordt.ordt2 arrays will be allocated in mobi_parse_ordt */
+    MOBIOrdt *ordt = calloc(1, sizeof(MOBIOrdt));
+    if (ordt == NULL) {
+        mobi_free_indx(indx);
+        mobi_free_tagx(tagx);
+        return MOBI_MALLOC_FAILED;
+    }
     /* parse first meta INDX record */
     MOBIPdbRecord *record = mobi_get_record_by_seqnumber(m, indx_record_number);
-    ret = mobi_parse_indx(record, indx, &tagx);
+    ret = mobi_parse_indx(record, indx, tagx, ordt);
     if (ret != MOBI_SUCCESS) {
         mobi_free_indx(indx);
-        free(tagx.tags);
-        indx = NULL;
+        mobi_free_tagx(tagx);
+        mobi_free_ordt(ordt);
         return ret;
     }
     size_t cncx_count = indx->cncx_records_count;
@@ -333,11 +442,11 @@ MOBI_RET mobi_parse_index(const MOBIData *m, MOBIIndx *indx, const size_t indx_r
     indx->entries_count = 0;
     while (count--) {
         record = record->next;
-        ret = mobi_parse_indx(record, indx, &tagx);
+        ret = mobi_parse_indx(record, indx, tagx, ordt);
         if (ret != MOBI_SUCCESS) {
             mobi_free_indx(indx);
-            free(tagx.tags);
-            indx = NULL;
+            mobi_free_tagx(tagx);
+            mobi_free_ordt(ordt);
             return ret;
         }
     }
@@ -346,7 +455,8 @@ MOBI_RET mobi_parse_index(const MOBIData *m, MOBIIndx *indx, const size_t indx_r
         indx->cncx_records_count = cncx_count;
         indx->cncx_record = record->next;
     }
-    free(tagx.tags);
+    mobi_free_tagx(tagx);
+    mobi_free_ordt(ordt);
     return MOBI_SUCCESS;
 }
 

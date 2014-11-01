@@ -12,6 +12,7 @@
 #define libmobi_memory_h
 
 #include "config.h"
+#include "index.h"
 #include "mobi.h"
 
 MOBIData * mobi_init(void);
@@ -25,6 +26,8 @@ void mobi_free_huffcdic(MOBIHuffCdic *huffcdic);
 
 MOBIIndx * mobi_init_indx(void);
 void mobi_free_indx(MOBIIndx *indx);
+void mobi_free_tagx(MOBITagx *tagx);
+void mobi_free_ordt(MOBIOrdt *ordt);
 void mobi_free_index_entries(MOBIIndx *indx);
 
 #endif

@@ -306,6 +306,39 @@ void buffer_getstring(char *str, MOBIBuffer *buf, const size_t len) {
 }
 
 /**
+ @brief Reads raw data from MOBIBuffer and pads it with zero character
+ 
+ FIXME: This function skips zeroes while reading from buffer,
+ as (malformed?) orth index tag labels sometimes contain null characters.
+ 
+ @param[out] str Destination for string read from buffer. Length must be (len + 1)
+ @param[in] buf MOBIBuffer structure containing data
+ @param[in] len Length of the data to be read from buffer
+ */
+size_t buffer_getstring_skipzeroes(char *str, MOBIBuffer *buf, const size_t len) {
+    if (!str) {
+        buf->error = MOBI_PARAM_ERR;
+        return 0;
+    }
+    if (buf->offset + len > buf->maxlen) {
+        debug_print("%s", "End of buffer\n");
+        buf->error = MOBI_BUFFER_END;
+        return 0;
+    }
+    size_t in = 0;
+    size_t out = 0;
+    while (out < len) {
+        if (buf->data[buf->offset + out] != 0) {
+            str[in++] = (char) buf->data[buf->offset + out];
+        }
+        out++;
+    }
+    str[in] = '\0';
+    buf->offset += len;
+    return in;
+}
+
+/**
  @brief Reads raw data from MOBIBuffer, appends it to a string and pads it with zero character
  
  @param[in,out] str A string to which data will be appended

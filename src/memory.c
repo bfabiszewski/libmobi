@@ -310,6 +310,35 @@ void mobi_free_indx(MOBIIndx *indx) {
 }
 
 /**
+ @brief Free MOBITagx structure and all its children
+ 
+ @param[in] tagx MOBITagx structure
+ */
+void mobi_free_tagx(MOBITagx *tagx) {
+    if (tagx == NULL) {
+        return;
+    }
+    free(tagx->tags);
+    free(tagx);
+    tagx = NULL;
+}
+
+/**
+ @brief Free MOBIOrdt structure and all its children
+ 
+ @param[in] ordt MOBIOrdt structure
+ */
+void mobi_free_ordt(MOBIOrdt *ordt) {
+    if (ordt == NULL) {
+        return;
+    }
+    free(ordt->ordt1);
+    free(ordt->ordt2);
+    free(ordt);
+    ordt = NULL;
+}
+
+/**
  @brief Free MOBIPart structure
  
  Pointer to data may point to memory area also used by record->data. 

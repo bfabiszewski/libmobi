@@ -40,7 +40,13 @@
 #define INDX_TAG_FRAG_SEQUENCE_NR (unsigned[]) {4, 0} /**< Frag sequence number */
 #define INDX_TAG_FRAG_POSITION (unsigned[]) {6, 0} /**< Frag position */
 #define INDX_TAG_FRAG_LENGTH (unsigned[]) {6, 1} /**< Frag length */
+
+#define INDX_TAG_ORTH_STARTPOS (unsigned[]) {1, 0} /**< Orth entry start position */
+#define INDX_TAG_ORTH_ENDPOS (unsigned[]) {2, 0} /**< Orth entry end position */
+
 /** @} */
+
+#define INDX_LABEL_SIZEMAX 1000 /**< Max size of index label */
 
 /**
  @brief Tag entries in TAGX section (for internal INDX parsing)
@@ -74,7 +80,22 @@ typedef struct {
     size_t offsets_count; /**< Offsets count */
 } MOBIIdxt;
 
-MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBITagx *tagx);
+/**
+ @brief Parsed ORDT sections (for internal INDX parsing)
+ 
+ ORDT sections hold data for decoding index labels.
+ It is mapping of encoded chars to unicode.
+ */
+typedef struct {
+    uint8_t *ordt1; /**< ORDT1 offsets */
+    uint16_t *ordt2; /**< ORDT2 offsets */
+    size_t type; /**< Type (0: 16, 1: 8 bit offsets) */
+    size_t ordt1_pos; /**< Offset of ORDT1 data */
+    size_t ordt2_pos; /**< Offset of ORDT2 data */
+    size_t offsets_count; /**< Offsets count */
+} MOBIOrdt;
+
+MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBITagx *tagx, MOBIOrdt *ordt);
 MOBI_RET mobi_get_indxentry_tagvalue(uint32_t *tagvalue, const MOBIIndexEntry *entry, const unsigned tag_arr[]);
 char * mobi_get_cncx_string(const MOBIPdbRecord *cncx_record, const uint32_t cncx_offset);
 #endif

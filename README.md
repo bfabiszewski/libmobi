@@ -17,7 +17,7 @@ It may serve as an example how to use the library.
 - reconstructing source structure that can be fed back to kindlegen
 
 ## Todo:
-- reconstruct dictionaries
+- reconstruct inflections
 - process RESC records
 - exporting to EPUB documents
 - writing MOBI documents

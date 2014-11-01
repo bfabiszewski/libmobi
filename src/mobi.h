@@ -187,6 +187,17 @@ extern "C"
     /** @} */
     
     /**
+     @defgroup mobi_enc Encoding types in MOBI header (offset 28)
+     @{
+     */
+    typedef enum {
+        MOBI_CP1252 = 1252,
+        MOBI_UTF8 = 65001,
+        MOBI_UTF16 = 65002,
+    } MOBIEncoding;
+    /** @} */
+    
+    /**
      @defgroup raw_structs Exported structures for the raw, unparsed records metadata and data
      @{
      */
@@ -280,7 +291,7 @@ extern "C"
         char mobi_magic[5]; /**< 16: M O B I { 77, 79, 66, 73 }, zero terminated */
         uint32_t *header_length; /**< 20: the length of the MOBI header, including the previous 4 bytes */
         uint32_t *mobi_type; /**< 24: mobipocket file type */
-        uint32_t *text_encoding; /**< 28: 1252 = CP1252, 65001 = UTF-8 */
+        MOBIEncoding *text_encoding; /**< 28: 1252 = CP1252, 65001 = UTF-8 */
         uint32_t *uid; /**< 32: unique id */
         uint32_t *version; /**< 36: mobipocket format */
         uint32_t *orth_index; /**< 40: section number of orthographic meta index. MOBI_NOTSET if index is not available. */
@@ -417,7 +428,7 @@ extern "C"
     typedef struct {
         size_t type; /**< Index type: 0 - normal, 2 - inflection */
         size_t entries_count; /**< Index entries count */
-        size_t encoding; /**< Index encoding */
+        MOBIEncoding encoding; /**< Index encoding */
         size_t total_entries_count; /**< Total index entries count */
         size_t ordt_offset; /**< ORDT offset */
         size_t ligt_offset; /**< LIGT offset */

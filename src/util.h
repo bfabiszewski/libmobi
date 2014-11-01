@@ -40,6 +40,7 @@
 #define FDST_MAGIC "FDST"
 #define INDX_MAGIC "INDX"
 #define TAGX_MAGIC "TAGX"
+#define ORDT_MAGIC "ORDT"
 #define IDXT_MAGIC "IDXT"
 #define FONT_MAGIC "FONT"
 #define AUDI_MAGIC "AUDI"
@@ -97,16 +98,6 @@
 #define HUFF_RECORD_MINSIZE 2584
 #define FONT_HEADER_LEN 24
 #define MEDIA_HEADER_LEN 12
-/** @} */
-
-/** 
- @defgroup mobi_enc Encoding types in MOBI header (offset 28) 
- @{ 
- */
-typedef enum {
-    MOBI_UTF8 = 65001,
-    MOBI_CP1252 = 1252,
-} MOBIEncoding;
 /** @} */
 
 /**
