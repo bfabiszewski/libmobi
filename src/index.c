@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <locale.h>
+#include <wchar.h>
 
 #include "index.h"
 #include "util.h"
@@ -128,6 +129,116 @@ static MOBI_RET mobi_parse_idxt(MOBIBuffer *buf, MOBIIdxt *idxt, const size_t en
 }
 
 /**
+ @brief Get encoded character from dictionary index
+ The characters are offsets into ORDT table
+ 
+ @param[in] ordt MOBIOrdt structure (ORDT data and metadata)
+ @param[in,out] buf MOBIBuffer structure with index data
+ @param[in,out] offset Value read from buffer
+ @return Number of bytes read (zero in case of error)
+ */
+size_t mobi_ordt_getbuffer(const MOBIOrdt *ordt, MOBIBuffer *buf, uint16_t *offset) {
+    size_t i = 0;
+    if (ordt->type == 1) {
+        *offset = buffer_get8(buf);
+        i++;
+    } else {
+        *offset = buffer_get16(buf);
+        i += 2;
+    }
+    return i;
+}
+
+/**
+ @brief Fetch UTF-16 value from ORDT2 table
+ 
+ @param[in] ordt MOBIOrdt structure (ORDT data and metadata)
+ @param[in] offset Offset in ORDT2 table
+ @return UTF-16 code point
+ */
+uint16_t mobi_ordt_lookup(const MOBIOrdt *ordt, const uint16_t offset) {
+    uint16_t utf16;
+    if (offset < ordt->offsets_count) {
+        utf16 = ordt->ordt2[offset];
+    } else {
+        utf16 = offset;
+    }
+    return utf16;
+}
+
+/**
+ @brief Get UTF-8 string from buffer, decoded by lookups in ORDT2 table
+ 
+ @param[in] ordt MOBIOrdt structure (ORDT data and metadata)
+ @param[in,out] buf MOBIBuffer structure with input string
+ @param[in,out] output Output buffer (INDX_LABEL_SIZEMAX bytes)
+ @param[in] length Length of input string contained in buf
+ @return Number of bytes read
+ */
+size_t mobi_getstring_ordt(const MOBIOrdt *ordt, MOBIBuffer *buf, unsigned char *output, size_t length) {
+    size_t i = 0;
+    size_t output_length = 0;
+    const uint32_t bytemask = 0xbf;
+    const uint32_t bytemark = 0x80;
+    const uint32_t uni_replacement = 0xfffd;
+    const uint32_t surrogate_offset = 0x35fdc00;
+    static const uint8_t init_byte[7] = { 0x00, 0x00, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc };
+    while (i < length) {
+        uint16_t offset;
+        i += mobi_ordt_getbuffer(ordt, buf, &offset);
+        uint32_t codepoint = mobi_ordt_lookup(ordt, offset);
+        /* convert UTF-16 surrogates into UTF-32 */
+        if (codepoint >= 0xd800 && codepoint <= 0xdbff) {
+            size_t k = mobi_ordt_getbuffer(ordt, buf, &offset);
+            uint32_t codepoint2 = mobi_ordt_lookup(ordt, offset);
+            if (codepoint2 >= 0xdc00 && codepoint2 <= 0xdfff) {
+                i += k;
+                codepoint = (codepoint << 10) + codepoint2 - surrogate_offset;
+            } else {
+                /* illegal unpaired high surrogate */
+                /* rewind buffer to codepoint2 */
+                buf->offset -= k;
+                codepoint = uni_replacement;
+                debug_print("Invalid code point: %u\n", codepoint);
+            }
+        }
+        if ((codepoint >= 0xdc00 && codepoint <= 0xdfff) /* unpaired low surrogate */
+            || (codepoint >= 0xfdd0 && codepoint <= 0xfdef) /* invalid characters */
+            || (codepoint & 0xfffe) == 0xfffe /* reserved characters */
+            || codepoint == 0 /* remove zeroes */) {
+            codepoint = uni_replacement;
+            debug_print("Invalid code point: %u\n", codepoint);
+        }
+        /* Conversion routine based on unicode's ConvertUTF.c */
+        size_t bytes;
+        if (codepoint < 0x80) { bytes = 1; }
+        else if (codepoint < 0x800) { bytes = 2; }
+        else if (codepoint < 0x10000) { bytes = 3; }
+        else if (codepoint < 0x110000) { bytes = 4; }
+        else {
+            bytes = 3;
+            codepoint = uni_replacement;
+            debug_print("Invalid code point: %u\n", codepoint);
+        }
+        if (output_length + bytes >= INDX_LABEL_SIZEMAX) {
+            debug_print("%s\n", "INDX label too long");
+            break;
+        }
+        output += bytes;
+        switch (bytes) { /* note: everything falls through. */
+            case 4: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6;
+            case 3: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6;
+            case 2: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6;
+            case 1: *--output =  (uint8_t)(codepoint | init_byte[bytes]);
+        }
+        output += bytes;
+        output_length += bytes;
+    }
+    *output = '\0';
+    return output_length;
+}
+
+/**
  @brief Parser of INDX index entry
  
  @param[in,out] indx MOBIIndx structure, to be filled with parsed data
@@ -161,36 +272,7 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
     char text[INDX_LABEL_SIZEMAX];
     /* FIXME: what is ORDT1 for? */
     if (ordt->ordt2) {
-        size_t i = 0;
-        int j = 0, length;
-        while (i < label_length) {
-            uint16_t offset;
-            wchar_t wchar;
-            if (ordt->type == 1) {
-                offset = buffer_get8(buf);
-                i++;
-            } else {
-                offset = buffer_get16(buf);
-                i += 2;
-            }
-            if (offset < ordt->offsets_count) {
-                wchar = ordt->ordt2[offset];
-            } else {
-                wchar = offset;
-            }
-            length = wctomb(&text[j], wchar);
-            if (length < 0) {
-                debug_print("Couldn't convert unichar %zu", (size_t) wchar);
-                continue;
-            }
-            j += length;
-            if (j + MB_CUR_MAX >= INDX_LABEL_SIZEMAX) {
-                debug_print("%s\n", "INDX label too long");
-                break;
-            }
-        }
-        text[j] = '\0';
-        label_length = (size_t) j;
+        label_length = mobi_getstring_ordt(ordt, buf, (unsigned char*) &text[0], label_length);
     } else {
         label_length = buffer_getstring_skipzeroes(text, buf, label_length);
     }
@@ -386,9 +468,6 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
             }
         }
         size_t i = 0;
-        /* UTF-8 aware locale is needed by wctomb() in mobi_parse_index_entry() */
-        char *saved_locale = setlocale(LC_CTYPE, NULL);
-        setlocale(LC_CTYPE, "en_US.UTF-8");
         while (i < entries_count) {
             ret = mobi_parse_index_entry(indx, idxt, tagx, ordt, buf, i++);
             if (ret != MOBI_SUCCESS) {
@@ -396,7 +475,6 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
                 return ret;
             }
         }
-        setlocale(LC_CTYPE, saved_locale);
         indx->entries_count += entries_count;
 
     }
