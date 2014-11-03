@@ -1791,7 +1791,7 @@ MOBI_RET mobi_build_opf(MOBIRawml *rawml, const MOBIData *m) {
     if (ret != MOBI_SUCCESS) { goto cleanup; }
     ret = mobi_xml_write_dcmeta_creator(writer, (const OPFcreator **) dc_meta->contributor, "contributor");
     if (ret != MOBI_SUCCESS) { goto cleanup; }
-    ret = mobi_xml_write_dcmeta_subject(writer, (const OPFsubject **) dc_meta->contributor);
+    ret = mobi_xml_write_dcmeta_subject(writer, (const OPFsubject **) dc_meta->subject);
     if (ret != MOBI_SUCCESS) { goto cleanup; }
     ret = mobi_xml_write_dcmeta_date(writer, (const OPFdate **) dc_meta->date);
     if (ret != MOBI_SUCCESS) { goto cleanup; }
