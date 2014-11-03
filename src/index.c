@@ -12,8 +12,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <locale.h>
-#include <wchar.h>
 
 #include "index.h"
 #include "util.h"
