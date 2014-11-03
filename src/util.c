@@ -981,8 +981,12 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         switch (compression_type) {
             case RECORD0_NO_COMPRESSION:
                 /* no compression */
-                memcpy(decompressed, curr->data, curr->size);
-                decompressed_size = curr->size;
+                if (record_size > RECORD0_TEXT_SIZE_MAX) {
+                    debug_print("Record too large: %zu\n", record_size);
+                    return MOBI_DATA_CORRUPT;
+                }
+                memcpy(decompressed, curr->data, record_size);
+                decompressed_size = record_size;
                 break;
             case RECORD0_PALMDOC_COMPRESSION:
                 /* palmdoc lz77 compression */
