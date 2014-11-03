@@ -1757,8 +1757,7 @@ MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
     }
     
     /* orth index */
-    /* FIXME: works only for old non-KF8 formats */
-    if (rawml->version < 8 && mobi_exists_orth(m)) {
+    if (mobi_is_dictionary(m)) {
         MOBIIndx *orth_meta = mobi_init_indx();
         const size_t indx_record_number = *m->mh->orth_index + offset;
         ret = mobi_parse_index(m, orth_meta, indx_record_number);

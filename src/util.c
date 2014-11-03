@@ -776,6 +776,8 @@ const MOBIExthMeta mobi_exth_tags[] = {
     {EXTH_PAGEDIR, EXTH_STRING, "Page progression direction"},
     {EXTH_OVERRIDEFONTS, EXTH_STRING, "Override Kindle fonts"},
     {EXTH_SORCEDESC, EXTH_STRING, "Original source description"},
+    {EXTH_DICTLANGIN, EXTH_STRING, "Dictionary input language"},
+    {EXTH_DICTLANGOUT, EXTH_STRING, "Dictionary output language"},
     {EXTH_UNK534, EXTH_STRING, "Unknown (534)"},
     {EXTH_CREATORBUILDREV, EXTH_STRING, "Kindlegen BuildRev number"},
     /* binary */
@@ -1521,6 +1523,24 @@ bool mobi_is_mobipocket(const MOBIData *m) {
     }
     if (strcmp(m->ph->type, "BOOK") == 0 &&
         strcmp(m->ph->creator, "MOBI") == 0) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ @brief Check if loaded document is dictionary
+ 
+ @param[in] m MOBIData structure with loaded mobi header
+ @return true or false
+ */
+bool mobi_is_dictionary(const MOBIData *m) {
+    if (m == NULL) {
+        debug_print("%s", "Mobi structure not initialized\n");
+        return false;
+    }
+    /* FIXME: works only for old non-KF8 formats */
+    if (mobi_get_fileversion(m) < 8 && mobi_exists_orth(m)) {
         return true;
     }
     return false;

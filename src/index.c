@@ -411,12 +411,13 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     indx->ligt_offset = buffer_get32(buf); /* 44: LIGT offset */
     indx->ordt_entries_count = buffer_get32(buf); /* 48: ORDT entries count */
     indx->cncx_records_count = buffer_get32(buf); /* 52: CNCX entries count */
-    buf->offset = 164; /* 56: unknown */
+    buf->offset = 164;
     uint32_t ordt_type = buffer_get32(buf); /* 164: ORDT type */
     uint32_t ordt_entries_count = buffer_get32(buf); /* 168: ORDT entries count */
     uint32_t ordt1_offset = buffer_get32(buf); /* 172: ORDT1 offset */
     uint32_t ordt2_offset = buffer_get32(buf); /* 176: ORDT2 offset */
-    //uint32_t tagx_offset = buffer_get32(buf); /* 180: TAGX offset ? */
+    uint32_t index_name_offset = buffer_get32(buf); /* 180: Default index string offset ? */
+    uint32_t index_name_length = buffer_get32(buf); /* 184: Default index string length ? */
     
     buf->offset = header_length;
     
@@ -437,6 +438,15 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
             ordt->ordt2_pos = ordt2_offset;
             ret = mobi_parse_ordt(buf, ordt);
             debug_print("ORDT: %u, %u, %u, %u\n", ordt_type, ordt_entries_count, ordt1_offset, ordt2_offset);
+        }
+        if (index_name_offset > 0 && index_name_length > 0) {
+            if (index_name_length <= header_length - index_name_offset) {
+                buf->offset = index_name_offset;
+                char *name = malloc(index_name_length + 1);
+                buffer_getstring(name, buf, index_name_length);
+                indx->orth_index_name = name;
+                debug_print("Orth index name: %s\n", name);
+            }
         }
         buffer_free_null(buf);
         indx->entries_count = entries_count;

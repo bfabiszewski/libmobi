@@ -870,6 +870,12 @@ MOBI_RET mobi_get_opf_from_exth(OPFmetadata *metadata, const MOBIData *m) {
             case EXTH_DICTNAME:
                 mobi_opf_fill_tag(m, curr, &metadata->x_meta->dict_short_name);
                 break;
+            case EXTH_DICTLANGIN:
+                mobi_opf_fill_tag(m, curr, &metadata->x_meta->dictionary_in_lang);
+                break;
+            case EXTH_DICTLANGOUT:
+                mobi_opf_fill_tag(m, curr, &metadata->x_meta->dictionary_out_lang);
+                break;
             case EXTH_IMPRINT:
                 mobi_opf_fill_tag(m, curr, &metadata->x_meta->imprint);
                 break;
@@ -926,9 +932,10 @@ MOBI_RET mobi_get_opf_from_exth(OPFmetadata *metadata, const MOBIData *m) {
  
  @param[in,out] opf Structure OPF->OPFmetadata will be filled with parsed data
  @param[in] m MOBIData structure containing document metadata
+ @param[in] rawml MOBIRawml structure containing parsed records
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m) {
+MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m, const MOBIRawml *rawml) {
     if (m == NULL) {
         debug_print("%s\n", "Initialization failed");
         return MOBI_INIT_FAILED;
@@ -1000,6 +1007,35 @@ MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m) {
             opf->metadata->dc_meta->language[0] = strdup(mobi_get_locale_string(lang_code));
         } else {
             opf->metadata->dc_meta->language[0] = strdup("en");
+        }
+    }
+    /* write optional elements */
+    if (mobi_is_dictionary(m)) {
+        if (opf->metadata->x_meta->dictionary_in_lang == NULL) {
+            if (m->mh && m->mh->dict_input_lang) {
+                opf->metadata->x_meta->dictionary_in_lang = calloc(OPF_META_MAX_TAGS, sizeof(char*));
+                if (opf->metadata->x_meta->dictionary_in_lang == NULL) {
+                    debug_print("%s\n", "Memory allocation failed");
+                    return MOBI_MALLOC_FAILED;
+                }
+                uint32_t dict_lang_in = *m->mh->dict_input_lang;
+                opf->metadata->x_meta->dictionary_in_lang[0] = strdup(mobi_get_locale_string(dict_lang_in));
+            }
+        }
+        if (opf->metadata->x_meta->dictionary_out_lang == NULL) {
+            if (m->mh && m->mh->dict_output_lang) {
+                opf->metadata->x_meta->dictionary_out_lang = calloc(OPF_META_MAX_TAGS, sizeof(char*));
+                if (opf->metadata->x_meta->dictionary_out_lang == NULL) {
+                    debug_print("%s\n", "Memory allocation failed");
+                    return MOBI_MALLOC_FAILED;
+                }
+                uint32_t dict_lang_in = *m->mh->dict_output_lang;
+                opf->metadata->x_meta->dictionary_out_lang[0] = strdup(mobi_get_locale_string(dict_lang_in));
+            }
+        }
+        if (rawml->orth->orth_index_name) {
+            opf->metadata->x_meta->default_lookup_index = calloc(OPF_META_MAX_TAGS, sizeof(char*));
+            opf->metadata->x_meta->default_lookup_index[0] = strdup(rawml->orth->orth_index_name);
         }
     }
     return MOBI_SUCCESS;
@@ -1718,7 +1754,7 @@ MOBI_RET mobi_build_opf(MOBIRawml *rawml, const MOBIData *m) {
         .guide = NULL,
         .spine = NULL
     };
-    MOBI_RET ret = mobi_build_opf_metadata(&opf, m);
+    MOBI_RET ret = mobi_build_opf_metadata(&opf, m, rawml);
     if (ret != MOBI_SUCCESS) {
         mobi_free_opf(&opf);
         return ret;
@@ -1806,15 +1842,15 @@ MOBI_RET mobi_build_opf(MOBIRawml *rawml, const MOBIData *m) {
     if (ret != MOBI_SUCCESS) { goto cleanup; }
     ret = mobi_xml_write_xmeta(writer, "adult", (const char **) x_meta->adult);
     if (ret != MOBI_SUCCESS) { goto cleanup; }
-    ret = mobi_xml_write_xmeta(writer, "default_lookup_index", (const char **) x_meta->default_lookup_index);
+    ret = mobi_xml_write_xmeta(writer, "DefaultLookupIndex", (const char **) x_meta->default_lookup_index);
     if (ret != MOBI_SUCCESS) { goto cleanup; }
-    ret = mobi_xml_write_xmeta(writer, "dict_short_name", (const char **) x_meta->dict_short_name);
+    ret = mobi_xml_write_xmeta(writer, "DictionaryVeryShortName", (const char **) x_meta->dict_short_name);
     if (ret != MOBI_SUCCESS) { goto cleanup; }
-    ret = mobi_xml_write_xmeta(writer, "dictionary_in_lang", (const char **) x_meta->dictionary_in_lang);
+    ret = mobi_xml_write_xmeta(writer, "DictionaryInLanguage", (const char **) x_meta->dictionary_in_lang);
     if (ret != MOBI_SUCCESS) { goto cleanup; }
-    ret = mobi_xml_write_xmeta(writer, "dictionary_out_lang", (const char **) x_meta->dictionary_out_lang);
+    ret = mobi_xml_write_xmeta(writer, "DictionaryOutLanguage", (const char **) x_meta->dictionary_out_lang);
     if (ret != MOBI_SUCCESS) { goto cleanup; }
-    ret = mobi_xml_write_xmeta(writer, "embedded_cover", (const char **) x_meta->embedded_cover);
+    ret = mobi_xml_write_xmeta(writer, "EmbeddedCover", (const char **) x_meta->embedded_cover);
     if (ret != MOBI_SUCCESS) { goto cleanup; }
     ret = mobi_xml_write_xmeta(writer, "imprint", (const char **) x_meta->imprint);
     if (ret != MOBI_SUCCESS) { goto cleanup; }

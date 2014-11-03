@@ -141,6 +141,8 @@ extern "C"
         EXTH_PAGEDIR = 527,
         EXTH_OVERRIDEFONTS = 528, /**< <override-kindle-fonts> */
         EXTH_SORCEDESC = 529,
+        EXTH_DICTLANGIN = 531,
+        EXTH_DICTLANGOUT = 532,
         EXTH_UNK534 = 534,
         EXTH_CREATORBUILDREV = 535,
     } MOBIExthTag;
@@ -436,6 +438,7 @@ extern "C"
         size_t cncx_records_count; /**< Number of compiled NCX records */
         MOBIPdbRecord *cncx_record; /**< Link to CNCX record */
         MOBIIndexEntry *entries; /**< Index entries array */
+        char *orth_index_name; /**< Orth index name */
     } MOBIIndx;
     
     /**
@@ -520,6 +523,7 @@ extern "C"
     MOBI_EXPORT bool mobi_is_hybrid(const MOBIData *m);
     MOBI_EXPORT bool mobi_is_encrypted(const MOBIData *m);
     MOBI_EXPORT bool mobi_is_mobipocket(const MOBIData *m);
+    MOBI_EXPORT bool mobi_is_dictionary(const MOBIData *m);
     
     MOBI_EXPORT MOBIRawml * mobi_init_rawml(const MOBIData *m);
     MOBI_EXPORT void mobi_free_rawml(MOBIRawml *rawml);

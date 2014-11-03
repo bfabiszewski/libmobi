@@ -160,8 +160,22 @@ void print_meta(const MOBIData *m) {
                 printf("locale: unknown (%u)\n", *m->mh->locale);
             }
         }
-        if(m->mh->dict_input_lang) { printf("input lang: %u\n", *m->mh->dict_input_lang); }
-        if(m->mh->dict_output_lang) { printf("output lang: %u\n", *m->mh->dict_output_lang); }
+        if(m->mh->dict_input_lang) {
+            const char *locale_string = mobi_get_locale_string(*m->mh->dict_input_lang);
+            if (locale_string) {
+                printf("dict input lang: %s (%u)\n", locale_string, *m->mh->dict_input_lang);
+            } else {
+                printf("dict input lang: unknown (%u)\n", *m->mh->dict_input_lang);
+            }
+        }
+        if(m->mh->dict_output_lang) {
+            const char *locale_string = mobi_get_locale_string(*m->mh->dict_output_lang);
+            if (locale_string) {
+                printf("dict output lang: %s (%u)\n", locale_string, *m->mh->dict_output_lang);
+            } else {
+                printf("dict output lang: unknown (%u)\n", *m->mh->dict_output_lang);
+            }
+        }
         if(m->mh->min_version) { printf("minimal version: %u\n", *m->mh->min_version); }
         if(m->mh->image_index) { printf("first image index: %u\n", *m->mh->image_index); }
         if(m->mh->huff_rec_index) { printf("huffman record offset: %u\n", *m->mh->huff_rec_index); }

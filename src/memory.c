@@ -272,6 +272,7 @@ MOBIIndx * mobi_init_indx(void) {
     }
     indx->entries = NULL;
     indx->cncx_record = NULL;
+    indx->orth_index_name = NULL;
     return indx;
 }
 
@@ -306,6 +307,9 @@ void mobi_free_indx(MOBIIndx *indx) {
         return;
     }
     mobi_free_index_entries(indx);
+    if (indx->orth_index_name) {
+        free(indx->orth_index_name);
+    }
     free(indx);
     indx = NULL;
 }
