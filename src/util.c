@@ -285,8 +285,8 @@ static const char *mobi_locale[MOBI_LANG_MAX][MOBI_REGION_MAX] = {
     {"rm"}, /**< Romansh >*/
     {"ro"}, /**< Romanian >*/
     {"ru"}, /**< Russian >*/
-    {"hr"}, /**< Croatian >*/
     {
+    "hr", /**< Croatian >*/
     "sr", /**< Serbian >*/
     "sr", /**< Serbian (Unknown) >*/
     "sr", /**< Serbian (Unknown) >*/
