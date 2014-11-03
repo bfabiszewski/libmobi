@@ -1292,7 +1292,7 @@ MOBI_RET mobi_decode_audio_resource(unsigned char **decoded_resource, size_t *de
         return MOBI_DATA_CORRUPT;
     }
     uint32_t offset = buffer_get32(buf);
-    buf->offset = offset;
+    buffer_setpos(buf, offset);
     *decoded_size = buf->maxlen - buf->offset;
     *decoded_resource = buf->data;
     buffer_free_null(buf);
@@ -1343,7 +1343,7 @@ MOBI_RET mobi_decode_video_resource(unsigned char **decoded_resource, size_t *de
     }
     uint32_t offset = buffer_get32(buf);
     /* offset is always(?) 12, next four bytes are unknown */
-    buf->offset = offset;
+    buffer_setpos(buf, offset);
     *decoded_size = buf->maxlen - buf->offset;
     *decoded_resource = buf->data;
     buffer_free_null(buf);
@@ -1408,7 +1408,7 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
     const uint32_t xor_flag = 2; /* bit 1 */
     if (h.flags & xor_flag) {
         /* deobfuscate */
-        buf->offset = h.data_offset;
+        buffer_setpos(buf, h.data_offset);
         const unsigned char *xor_key = buf->data + h.xor_data_off;
         size_t i = 0;
         /* only xor first 1040 bytes */
@@ -1417,7 +1417,7 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
             i++;
         }
     }
-    buf->offset = h.data_offset;
+    buffer_setpos(buf, h.data_offset);
     *decoded_size = h.decoded_size;
     *decoded_font = malloc(h.decoded_size);
     const unsigned char *encoded_font = buf->data + buf->offset;

@@ -31,7 +31,7 @@ static MOBI_RET mobi_parse_ordt(MOBIBuffer *buf, MOBIOrdt *ordt) {
     /* read ORDT1 */
     if (buffer_match_magic(buf, ORDT_MAGIC)) {
         debug_print("%s\n", "ORDT1 section found");
-        buf->offset += 4;
+        buffer_seek(buf, 4);
         ordt->ordt1 = malloc(ordt->offsets_count * sizeof(*ordt->ordt1));
         if (ordt->ordt1 == NULL) {
             debug_print("%s", "Memory allocation failed for ORDT1 offsets\n");
@@ -44,10 +44,10 @@ static MOBI_RET mobi_parse_ordt(MOBIBuffer *buf, MOBIOrdt *ordt) {
         debug_print("ORDT1: read %zu entries\n", ordt->offsets_count);
     }
     /* read ORDT2 */
-    buf->offset = ordt->ordt2_pos;
+    buffer_setpos(buf, ordt->ordt2_pos);
     if (buffer_match_magic(buf, ORDT_MAGIC)) {
         debug_print("%s\n", "ORDT2 section found");
-        buf->offset += 4;
+        buffer_seek(buf, 4);
         ordt->ordt2 = malloc(ordt->offsets_count * sizeof(*ordt->ordt2));
         if (ordt->ordt2 == NULL) {
             debug_print("%s", "Memory allocation failed for ORDT2 offsets\n");
@@ -73,7 +73,7 @@ static MOBI_RET mobi_parse_tagx(MOBIBuffer *buf, MOBITagx *tagx) {
     tagx->control_byte_count = 0;
     tagx->tags_count = 0;
     tagx->tags = NULL;
-    buf->offset += 4; /* skip header */
+    buffer_seek(buf, 4); /* skip header */
     const uint32_t tagx_header_length = buffer_get32(buf);
     if (tagx_header_length < 16) {
         debug_print("INDX wrong header length: %u\n", tagx_header_length);
@@ -197,7 +197,7 @@ size_t mobi_getstring_ordt(const MOBIOrdt *ordt, MOBIBuffer *buf, unsigned char 
             } else {
                 /* illegal unpaired high surrogate */
                 /* rewind buffer to codepoint2 */
-                buf->offset -= k;
+                buffer_seek(buf, (int) -k);
                 codepoint = uni_replacement;
                 debug_print("Invalid code point: %u\n", codepoint);
             }
@@ -255,7 +255,7 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
     }
     const size_t entry_offset = indx->entries_count;
     const size_t entry_length = idxt.offsets[curr_number + 1] - idxt.offsets[curr_number];
-    buf->offset = idxt.offsets[curr_number];
+    buffer_setpos(buf, idxt.offsets[curr_number]);
     size_t entry_number = curr_number + entry_offset;
     /* save original record maxlen */
     const size_t buf_maxlen = buf->maxlen;
@@ -285,7 +285,7 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
     debug_print("tag label[%zu]: %s\n", entry_number, indx->entries[entry_number].label);
     unsigned char *control_bytes;
     control_bytes = buf->data + buf->offset;
-    buf->offset += tagx->control_byte_count;
+    buffer_seek(buf, (int) tagx->control_byte_count);
     if (tagx->tags_count > 0) {
         typedef struct {
             uint8_t tag;
@@ -394,15 +394,15 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
         buffer_free_null(buf);
         return MOBI_DATA_CORRUPT;
     }
-    buf->offset += 4; /* 8: zeroes */
+    buffer_seek(buf, 4); /* 8: zeroes */
     /* FIXME: unused */
     indx->type = buffer_get32(buf); /* 12: 0 - normal, 2 - inflection */
     /* FIXME: unused */
-    buf->offset += 4; /* 16: gen */
+    buffer_seek(buf, 4); /* 16: gen */
     const uint32_t idxt_offset = buffer_get32(buf); /* 20: IDXT offset */
     const size_t entries_count = buffer_get32(buf); /* 24: entries count */
     indx->encoding = buffer_get32(buf); /* 28: encoding */
-    buf->offset += 4; /* 32: zeroes */
+    buffer_seek(buf, 4); /* 32: zeroes */
     const size_t total_entries_count = buffer_get32(buf); /* 36: total entries count */
     if (indx->total_entries_count == 0) {
         indx->total_entries_count = total_entries_count;
@@ -411,7 +411,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     indx->ligt_offset = buffer_get32(buf); /* 44: LIGT offset */
     indx->ordt_entries_count = buffer_get32(buf); /* 48: ORDT entries count */
     indx->cncx_records_count = buffer_get32(buf); /* 52: CNCX entries count */
-    buf->offset = 164;
+    buffer_setpos(buf, 164);
     uint32_t ordt_type = buffer_get32(buf); /* 164: ORDT type */
     uint32_t ordt_entries_count = buffer_get32(buf); /* 168: ORDT entries count */
     uint32_t ordt1_offset = buffer_get32(buf); /* 172: ORDT1 offset */
@@ -419,7 +419,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     uint32_t index_name_offset = buffer_get32(buf); /* 180: Default index string offset ? */
     uint32_t index_name_length = buffer_get32(buf); /* 184: Default index string length ? */
     
-    buf->offset = header_length;
+    buffer_setpos(buf, header_length);
     
     /* TAGX metadata */
     /* if record contains TAGX section, read it (and ORDT) and return */
@@ -431,7 +431,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
         }
         if (indx->encoding == MOBI_UTF16 || ordt_entries_count > 0) {
             /* parse ORDT sections */
-            buf->offset = ordt1_offset;
+            buffer_setpos(buf, ordt1_offset);
             ordt->offsets_count = ordt_entries_count;
             ordt->type = ordt_type;
             ordt->ordt1_pos = ordt1_offset;
@@ -441,7 +441,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
         }
         if (index_name_offset > 0 && index_name_length > 0) {
             if (index_name_length <= header_length - index_name_offset) {
-                buf->offset = index_name_offset;
+                buffer_setpos(buf, index_name_offset);
                 char *name = malloc(index_name_length + 1);
                 buffer_getstring(name, buf, index_name_length);
                 indx->orth_index_name = name;
@@ -458,7 +458,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
         buffer_free_null(buf);
         return MOBI_DATA_CORRUPT;
     }
-    buf->offset = idxt_offset;
+    buffer_setpos(buf, idxt_offset);
     MOBIIdxt idxt;
     uint32_t offsets[entries_count + 1];
     idxt.offsets = offsets;
@@ -588,7 +588,7 @@ char * mobi_get_cncx_string(const MOBIPdbRecord *cncx_record, const uint32_t cnc
     /* TODO: handle multiple cncx records */
     MOBIBuffer *buf = buffer_init_null(cncx_record->size);
     buf->data = cncx_record->data;
-    buf->offset = cncx_offset;
+    buffer_setpos(buf, cncx_offset);
     size_t len = 0;
     const uint32_t string_length = buffer_get_varlen(buf, &len);
     char *string = malloc(string_length + 1);

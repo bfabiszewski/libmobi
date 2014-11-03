@@ -568,7 +568,7 @@ MOBI_RET mobi_process_replica(unsigned char *pdf, const char *text, size_t *leng
         return MOBI_MALLOC_FAILED;
     }
     buf->data = (unsigned char*) text;
-    buf->offset = 12;
+    buffer_setpos(buf, 12);
     size_t pdf_offset = buffer_get32(buf); /* offset 12 */
     size_t pdf_length = buffer_get32(buf); /* 16 */
     if (pdf_length > *length) {
@@ -576,7 +576,7 @@ MOBI_RET mobi_process_replica(unsigned char *pdf, const char *text, size_t *leng
         buffer_free_null(buf);
         return MOBI_DATA_CORRUPT;
     }
-    buf->offset = pdf_offset;
+    buffer_setpos(buf, pdf_offset);
     buffer_getraw(pdf, buf, pdf_length);
     ret = buf->error;
     buffer_free_null(buf);
@@ -743,7 +743,7 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
         }
         debug_print("%zu\t%s\t%i\t%i\t%i\n", i, entry->label, fragments_count, skel_position, skel_length);
         char *skel_text = malloc(skel_length + 1);
-        buf->offset = skel_position;
+        buffer_setpos(buf, skel_position);
         buffer_getstring(skel_text, buf, skel_length);
         while (fragments_count--) {
             entry = &rawml->frag->entries[j];

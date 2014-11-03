@@ -500,6 +500,44 @@ bool buffer_match_magic(MOBIBuffer *buf, const char *magic) {
 }
 
 /**
+ @brief Move current buffer offset by diff bytes
+ 
+ @param[in,out] buf MOBIBuffer buffer containing data
+ @param[in] diff Number of bytes by which the offset is adjusted
+ */
+void buffer_seek(MOBIBuffer *buf, const int diff) {
+    size_t adiff = (size_t) abs(diff);
+    if (diff >= 0) {
+        if (buf->offset + adiff <= buf->maxlen) {
+            buf->offset += adiff;
+            return;
+        }
+    } else {
+        if (buf->offset >= adiff) {
+            buf->offset -= adiff;
+            return;
+        }
+    }
+    buf->error = MOBI_BUFFER_END;
+    debug_print("%s", "End of buffer\n");
+}
+
+/**
+ @brief Set buffer offset to pos position
+ 
+ @param[in,out] buf MOBIBuffer buffer containing data
+ @param[in] pos New position
+ */
+void buffer_setpos(MOBIBuffer *buf, const size_t pos) {
+    if (pos <= buf->maxlen) {
+        buf->offset = pos;
+        return;
+    }
+    buf->error = MOBI_BUFFER_END;
+    debug_print("%s", "End of buffer\n");
+}
+
+/**
  @brief Free pointer to MOBIBuffer structure and pointer to data
  
  Free data initialized with buffer_init();
@@ -526,8 +564,6 @@ void buffer_free_null(MOBIBuffer *buf) {
 	if (buf == NULL) { return; }
 	free(buf);
 }
-
-
 
 /**
  @brief Initializer for MOBIArray structure

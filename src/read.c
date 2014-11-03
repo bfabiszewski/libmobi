@@ -303,13 +303,13 @@ MOBI_RET mobi_parse_mobiheader(MOBIData *m, MOBIBuffer *buf) {
     buffer_dup32(&m->mh->datp_rec_index, buf);
     buffer_dup32(&m->mh->datp_rec_count, buf);
     buffer_dup32(&m->mh->exth_flags, buf);
-    buf->offset += 32; /* 32 unknown bytes */
+    buffer_seek(buf, 32); /* 32 unknown bytes */
     buffer_dup32(&m->mh->unknown6, buf);
     buffer_dup32(&m->mh->drm_offset, buf);
     buffer_dup32(&m->mh->drm_count, buf);
     buffer_dup32(&m->mh->drm_size, buf);
     buffer_dup32(&m->mh->drm_flags, buf);
-    buf->offset += 8; /* 8 unknown bytes */
+    buffer_seek(buf, 8); /* 8 unknown bytes */
     if (isKF8) {
         buffer_dup32(&m->mh->fdst_index, buf);
     } else {
@@ -327,7 +327,7 @@ MOBI_RET mobi_parse_mobiheader(MOBIData *m, MOBIBuffer *buf) {
     buffer_dup32(&m->mh->srcs_count, buf);
     buffer_dup32(&m->mh->unknown12, buf);
     buffer_dup32(&m->mh->unknown13, buf);
-    buf->offset += 2; /* 2 byte fill */
+    buffer_seek(buf, 2); /* 2 byte fill */
     buffer_dup16(&m->mh->extra_flags, buf);
     buffer_dup32(&m->mh->ncx_index, buf);
     if (isKF8) {
@@ -349,7 +349,7 @@ MOBI_RET mobi_parse_mobiheader(MOBIData *m, MOBIBuffer *buf) {
     buffer_dup32(&m->mh->unknown20, buf);
     if (buf->maxlen > buf->offset) {
         debug_print("Skipping %zu unknown bytes in MOBI header\n", (buf->maxlen - buf->offset));
-        buf->offset = buf->maxlen;
+        buffer_setpos(buf, buf->maxlen);
     }
     buf->maxlen = saved_maxlen;
     return MOBI_SUCCESS;
@@ -392,7 +392,7 @@ MOBI_RET mobi_parse_record0(MOBIData *m, const size_t seqnumber) {
     }
     /* parse palmdoc header */
     const uint16_t compression = buffer_get16(buf);
-    buf->offset += 2; // unused 2 bytes, zeroes
+    buffer_seek(buf, 2); // unused 2 bytes, zeroes
     if ((compression != RECORD0_NO_COMPRESSION &&
          compression != RECORD0_PALMDOC_COMPRESSION &&
          compression != RECORD0_HUFF_COMPRESSION)) {
@@ -436,7 +436,7 @@ size_t mobi_get_record_extrasize(const MOBIPdbRecord *record, const uint16_t fla
     }
     buf->data = record->data;
     /* set pointer at the end of the record data */
-    buf->offset = buf->maxlen - 1;
+    buffer_setpos(buf, buf->maxlen - 1);
     for (int bit = 15; bit > 0; bit--) {
         if (flags & (1 << bit)) {
             /* bit is set */
@@ -445,7 +445,7 @@ size_t mobi_get_record_extrasize(const MOBIPdbRecord *record, const uint16_t fla
             const uint32_t size = buffer_get_varlen_dec(buf, &len);
             /* skip data */
             /* TODO: read and store in record struct */
-            buf->offset -= (size - len);
+            buffer_seek(buf, (int) -(size - len));
             extra_size += size;
         }
     };
@@ -484,7 +484,7 @@ MOBI_RET mobi_parse_huff(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record) {
     const size_t data1_offset = buffer_get32(buf);
     const size_t data2_offset = buffer_get32(buf);
     /* skip little-endian table offsets */
-    buf->offset = data1_offset;
+    buffer_setpos(buf, data1_offset);
     if (buf->offset + (256 * 4) > buf->maxlen) {
         debug_print("%s", "HUFF data1 too short\n");
         buffer_free_null(buf);
@@ -494,7 +494,7 @@ MOBI_RET mobi_parse_huff(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record) {
     for (int i = 0; i < 256; i++) {
         huffcdic->table1[i] = buffer_get32(buf);
     }
-    buf->offset = data2_offset;
+    buffer_setpos(buf, data2_offset);
     if (buf->offset + (64 * 4) > buf->maxlen) {
         debug_print("%s", "HUFF data2 too short\n");
         buffer_free_null(buf);
