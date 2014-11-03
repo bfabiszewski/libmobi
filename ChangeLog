@@ -1,8 +1,19 @@
-20141101
-- reconstruction of orth dictionary entries
-
-20140905
-- MOBIArray bug fix
-
-20140630
-- initial version
+3911734 improved buffer handling
+5a59f41 improved OPF for dictionaries
+073ad4c proper rawml->orth initialization and freeing
+43332a8 fix subject field in opf
+ca8b252 handle UTF-16 surrogates, make ORDT lookups locale independent
+512341d move dict reconstruction to separate function
+42cc251 cleanup
+33de956 quiet gcc warning on printf format
+f63fbbf reconstruction of orth dictionary entries
+6a5c3f5 use mobi_list_del_all()
+60ed0c5 postpone conversion to utf8 after all source reconstructions
+061084e comment
+82f241b comments
+18bd3b0 doxygen comment
+c26847e data size in comment
+afee5a1 MOBIArray data type fix
+21fb2cd config.h fixes
+9c3bbcd merge master
+fea9486 initial commit
