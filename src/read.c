@@ -205,12 +205,12 @@ MOBI_RET mobi_parse_extheader(MOBIData *m, MOBIBuffer *buf) {
     const size_t exth_length = buffer_get32(buf);
     const size_t rec_count = buffer_get32(buf);
     if (strncmp(exth_magic, EXTH_MAGIC, 4) != 0 ||
-        exth_length + buf->offset + 8 > buf->maxlen ||
+        exth_length + buf->offset + 12 > buf->maxlen ||
         rec_count == 0) {
         return MOBI_DATA_CORRUPT;
     }
     const size_t saved_maxlen = buf->maxlen;
-    buf->maxlen = exth_length + buf->offset - 8;
+    buf->maxlen = exth_length + buf->offset - 12;
     m->eh = calloc(1, sizeof(MOBIExthHeader));
     if (m->eh == NULL) {
         debug_print("%s", "Memory allocation for EXTH header failed\n");
@@ -218,7 +218,7 @@ MOBI_RET mobi_parse_extheader(MOBIData *m, MOBIBuffer *buf) {
     }
     MOBIExthHeader *curr = m->eh;
     for (size_t i = 0; i < rec_count; i++) {
-        if (i > 0) {
+        if (curr->data) {
             curr->next = calloc(1, sizeof(MOBIExthHeader));
             if (curr->next == NULL) {
                 debug_print("%s", "Memory allocation for EXTH header failed\n");
