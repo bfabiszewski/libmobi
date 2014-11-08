@@ -44,9 +44,16 @@
 #define INDX_TAG_ORTH_STARTPOS (unsigned[]) {1, 0} /**< Orth entry start position */
 #define INDX_TAG_ORTH_ENDPOS (unsigned[]) {2, 0} /**< Orth entry end position */
 
+#define INDX_TAGARR_ORTH_INFL 42 /**< Inflection groups for orth entry */
+#define INDX_TAGARR_INFL_GROUPS 5 /**< Inflection groups in infl index */
+#define INDX_TAGARR_INFL_PARTS 26 /**< Inflection particles in infl index */
+
+
 /** @} */
 
 #define INDX_LABEL_SIZEMAX 1000 /**< Max size of index label */
+#define INDX_INFLTAG_SIZEMAX 10000 /**< Max size of inflections tags per entry */
+#define INDX_INFLBUF_SIZEMAX 500 /**< Max size of index label */
 
 /**
  @brief Tag entries in TAGX section (for internal INDX parsing)
@@ -97,5 +104,7 @@ typedef struct {
 
 MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBITagx *tagx, MOBIOrdt *ordt);
 MOBI_RET mobi_get_indxentry_tagvalue(uint32_t *tagvalue, const MOBIIndexEntry *entry, const unsigned tag_arr[]);
+size_t mobi_get_indxentry_tagarray(uint32_t **tagarr, const MOBIIndexEntry *entry, const size_t tagid);
 char * mobi_get_cncx_string(const MOBIPdbRecord *cncx_record, const uint32_t cncx_offset);
+MOBI_RET mobi_decode_infl(unsigned char *decoded, int *decoded_size, const unsigned char *rule);
 #endif

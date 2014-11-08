@@ -1199,9 +1199,26 @@ bool mobi_exists_orth(const MOBIData *m) {
         return false;
     }
     if (m->mh->orth_index == NULL || *m->mh->orth_index == MOBI_NOTSET) {
-        debug_print("%s", "ORTH INDX not found\n");
         return false;
     }
+    debug_print("%s", "ORTH INDX found\n");
+    return true;
+}
+
+/**
+ @brief Check if infl INDX is present in the loaded file
+ 
+ @param[in] m MOBIData structure loaded with MOBI data
+ @return true on success, false otherwise
+ */
+bool mobi_exists_infl(const MOBIData *m) {
+    if (!mobi_exists_mobiheader(m)) {
+        return false;
+    }
+    if (m->mh->infl_index == NULL || *m->mh->infl_index == MOBI_NOTSET) {
+        return false;
+    }
+    debug_print("%s", "INFL INDX found\n");
     return true;
 }
 

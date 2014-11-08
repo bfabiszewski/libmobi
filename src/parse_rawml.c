@@ -1343,6 +1343,84 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
 }
 
 /**
+ @brief Get infl index markup for given orth entry
+ 
+ @param[in,out] outstring Reconstructed tag <idx:infl\>
+ @param[in] infl MOBIIndx structure with parsed infl index
+ @param[in] orth_entry Orth index entry
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBIIndexEntry *orth_entry) {
+    
+    const char *label = orth_entry->label;
+    uint32_t *infl_groups = NULL;
+    size_t infl_count = mobi_get_indxentry_tagarray(&infl_groups, orth_entry, INDX_TAGARR_ORTH_INFL);
+    if (infl_count == 0 || !infl_groups) {
+        return MOBI_SUCCESS;
+    }
+    debug_print("Inflection groups count: %zu\n", infl_count);
+    
+    const char *start_tag = "<idx:infl>";
+    const char *end_tag = "</idx:infl>";
+    const char *iform_tag = "<idx:iform%s value=\"%s\"/>";
+    char name_attr[INDX_INFLBUF_SIZEMAX + 1];
+    char infl_tag[INDX_INFLBUF_SIZEMAX + 1];
+    strcpy(outstring, start_tag);
+    size_t initlen = strlen(start_tag) + strlen(end_tag);
+    size_t outlen = initlen;
+    size_t label_length = strlen(label);
+    if (label_length > INDX_INFLBUF_SIZEMAX) {
+        debug_print("Entry label too long (%s)\n", label);
+        return MOBI_DATA_CORRUPT;
+    }
+    for (size_t i = 0; i < infl_count; i++) {
+        size_t offset = infl_groups[i];
+        uint32_t *groups;
+        size_t group_cnt = mobi_get_indxentry_tagarray(&groups, &infl->entries[offset], INDX_TAGARR_INFL_GROUPS);
+        uint32_t *parts;
+        size_t part_cnt = mobi_get_indxentry_tagarray(&parts, &infl->entries[offset], INDX_TAGARR_INFL_PARTS);
+        if (group_cnt != part_cnt) {
+            return MOBI_DATA_CORRUPT;
+        }
+        for (size_t j = 0; j < part_cnt; j++) {
+            name_attr[0] = '\0';
+            char *group_name = mobi_get_cncx_string(infl->cncx_record, groups[j]);
+            if (strlen(group_name)) {
+                snprintf(name_attr, INDX_INFLBUF_SIZEMAX, " name=\"%s\"", group_name);
+            }
+            free(group_name);
+            
+            unsigned char decoded[INDX_INFLBUF_SIZEMAX + 1];
+            memset(decoded, 0, INDX_INFLBUF_SIZEMAX + 1);
+            unsigned char *rule = (unsigned char *) infl->entries[parts[j]].label;
+            memcpy(decoded, label, label_length);
+            int decoded_length = (int) label_length;
+            MOBI_RET ret = mobi_decode_infl(decoded, &decoded_length, rule);
+            if (ret != MOBI_SUCCESS) {
+                return ret;
+            }
+            if (decoded_length == 0) {
+                continue;
+            }
+            snprintf(infl_tag, INDX_INFLBUF_SIZEMAX, iform_tag, name_attr, decoded);
+            outlen += strlen(infl_tag);
+            if (outlen > INDX_INFLTAG_SIZEMAX) {
+                debug_print("Inflections text in %s too long (%zu)\n", label, outlen);
+                return MOBI_ERROR;
+            }
+            strcat(outstring, infl_tag);
+        }
+    }
+    if (outlen == initlen) {
+        outstring[0] = '\0';
+    } else {
+        strcat(outstring, end_tag);
+    }
+    debug_print("%s\n", outstring);
+    return MOBI_SUCCESS;
+}
+
+/**
  @brief Insert orth index markup to linked list of fragments
  
  @param[in] rawml Structure rawml contains orth index data
@@ -1354,11 +1432,11 @@ MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size
     MOBIFragment *curr = first;
     size_t i = 0;
     const size_t count = rawml->orth->entries_count;
-    const char *start_tag1 = "<idx:entry><idx:orth value=\"%s\"></idx:orth></idx:entry>";
-    const char *start_tag2 = "<idx:entry scriptable=\"yes\"><idx:orth value=\"%s\"></idx:orth>";
+    const char *start_tag1 = "<idx:entry><idx:orth value=\"%s\">%s</idx:orth></idx:entry>";
+    const char *start_tag2 = "<idx:entry scriptable=\"yes\"><idx:orth value=\"%s\">%s</idx:orth>";
     const char *end_tag = "</idx:entry>";
-    const size_t start_tag1_len = strlen(start_tag1) - 2;
-    const size_t start_tag2_len = strlen(start_tag2) - 2;
+    const size_t start_tag1_len = strlen(start_tag1) - 4;
+    const size_t start_tag2_len = strlen(start_tag2) - 4;
     const size_t end_tag_len = strlen(end_tag);
     uint32_t prev_startpos = 0;
     while (i < count) {
@@ -1367,21 +1445,38 @@ MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size
         uint32_t entry_startpos;
         MOBI_RET ret = mobi_get_indxentry_tagvalue(&entry_startpos, orth_entry, INDX_TAG_ORTH_STARTPOS);
         if (ret != MOBI_SUCCESS) {
-            return ret;
+            i++;
+            continue;
         }
+        size_t entry_length = 0;
         uint32_t entry_textlen = 0;
         mobi_get_indxentry_tagvalue(&entry_textlen, orth_entry, INDX_TAG_ORTH_ENDPOS);
-        size_t entry_length;
+        //char infl_tag[INDX_LABEL_SIZEMAX] = "";
+        char *infl_tag = malloc(INDX_INFLTAG_SIZEMAX + 1);
+        if (infl_tag == NULL) {
+            debug_print("%s\n", "Memory allocation failed");
+            return MOBI_MALLOC_FAILED;
+        }
+        infl_tag[0] = '\0';
+        if (rawml->infl) {
+            ret = mobi_reconstruct_infl(infl_tag, rawml->infl, orth_entry);
+            if (ret != MOBI_SUCCESS) {
+                free(infl_tag);
+                return ret;
+            }
+            entry_length += strlen(infl_tag);
+        }
         char *start_tag;
         if (entry_textlen == 0) {
-            entry_length = start_tag1_len + strlen(label);
+            entry_length += start_tag1_len + strlen(label);
             start_tag = (char *) start_tag1;
         } else {
-            entry_length = start_tag2_len + strlen(label);
+            entry_length += start_tag2_len + strlen(label);
             start_tag = (char *) start_tag2;
         }
         char *entry_text = malloc(entry_length + 1);
-        sprintf(entry_text, start_tag, label);
+        sprintf(entry_text, start_tag, label, infl_tag);
+        free(infl_tag);
         if (entry_startpos < prev_startpos) {
             curr = first;
         }
@@ -1769,15 +1864,25 @@ MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
         rawml->ncx = ncx_meta;
     }
     
-    /* orth index */
     if (mobi_is_dictionary(m)) {
+        /* orth */
         MOBIIndx *orth_meta = mobi_init_indx();
-        const size_t indx_record_number = *m->mh->orth_index + offset;
+        size_t indx_record_number = *m->mh->orth_index + offset;
         ret = mobi_parse_index(m, orth_meta, indx_record_number);
         if (ret != MOBI_SUCCESS) {
             return ret;
         }
         rawml->orth = orth_meta;
+        /* infl */
+        if (mobi_exists_infl(m)) {
+            MOBIIndx *infl_meta = mobi_init_indx();
+            indx_record_number = *m->mh->infl_index + offset;
+            ret = mobi_parse_index(m, infl_meta, indx_record_number);
+            if (ret != MOBI_SUCCESS) {
+                return ret;
+            }
+            rawml->infl = infl_meta;
+        }
     }
     
     ret = mobi_reconstruct_parts(rawml);

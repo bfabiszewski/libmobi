@@ -233,6 +233,7 @@ MOBIRawml * mobi_init_rawml(const MOBIData *m) {
     rawml->guide = NULL;
     rawml->ncx = NULL;
     rawml->orth = NULL;
+    rawml->infl = NULL;
     rawml->flow = NULL;
     rawml->markup = NULL;
     rawml->resources = NULL;
@@ -289,6 +290,10 @@ void mobi_free_index_entries(MOBIIndx *indx) {
     while (i < indx->entries_count) {
         free(indx->entries[i].label);
         if (indx->entries[i].tags != NULL) {
+            size_t j = 0;
+            while (j < indx->entries[i].tags_count) {
+                free(indx->entries[i].tags[j++].tagvalues);
+            }
             free(indx->entries[i].tags);
         }
         i++;
@@ -411,6 +416,7 @@ void mobi_free_rawml(MOBIRawml *rawml) {
     mobi_free_indx(rawml->guide);
     mobi_free_indx(rawml->ncx);
     mobi_free_indx(rawml->orth);
+    mobi_free_indx(rawml->infl);
     mobi_free_part(rawml->flow, true);
     mobi_free_part(rawml->markup,true);
     /* do not free resources data, these are links to records data */

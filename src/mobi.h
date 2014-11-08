@@ -404,7 +404,7 @@ extern "C"
      @brief Maximum value of tag values in index entry (MOBIIndexTag) 
      FIXME: is 2 enough?
      */
-#define MOBI_INDX_MAXTAGVALUES 2
+#define MOBI_INDX_MAXTAGVALUES 100
     
     /**
      @brief Parsed tag for an index entry
@@ -412,7 +412,7 @@ extern "C"
     typedef struct {
         size_t tagid; /**< Tag id */
         size_t tagvalues_count; /**< Number of tag values */
-        uint32_t tagvalues[MOBI_INDX_MAXTAGVALUES]; /**< Array of tag values */
+        uint32_t *tagvalues; /**< Array of tag values */
     } MOBIIndexTag;
 
     /**
@@ -465,6 +465,7 @@ extern "C"
         MOBIIndx *guide; /**< Parsed guide index or NULL if not present */
         MOBIIndx *ncx; /**< Parsed NCX index or NULL if not present */
         MOBIIndx *orth; /**< Parsed orth index or NULL if not present */
+        MOBIIndx *infl; /**< Parsed infl index or NULL if not present */
         MOBIPart *flow; /**< Linked list of reconstructed main flow parts or NULL if not present */
         MOBIPart *markup; /**< Linked list of reconstructed markup files or NULL if not present */
         MOBIPart *resources; /**< Linked list of reconstructed resources files or NULL if not present */
@@ -520,6 +521,7 @@ extern "C"
     MOBI_EXPORT bool mobi_exists_guide_indx(const MOBIData *m);
     MOBI_EXPORT bool mobi_exists_ncx(const MOBIData *m);
     MOBI_EXPORT bool mobi_exists_orth(const MOBIData *m);
+    MOBI_EXPORT bool mobi_exists_infl(const MOBIData *m);
     MOBI_EXPORT bool mobi_is_hybrid(const MOBIData *m);
     MOBI_EXPORT bool mobi_is_encrypted(const MOBIData *m);
     MOBI_EXPORT bool mobi_is_mobipocket(const MOBIData *m);
