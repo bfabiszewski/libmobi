@@ -1148,9 +1148,9 @@ bool mobi_exists_frag_indx(const MOBIData *m) {
         return false;
     }
     if (m->mh->fragment_index == NULL || *m->mh->fragment_index == MOBI_NOTSET) {
-        debug_print("%s", "Fragments INDX not found\n");
         return false;
     }
+    debug_print("%s", "Fragments INDX found\n");
     return true;
 }
 
@@ -1165,9 +1165,9 @@ bool mobi_exists_guide_indx(const MOBIData *m) {
         return false;
     }
     if (m->mh->guide_index == NULL || *m->mh->guide_index == MOBI_NOTSET) {
-        debug_print("%s", "Guide INDX not found\n");
         return false;
     }
+    debug_print("%s", "Guide INDX found\n");
     return true;
 }
 
@@ -1182,9 +1182,9 @@ bool mobi_exists_ncx(const MOBIData *m) {
         return false;
     }
     if (m->mh->ncx_index == NULL || *m->mh->ncx_index == MOBI_NOTSET) {
-        debug_print("%s", "NCX INDX not found\n");
         return false;
     }
+    debug_print("%s", "NCX INDX found\n");
     return true;
 }
 
@@ -1546,6 +1546,7 @@ bool mobi_is_dictionary(const MOBIData *m) {
     }
     /* FIXME: works only for old non-KF8 formats */
     if (mobi_get_fileversion(m) < 8 && mobi_exists_orth(m)) {
+        debug_print("%s", "Dictionary detected\n");
         return true;
     }
     return false;

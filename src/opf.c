@@ -746,11 +746,14 @@ void mobi_opf_set_item(OPFmeta **meta, const char *name, const char *content) {
         } \
         MOBIExthMeta exth_tag = mobi_get_exthtagmeta_by_tag(curr->tag); \
         char *value = NULL; \
+        MOBI_RET error_ret = MOBI_DATA_CORRUPT; \
         if (exth_tag.type == EXTH_NUMERIC) { \
             value = malloc(10 + 1); \
             if (value) { \
                 const uint32_t val32 = mobi_decode_exthvalue(curr->data, curr->size); \
                 snprintf(value, 10, "%d", val32); \
+            } else { \
+                error_ret = MOBI_MALLOC_FAILED; \
             } \
         } else if (exth_tag.type == EXTH_STRING) { \
             value = mobi_decode_exthstring(mobidata, curr->data, curr->size); \
