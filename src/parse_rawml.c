@@ -1457,7 +1457,6 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
             char *value = strpbrk(attribute, numbers);
             if (value == NULL) {
                 debug_print("Unknown link target: %s\n", attribute);
-                data_in = result.end;
                 continue;
             }
             size_t target;
@@ -1468,9 +1467,12 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                     target = strtoul(value, NULL, 10);
                     snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "href=\"#%010u\"", (uint32_t)target);
                     break;
+                case 'h':
+                case 'l':
                 case 'r':
-                    /* recindex="00000" */
+                    /* (hi|lo)recindex="00000" */
                     /* replace link with src="resource00000.ext" */
+                    /* FIXME: it handles only first (hi|lo)recindex attribute in tag */
                     target = strtoul(value, NULL, 10);
                     if (target > 0) {
                         target--;
@@ -1481,7 +1483,6 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                     break;
                 default:
                     debug_print("Unknown link target: %s\n", attribute);
-                    data_in = result.end;
                     continue;
             }
             
