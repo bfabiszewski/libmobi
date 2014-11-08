@@ -609,6 +609,7 @@ MOBI_RET array_insert(MOBIArray *arr, const uint32_t value) {
         if (!tmp) {
             free(arr->data);
             arr->data = NULL;
+            debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
         }
         arr->data = tmp;

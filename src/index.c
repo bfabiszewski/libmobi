@@ -380,6 +380,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     MOBI_RET ret;
     MOBIBuffer *buf = buffer_init_null(indx_record->size);
     if (buf == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     buf->data = indx_record->data;
@@ -472,6 +473,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
             indx->entries = malloc(indx->total_entries_count * sizeof(MOBIIndexEntry));
             if (indx->entries == NULL) {
                 buffer_free_null(buf);
+                debug_print("%s\n", "Memory allocation failed");
                 return MOBI_MALLOC_FAILED;
             }
         }
@@ -504,6 +506,7 @@ MOBI_RET mobi_parse_index(const MOBIData *m, MOBIIndx *indx, const size_t indx_r
     MOBITagx *tagx = calloc(1, sizeof(MOBITagx));
     if (tagx == NULL) {
         mobi_free_indx(indx);
+        debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     /* ordt->ordt1 and ordt.ordt2 arrays will be allocated in mobi_parse_ordt */
@@ -511,6 +514,7 @@ MOBI_RET mobi_parse_index(const MOBIData *m, MOBIIndx *indx, const size_t indx_r
     if (ordt == NULL) {
         mobi_free_indx(indx);
         mobi_free_tagx(tagx);
+        debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     /* parse first meta INDX record */

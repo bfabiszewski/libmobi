@@ -956,6 +956,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         /* load huff/cdic tables */
         huffcdic = mobi_init_huffcdic();
         if (huffcdic == NULL) {
+            debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
         }
         MOBI_RET ret = mobi_parse_huffdic(m, huffcdic);

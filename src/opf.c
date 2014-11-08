@@ -471,12 +471,14 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
             char *text = mobi_get_cncx_string(cncx_record, cncx_offset);
             if (text == NULL) {
                 mobi_free_ncx(ncx, i);
+                debug_print("%s\n", "Memory allocation failed");
                 return MOBI_MALLOC_FAILED;
             }
             char *target = malloc(MOBI_ATTRNAME_MAXSIZE + 1);
             if (target == NULL) {
                 free(text);
                 mobi_free_ncx(ncx, i);
+                debug_print("%s\n", "Memory allocation failed");
                 return MOBI_MALLOC_FAILED;
             }
             if (rawml->version >= 8) {
@@ -724,7 +726,10 @@ void mobi_opf_set_item(OPFmeta **meta, const char *name, const char *content) {
 #define mobi_opf_copy_tagtype(mobidata, struct_type, struct_element, member_name) { \
     if (struct_element == NULL) { \
         struct_element = calloc(OPF_META_MAX_TAGS, sizeof(*struct_element)); \
-        if(struct_element == NULL) { return MOBI_MALLOC_FAILED; } \
+        if(struct_element == NULL) { \
+            debug_print("%s\n", "Memory allocation failed"); \
+            return MOBI_MALLOC_FAILED; \
+        } \
     } \
     struct_type **element = struct_element; \
     size_t i = 0; \
@@ -734,7 +739,10 @@ void mobi_opf_set_item(OPFmeta **meta, const char *name, const char *content) {
             if(element[i]->member_name != NULL) { i++; continue; } \
         } else { \
             element[i] = calloc(1, sizeof(*element[i])); \
-            if(element[i] == NULL) { return MOBI_MALLOC_FAILED; } \
+            if(element[i] == NULL) { \
+                debug_print("%s\n", "Memory allocation failed"); \
+                return MOBI_MALLOC_FAILED; \
+            } \
         } \
         MOBIExthMeta exth_tag = mobi_get_exthtagmeta_by_tag(curr->tag); \
         char *value = NULL; \
@@ -750,7 +758,8 @@ void mobi_opf_set_item(OPFmeta **meta, const char *name, const char *content) {
         if(value == NULL) { \
             free(element[i]); \
             element[i] = NULL; \
-            return MOBI_MALLOC_FAILED; \
+            debug_print("%s\n", "Decoding failed"); \
+            return error_ret; \
         } \
         element[i]->member_name = value; \
         break; \
@@ -775,7 +784,10 @@ void mobi_opf_set_item(OPFmeta **meta, const char *name, const char *content) {
 #define mobi_opf_set_tagtype(struct_type, struct_element, member_name, string) { \
     if (struct_element == NULL) { \
         struct_element = calloc(OPF_META_MAX_TAGS, sizeof(*struct_element)); \
-        if(struct_element == NULL) { return MOBI_MALLOC_FAILED; } \
+        if(struct_element == NULL) { \
+            debug_print("%s\n", "Memory allocation failed"); \
+            return MOBI_MALLOC_FAILED; \
+        } \
     } \
     struct_type **element = struct_element; \
     size_t i = 0; \
@@ -785,12 +797,16 @@ void mobi_opf_set_item(OPFmeta **meta, const char *name, const char *content) {
             if(element[i]->member_name != NULL) { i++; continue; } \
         } else { \
             element[i] = calloc(1, sizeof(*element[i])); \
-            if(element[i] == NULL) { return MOBI_MALLOC_FAILED; } \
+            if(element[i] == NULL) { \
+                debug_print("%s\n", "Memory allocation failed"); \
+                return MOBI_MALLOC_FAILED; \
+            } \
         } \
         element[i]->member_name = strdup(string); \
         if(element[i]->member_name == NULL) { \
             free(element[i]); \
             element[i] = NULL; \
+            debug_print("%s\n", "Memory allocation failed"); \
             return MOBI_MALLOC_FAILED; \
         } \
         break; \

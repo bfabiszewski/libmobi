@@ -35,6 +35,7 @@ MOBI_RET mobi_load_pdbheader(MOBIData *m, FILE *file) {
     }
     MOBIBuffer *buf = buffer_init(PALMDB_HEADER_LEN);
     if (buf == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     const size_t len = fread(buf->data, 1, PALMDB_HEADER_LEN, file);
@@ -91,6 +92,7 @@ MOBI_RET mobi_load_reclist(MOBIData *m, FILE *file) {
     for (int i = 0; i < m->ph->rec_count; i++) {
         MOBIBuffer *buf = buffer_init(PALMDB_RECORD_INFO_SIZE);
         if (buf == NULL) {
+            debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
         }
         const size_t len = fread(buf->data, 1, PALMDB_RECORD_INFO_SIZE, file);
@@ -381,6 +383,7 @@ MOBI_RET mobi_parse_record0(MOBIData *m, const size_t seqnumber) {
     }
     MOBIBuffer *buf = buffer_init_null(record0->size);
     if (buf == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     buf->data = record0->data;
@@ -470,6 +473,7 @@ size_t mobi_get_record_extrasize(const MOBIPdbRecord *record, const uint16_t fla
 MOBI_RET mobi_parse_huff(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record) {
     MOBIBuffer *buf = buffer_init_null(record->size);
     if (buf == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     buf->data = record->data;
@@ -524,6 +528,7 @@ MOBI_RET mobi_parse_huff(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record) {
 MOBI_RET mobi_parse_cdic(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record, const size_t num) {
     MOBIBuffer *buf = buffer_init_null(record->size);
     if (buf == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     buf->data = record->data;
@@ -655,6 +660,7 @@ MOBI_RET mobi_parse_fdst(const MOBIData *m, MOBIRawml *rawml) {
     const MOBIPdbRecord *fdst_record = mobi_get_record_by_seqnumber(m, fdst_record_number);
     MOBIBuffer *buf = buffer_init_null(fdst_record->size);
     if (buf == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     buf->data = fdst_record->data;
