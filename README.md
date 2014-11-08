@@ -15,9 +15,10 @@ It may serve as an example how to use the library.
 - recreating source files using indices
 - reconstructing references (links and embedded) in html files
 - reconstructing source structure that can be fed back to kindlegen
+- reconstructing dictionary markup (orth, infl tags)
 
 ## Todo:
-- reconstruct inflections
+- handle old scheme inflections
 - process RESC records
 - exporting to EPUB documents
 - writing MOBI documents

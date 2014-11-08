@@ -383,8 +383,8 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
  
  @param[in] indx_record MOBIPdbRecord structure with INDX record
  @param[in,out] indx MOBIIndx structure to be filled with parsed entries
- @param[in,out] tagx MOBITagx structure, will be filled with parsed TAGX section data if present in the INDX record,
-                     otherwise TAGX data will be used to parse the record
+ @param[in,out] tagx MOBITagx structure, will be filled with parsed TAGX section data if present in the INDX record, otherwise TAGX data will be used to parse the record
+ @param[in,out] ordt MOBIOrdt structure, will be filled with parsed ORDT sections
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBITagx *tagx, MOBIOrdt *ordt) {

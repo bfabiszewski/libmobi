@@ -193,9 +193,9 @@ extern "C"
      @{
      */
     typedef enum {
-        MOBI_CP1252 = 1252,
-        MOBI_UTF8 = 65001,
-        MOBI_UTF16 = 65002,
+        MOBI_CP1252 = 1252, /**< cp-1252 encoding */
+        MOBI_UTF8 = 65001, /**< utf-8 encoding */
+        MOBI_UTF16 = 65002, /**< utf-16 encoding */
     } MOBIEncoding;
     /** @} */
     
