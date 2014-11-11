@@ -976,14 +976,19 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
             }
         }
         const size_t record_size = curr->size - extra_size;
-        unsigned char decompressed[RECORD0_TEXT_SIZE_MAX];
-        /* FIXME: RECORD0_TEXT_SIZE_MAX should be enough */
-        size_t decompressed_size = RECORD0_TEXT_SIZE_MAX;
+        size_t decompressed_size = mobi_get_textrecord_maxsize(m);
+        unsigned char *decompressed = malloc(decompressed_size);
+        if (decompressed == NULL) {
+            debug_print("Memory allocation failed%s", "\n");
+            return MOBI_MALLOC_FAILED;
+        }
+        MOBI_RET ret = MOBI_SUCCESS;
         switch (compression_type) {
             case RECORD0_NO_COMPRESSION:
                 /* no compression */
-                if (record_size > RECORD0_TEXT_SIZE_MAX) {
+                if (record_size > decompressed_size) {
                     debug_print("Record too large: %zu\n", record_size);
+                    free(decompressed);
                     return MOBI_DATA_CORRUPT;
                 }
                 memcpy(decompressed, curr->data, record_size);
@@ -991,14 +996,24 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                 break;
             case RECORD0_PALMDOC_COMPRESSION:
                 /* palmdoc lz77 compression */
-                mobi_decompress_lz77(decompressed, curr->data, &decompressed_size, record_size);
+                ret = mobi_decompress_lz77(decompressed, curr->data, &decompressed_size, record_size);
+                if (ret != MOBI_SUCCESS) {
+                    free(decompressed);
+                    return ret;
+                }
                 break;
             case RECORD0_HUFF_COMPRESSION:
                 /* mobi huffman compression */
-                mobi_decompress_huffman(decompressed, curr->data, &decompressed_size, record_size, huffcdic);
+                ret = mobi_decompress_huffman(decompressed, curr->data, &decompressed_size, record_size, huffcdic);
+                if (ret != MOBI_SUCCESS) {
+                    free(decompressed);
+                    mobi_free_huffcdic(huffcdic);
+                    return ret;
+                }
                 break;
             default:
                 debug_print("%s", "Unknown compression type\n");
+                free(decompressed);
                 return MOBI_DATA_CORRUPT;
         }
         curr = curr->next;
@@ -1011,13 +1026,14 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                 if (compression_type == RECORD0_HUFF_COMPRESSION) {
                     mobi_free_huffcdic(huffcdic);
                 }
+                free(decompressed);
                 return MOBI_PARAM_ERR;
             }
             memcpy(text + text_length, decompressed, decompressed_size);
             text_length += decompressed_size;
             text[text_length] = '\0';
         }
-
+        free(decompressed);
     }
     /* free huff/cdic tables */
     if (compression_type == RECORD0_HUFF_COMPRESSION) {
@@ -1605,8 +1621,25 @@ size_t mobi_get_fileversion(const MOBIData *m) {
     return 1;
 }
 
+
 /**
- @brief Get maximal size of uncompessed text records
+ @brief Get maximal size of uncompressed text record
+ 
+ @param[in] m MOBIData structure with loaded Record(s) 0 headers
+ @return Size of text or MOBI_NOTSET if error
+ */
+uint16_t mobi_get_textrecord_maxsize(const MOBIData *m) {
+    uint16_t max_record_size = RECORD0_TEXT_SIZE_MAX;
+    if (m && m->rh) {
+        if (m->rh->text_record_size > RECORD0_TEXT_SIZE_MAX) {
+            max_record_size = m->rh->text_record_size;
+        }
+    }
+    return max_record_size;
+}
+
+/**
+ @brief Get maximal size of all uncompressed text records
  
  @param[in] m MOBIData structure with loaded Record(s) 0 headers
  @return Size of text or MOBI_NOTSET if error
@@ -1615,7 +1648,8 @@ size_t mobi_get_text_maxsize(const MOBIData *m) {
     if (m && m->rh) {
         /* FIXME: is it safe to use data from Record 0 header? */
         if (m->rh->text_record_count > 0) {
-            return (m->rh->text_record_count * RECORD0_TEXT_SIZE_MAX);
+            uint16_t max_record_size = mobi_get_textrecord_maxsize(m);
+            return (m->rh->text_record_count * max_record_size);
         }
     }
     return MOBI_NOTSET;

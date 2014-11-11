@@ -501,6 +501,7 @@ extern "C"
     MOBI_EXPORT MOBIPdbRecord * mobi_get_record_by_seqnumber(const MOBIData *m, const size_t uid);
     MOBI_EXPORT MOBI_RET mobi_get_fullname(const MOBIData *m, char *fullname, const size_t len);
     MOBI_EXPORT size_t mobi_get_text_maxsize(const MOBIData *m);
+    MOBI_EXPORT uint16_t mobi_get_textrecord_maxsize(const MOBIData *m);
     MOBI_EXPORT size_t mobi_get_kf8offset(const MOBIData *m);
     MOBI_EXPORT size_t mobi_get_kf8boundary_seqnumber(const MOBIData *m);
     MOBI_EXPORT size_t mobi_get_record_extrasize(const MOBIPdbRecord *record, const uint16_t flags);
