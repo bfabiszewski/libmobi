@@ -231,8 +231,8 @@ static uint32_t _buffer_get_varlen(MOBIBuffer *buf, size_t *len, const int direc
     uint32_t val = 0;
     uint8_t byte_count = 0;
     uint8_t byte;
-    uint8_t stop_flag = 0x80;
-    uint8_t mask = 0x7f;
+    const uint8_t stop_flag = 0x80;
+    const uint8_t mask = 0x7f;
     uint32_t shift = 0;
     do {
         if (direction == 1) {
