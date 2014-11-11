@@ -640,6 +640,29 @@ char * mobi_get_cncx_string(const MOBIPdbRecord *cncx_record, const uint32_t cnc
 }
 
 /**
+ @brief Get flat index entry string
+ 
+ Allocates memory for the string. Must be freed by caller.
+ 
+ @param[in] cncx_record MOBIPdbRecord structure with cncx record
+ @param[in] cncx_offset Offset of string entry from the beginning of the record
+ @param[in] length Length of the string to be extracted
+ @return Entry string
+ */
+char * mobi_get_cncx_string_flat(const MOBIPdbRecord *cncx_record, const uint32_t cncx_offset, const size_t length) {
+    /* TODO: handle multiple cncx records */
+    MOBIBuffer *buf = buffer_init_null(cncx_record->size);
+    buf->data = cncx_record->data;
+    buffer_setpos(buf, cncx_offset);
+    char *string = malloc(length + 1);
+    if (string) {
+        buffer_getstring(string, buf, length);
+        buffer_free_null(buf);
+    }
+    return string;
+}
+
+/**
  @brief Decode compiled infl index entry
  
  Buffer decoded must be initialized with basic index entry.
@@ -655,7 +678,7 @@ char * mobi_get_cncx_string(const MOBIPdbRecord *cncx_record, const uint32_t cnc
 MOBI_RET mobi_decode_infl(unsigned char *decoded, int *decoded_size, const unsigned char *rule) {
     int pos = *decoded_size;
     char mod = 'i';
-    char dir = '<', olddir = dir;
+    char dir = '<', olddir;
     unsigned char c;
     while ((c = *rule++)) {
         if (c <= 4) {
