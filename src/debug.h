@@ -36,6 +36,9 @@ void debug_free(void *ptr, const char *file, const int line);
 void *debug_malloc(const size_t size, const char *file, const int line);
 void *debug_realloc(void *ptr, const size_t size, const char *file, const int line);
 void *debug_calloc(const size_t num, const size_t size, const char *file, const int line);
+void print_indx(const MOBIIndx *indx);
+void print_indx_infl_old(const MOBIIndx *indx);
+void print_indx_orth_old(const MOBIIndx *indx);
 
 /**
  @brief Macro for printing debug info to stderr. Wrapper for fprintf

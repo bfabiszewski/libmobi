@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #include "debug.h"
+#include "index.h"
 
 /**
  @brief Debugging wrapper for free(void *ptr)
@@ -69,4 +70,69 @@ void *debug_calloc(const size_t num, const size_t size, const char *file, const 
     void *ptr = (calloc)(num, size);
     printf("%s:%d: calloc(%d, %d)=%p\n", file, line, (int)num, (int)size, ptr);
     return ptr;
+}
+
+/**
+ @brief Dump index values
+ 
+ @param[in] indx Parsed index
+*/
+void print_indx(const MOBIIndx *indx) {
+    for (size_t i = 0; i < indx->entries_count; i++) {
+        MOBIIndexEntry e = indx->entries[i];
+        printf("entry[%zu]: \"%s\"\n", i, e.label);
+        for (size_t j = 0; j < e.tags_count; j++) {
+            MOBIIndexTag t = e.tags[j];
+            printf("  tag[%zu] ", t.tagid);
+            for (size_t k = 0; k < t.tagvalues_count; k++) {
+                printf("[%u] ", t.tagvalues[k]);
+            }
+            printf("\n");
+        }
+    }
+}
+
+void print_indx_infl_old(const MOBIIndx *indx) {
+    for (size_t i = 0; i < indx->entries_count; i++) {
+        MOBIIndexEntry e = indx->entries[i];
+        printf("entry[%zu]: \"%s\"\n", i, e.label);
+        for (size_t j = 0; j < e.tags_count; j++) {
+            MOBIIndexTag t = e.tags[j];
+            printf("  tag[%zu] ", t.tagid);
+            if (t.tagid == 7) {
+                for (size_t k = 0; k < t.tagvalues_count; k += 2) {
+                    uint32_t len = t.tagvalues[k];
+                    uint32_t offset = t.tagvalues[k + 1];
+                    printf("\"%s\" [%u] [%u]", mobi_get_cncx_string_flat(indx->cncx_record, offset, len), len, offset);
+                }
+            } else {
+                for (size_t k = 0; k < t.tagvalues_count; k++) {
+                    printf("[%u] ", t.tagvalues[k]);
+                }
+            }
+            printf("\n");
+        }
+    }
+}
+
+void print_indx_orth_old(const MOBIIndx *indx) {
+    for (size_t i = 0; i < indx->entries_count; i++) {
+        MOBIIndexEntry e = indx->entries[i];
+        printf("entry[%zu]: \"%s\"\n", i, e.label);
+        for (size_t j = 0; j < e.tags_count; j++) {
+            MOBIIndexTag t = e.tags[j];
+            printf("  tag[%zu] ", t.tagid);
+            if (t.tagid >= 69) {
+                for (size_t k = 0; k < t.tagvalues_count; k++) {
+                    uint32_t offset = t.tagvalues[k];
+                    printf("\"%s\" [%u] ", mobi_get_cncx_string(indx->cncx_record, offset), t.tagvalues[k]);
+                }
+            } else {
+                for (size_t k = 0; k < t.tagvalues_count; k++) {
+                    printf("[%u] ", t.tagvalues[k]);
+                }
+            }
+            printf("\n");
+        }
+    }
 }
