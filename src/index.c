@@ -79,7 +79,7 @@ static MOBI_RET mobi_parse_tagx(MOBIBuffer *buf, MOBITagx *tagx) {
     tagx->tags = NULL;
     buffer_seek(buf, 4); /* skip header */
     const uint32_t tagx_header_length = buffer_get32(buf);
-    if (tagx_header_length < 16) {
+    if (tagx_header_length < 12) {
         debug_print("INDX wrong header length: %u\n", tagx_header_length);
         return MOBI_DATA_CORRUPT;
     }
