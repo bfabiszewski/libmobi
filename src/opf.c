@@ -9,6 +9,11 @@
  * See <http://www.gnu.org/licenses/>
  */
 
+#define _GNU_SOURCE 1
+#ifndef __USE_BSD
+#define __USE_BSD /* for strdup on linux/glibc */
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #ifdef __clang__

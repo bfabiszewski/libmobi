@@ -17,7 +17,7 @@
 #include "buffer.h"
 #include "compression.h"
 
-#if !defined HAVE_STRDUP || !defined __USE_BSD
+#ifndef HAVE_STRDUP
 /** @brief strdup replacement */
 #define strdup mobi_strdup
 #endif
