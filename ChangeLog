@@ -1,3 +1,11 @@
+2edffb8 fix: documents with text record size > 4096 failed to load
+f9ff116 add: function to decode flat index entries
+f76c109 debug: add functions for debugging indices
+d8049a5 cleanup
+fbb7631 fix: variable length value wrongly calculated when going backwards
+de84823 Merge remote-tracking branch 'origin/public' into public
+94bcd00 update documentation
+3fe983f update changelog
 81898a7 add support for reconstructing inflections index entries
 f5c337c parsing of exth header failed in some cases
 e60f206 fix: some links reconstruction in kf7 failed
