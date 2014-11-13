@@ -1764,6 +1764,7 @@ void mobi_free_opf(OPF *opf) {
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_build_opf(MOBIRawml *rawml, const MOBIData *m) {
+    debug_print("Reconstructing opf%s", "\n");
     /* initialize libXML2 */
     LIBXML_TEST_VERSION
     /* initialize OPF structure */

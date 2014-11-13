@@ -78,6 +78,7 @@ void *debug_calloc(const size_t num, const size_t size, const char *file, const 
  @param[in] indx Parsed index
 */
 void print_indx(const MOBIIndx *indx) {
+    if (indx == NULL) { return; }
     for (size_t i = 0; i < indx->entries_count; i++) {
         MOBIIndexEntry e = indx->entries[i];
         printf("entry[%zu]: \"%s\"\n", i, e.label);
@@ -93,6 +94,7 @@ void print_indx(const MOBIIndx *indx) {
 }
 
 void print_indx_infl_old(const MOBIIndx *indx) {
+    if (indx == NULL) { return; }
     for (size_t i = 0; i < indx->entries_count; i++) {
         MOBIIndexEntry e = indx->entries[i];
         printf("entry[%zu]: \"%s\"\n", i, e.label);
@@ -103,7 +105,11 @@ void print_indx_infl_old(const MOBIIndx *indx) {
                 for (size_t k = 0; k < t.tagvalues_count; k += 2) {
                     uint32_t len = t.tagvalues[k];
                     uint32_t offset = t.tagvalues[k + 1];
-                    printf("\"%s\" [%u] [%u]", mobi_get_cncx_string_flat(indx->cncx_record, offset, len), len, offset);
+                    char *string = mobi_get_cncx_string_flat(indx->cncx_record, offset, len);
+                    if (string) {
+                        printf("\"%s\" [%u] [%u]", string, len, offset);
+                        free(string);
+                    }
                 }
             } else {
                 for (size_t k = 0; k < t.tagvalues_count; k++) {
@@ -116,6 +122,7 @@ void print_indx_infl_old(const MOBIIndx *indx) {
 }
 
 void print_indx_orth_old(const MOBIIndx *indx) {
+    if (indx == NULL) { return; }
     for (size_t i = 0; i < indx->entries_count; i++) {
         MOBIIndexEntry e = indx->entries[i];
         printf("entry[%zu]: \"%s\"\n", i, e.label);
@@ -125,7 +132,11 @@ void print_indx_orth_old(const MOBIIndx *indx) {
             if (t.tagid >= 69) {
                 for (size_t k = 0; k < t.tagvalues_count; k++) {
                     uint32_t offset = t.tagvalues[k];
-                    printf("\"%s\" [%u] ", mobi_get_cncx_string(indx->cncx_record, offset), t.tagvalues[k]);
+                    char *string = mobi_get_cncx_string(indx->cncx_record, offset);
+                    if (string) {
+                        printf("\"%s\" [%u] ", string, t.tagvalues[k]);
+                        free(string);
+                    }
                 }
             } else {
                 for (size_t k = 0; k < t.tagvalues_count; k++) {

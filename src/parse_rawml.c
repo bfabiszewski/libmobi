@@ -1351,10 +1351,10 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBIIndexEntry *orth_entry) {
-    
     const char *label = orth_entry->label;
     uint32_t *infl_groups = NULL;
     size_t infl_count = mobi_get_indxentry_tagarray(&infl_groups, orth_entry, INDX_TAGARR_ORTH_INFL);
+    
     if (infl_count == 0 || !infl_groups) {
         return MOBI_SUCCESS;
     }
@@ -1682,6 +1682,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_reconstruct_links(const MOBIRawml *rawml) {
+    debug_print("Reconstructing links%s", "\n");
     if (rawml == NULL) {
         debug_print("%s\n", "Rawml not initialized\n");
         return MOBI_INIT_FAILED;

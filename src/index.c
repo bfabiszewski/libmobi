@@ -280,7 +280,7 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
         return MOBI_MALLOC_FAILED;
     }
     strncpy(indx->entries[entry_number].label, text, label_length + 1);
-    debug_print("tag label[%zu]: %s\n", entry_number, indx->entries[entry_number].label);
+    //debug_print("tag label[%zu]: %s\n", entry_number, indx->entries[entry_number].label);
     unsigned char *control_bytes;
     control_bytes = buf->data + buf->offset;
     buffer_seek(buf, (int) tagx->control_byte_count);
@@ -585,7 +585,7 @@ MOBI_RET mobi_get_indxentry_tagvalue(uint32_t *tagvalue, const MOBIIndexEntry *e
         }
         i++;
     }
-    debug_print("tag[%i][%i] not found in entry: %s\n", tag_arr[0], tag_arr[1], entry->label);
+    //debug_print("tag[%i][%i] not found in entry: %s\n", tag_arr[0], tag_arr[1], entry->label);
     return MOBI_DATA_CORRUPT;
 }
 
