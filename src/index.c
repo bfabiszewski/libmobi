@@ -345,10 +345,10 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
             uint32_t tagvalues_count = 0;
             /* FIXME: is it safe to use MOBI_NOTSET? */
             /* value count is set */
-            uint32_t tagvalues[MOBI_INDX_MAXTAGVALUES];
+            uint32_t tagvalues[INDX_TAGVALUES_MAX];
             if (ptagx[i].value_count != MOBI_NOTSET) {
                 size_t count = ptagx[i].value_count * ptagx[i].tag_value_count;
-                while (count-- && tagvalues_count < MOBI_INDX_MAXTAGVALUES) {
+                while (count-- && tagvalues_count < INDX_TAGVALUES_MAX) {
                     len = 0;
                     const uint32_t value_bytes = buffer_get_varlen(buf, &len);
                     tagvalues[tagvalues_count++] = value_bytes;
@@ -357,7 +357,7 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
             } else {
                 /* read value_bytes bytes */
                 len = 0;
-                while (len < ptagx[i].value_bytes && tagvalues_count < MOBI_INDX_MAXTAGVALUES) {
+                while (len < ptagx[i].value_bytes && tagvalues_count < INDX_TAGVALUES_MAX) {
                     const uint32_t value_bytes = buffer_get_varlen(buf, &len);
                     tagvalues[tagvalues_count++] = value_bytes;
                 }
@@ -620,6 +620,26 @@ size_t mobi_get_indxentry_tagarray(uint32_t **tagarr, const MOBIIndexEntry *entr
     return 0;
 }
 
+/**
+ @brief Check if given tagid is present in the index
+ 
+ @param[in] indx Index MOBIIndx structure
+ @param[in] tagid Id of the tag
+ @return True on success, false otherwise
+ */
+bool mobi_indx_has_tag(const MOBIIndx *indx, const size_t tagid) {
+    if (indx) {
+        for (size_t i = 0; i < indx->entries_count; i++) {
+            MOBIIndexEntry entry = indx->entries[i];
+            for(size_t j = 0; j < entry.tags_count; j++) {
+                if (entry.tags[j].tagid == tagid) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
 
 /**
  @brief Get compiled index entry string
@@ -734,6 +754,63 @@ MOBI_RET mobi_decode_infl(unsigned char *decoded, int *decoded_size, const unsig
                 }
                 memmove(d, s, l);
                 (*decoded_size)--;
+            }
+        }
+    }
+    return MOBI_SUCCESS;
+}
+
+size_t mobi_trie_get_inflgroups(char **infl_strings, MOBITrie *root, const char *string) {
+    /* travers trie and get values for each substring */
+    if (root == NULL) {
+        return MOBI_PARAM_ERR;
+    }
+    size_t count = 0;
+    size_t length = strlen(string);
+    MOBITrie *node = root;
+    while (node && length > 0) {
+        char **values = NULL;
+        size_t values_count = 0;
+        node = mobi_trie_get_next(&values, &values_count, node, string[length - 1]);
+        length--;
+        for (size_t j = 0; j < values_count; j++) {
+            if (count == INDX_INFLSTRINGS_MAX) {
+                debug_print("Inflection strings array too small (%d)\n", INDX_INFLSTRINGS_MAX);
+                break;
+            }
+            char infl_string[INDX_LABEL_SIZEMAX + 1];
+            const size_t suffix_length = strlen(values[j]);
+            if (length + suffix_length > INDX_LABEL_SIZEMAX) {
+                debug_print("Label too long (%zu + %zu)\n", length, suffix_length);
+                continue;
+            }
+            memcpy(infl_string, string, length);
+            memcpy(infl_string + length, values[j], suffix_length);
+            infl_string[length + suffix_length] = '\0';
+            infl_strings[count++] = strdup(infl_string);
+        }
+    }
+    return count;
+}
+
+MOBI_RET mobi_trie_insert_infl(MOBITrie **root, const MOBIIndx *indx, size_t i) {
+    MOBIIndexEntry e = indx->entries[i];
+    char *inflected = e.label;
+    for (size_t j = 0; j < e.tags_count; j++) {
+        MOBIIndexTag t = e.tags[j];
+        if (t.tagid == INDX_TAGARR_INFL_PARTS_V1) {
+            for (size_t k = 0; k < t.tagvalues_count - 1; k += 2) {
+                uint32_t len = t.tagvalues[k];
+                uint32_t offset = t.tagvalues[k + 1];
+                char *base = mobi_get_cncx_string_flat(indx->cncx_record, offset, len);
+                if (base == NULL) {
+                    return MOBI_MALLOC_FAILED;
+                }
+                MOBI_RET ret = mobi_trie_insert_reversed(root, base, inflected);
+                free(base);
+                if (ret != MOBI_SUCCESS) {
+                    return ret;
+                }
             }
         }
     }

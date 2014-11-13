@@ -1378,7 +1378,7 @@ MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBI
         uint32_t *groups;
         size_t group_cnt = mobi_get_indxentry_tagarray(&groups, &infl->entries[offset], INDX_TAGARR_INFL_GROUPS);
         uint32_t *parts;
-        size_t part_cnt = mobi_get_indxentry_tagarray(&parts, &infl->entries[offset], INDX_TAGARR_INFL_PARTS);
+        size_t part_cnt = mobi_get_indxentry_tagarray(&parts, &infl->entries[offset], INDX_TAGARR_INFL_PARTS_V2);
         if (group_cnt != part_cnt) {
             return MOBI_DATA_CORRUPT;
         }
@@ -1416,7 +1416,53 @@ MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBI
     } else {
         strcat(outstring, end_tag);
     }
-    debug_print("%s\n", outstring);
+    return MOBI_SUCCESS;
+}
+
+MOBI_RET mobi_reconstruct_infl_v1(char *outstring, MOBITrie *infl_tree, const MOBIIndexEntry *orth_entry) {
+    const char *label = orth_entry->label;
+    const size_t label_length = strlen(label);
+    if (label_length > INDX_INFLBUF_SIZEMAX) {
+        debug_print("Entry label too long (%s)\n", label);
+        return MOBI_DATA_CORRUPT;
+    }
+    char *infl_strings[INDX_INFLSTRINGS_MAX];
+    size_t infl_count = mobi_trie_get_inflgroups(infl_strings, infl_tree, label);
+    
+    if (infl_count == 0) {
+        return MOBI_SUCCESS;
+    }
+    
+    const char *start_tag = "<idx:infl>";
+    const char *end_tag = "</idx:infl>";
+    const char *iform_tag = "<idx:iform value=\"%s\"/>";
+    char infl_tag[INDX_INFLBUF_SIZEMAX + 1];
+    strcpy(outstring, start_tag);
+    size_t initlen = strlen(start_tag) + strlen(end_tag);
+    size_t outlen = initlen;
+    for (size_t i = 0; i < infl_count; i++) {
+        char *decoded = infl_strings[i];
+        size_t decoded_length = strlen(decoded);
+
+        if (decoded_length == 0) {
+            free(decoded);
+            continue;
+        }
+        snprintf(infl_tag, INDX_INFLBUF_SIZEMAX, iform_tag, decoded);
+        /* allocated in mobi_trie_get_inflgroups() */
+        free(decoded);
+        outlen += strlen(infl_tag);
+        if (outlen > INDX_INFLTAG_SIZEMAX) {
+            debug_print("Inflections text in %s too long (%zu)\n", label, outlen);
+            return MOBI_ERROR;
+        }
+        strcat(outstring, infl_tag);
+    }
+    if (outlen == initlen) {
+        outstring[0] = '\0';
+    } else {
+        strcat(outstring, end_tag);
+    }
     return MOBI_SUCCESS;
 }
 
@@ -1429,6 +1475,27 @@ MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBI
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size_t *new_size) {
+    MOBITrie *infl_trie = NULL;
+    bool is_infl_v2 = mobi_indx_has_tag(rawml->orth, INDX_TAGARR_ORTH_INFL);
+    bool is_infl_v1 = false;
+    if (is_infl_v2 == false) {
+        is_infl_v1 = mobi_indx_has_tag(rawml->infl, INDX_TAGARR_INFL_PARTS_V1);
+    }
+    debug_print("Reconstructing orth index %s\n", (is_infl_v1)?"(infl v1)":(is_infl_v2)?"(infl v2)":"");
+    if (is_infl_v1) {
+        debug_print("Building trie%s", "\n");
+        size_t total = rawml->infl->entries_count;
+        size_t j = 0;
+        while (j < total) {
+            MOBI_RET ret = mobi_trie_insert_infl(&infl_trie, rawml->infl, j++);
+            if (ret != MOBI_SUCCESS || infl_trie == NULL) {
+                debug_print("Building trie for inflections failed%s", "\n");
+                mobi_trie_free(infl_trie);
+                is_infl_v1 = false;
+            }
+        }
+    }
+    
     MOBIFragment *curr = first;
     size_t i = 0;
     const size_t count = rawml->orth->entries_count;
@@ -1451,21 +1518,6 @@ MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size
         size_t entry_length = 0;
         uint32_t entry_textlen = 0;
         mobi_get_indxentry_tagvalue(&entry_textlen, orth_entry, INDX_TAG_ORTH_ENDPOS);
-        //char infl_tag[INDX_LABEL_SIZEMAX] = "";
-        char *infl_tag = malloc(INDX_INFLTAG_SIZEMAX + 1);
-        if (infl_tag == NULL) {
-            debug_print("%s\n", "Memory allocation failed");
-            return MOBI_MALLOC_FAILED;
-        }
-        infl_tag[0] = '\0';
-        if (rawml->infl) {
-            ret = mobi_reconstruct_infl(infl_tag, rawml->infl, orth_entry);
-            if (ret != MOBI_SUCCESS) {
-                free(infl_tag);
-                return ret;
-            }
-            entry_length += strlen(infl_tag);
-        }
         char *start_tag;
         if (entry_textlen == 0) {
             entry_length += start_tag1_len + strlen(label);
@@ -1474,9 +1526,37 @@ MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size
             entry_length += start_tag2_len + strlen(label);
             start_tag = (char *) start_tag2;
         }
-        char *entry_text = malloc(entry_length + 1);
-        sprintf(entry_text, start_tag, label, infl_tag);
-        free(infl_tag);
+
+        char *entry_text;
+        if (rawml->infl) {
+            char *infl_tag = malloc(INDX_INFLTAG_SIZEMAX + 1);
+            if (infl_tag == NULL) {
+                debug_print("%s\n", "Memory allocation failed");
+                mobi_trie_free(infl_trie);
+                return MOBI_MALLOC_FAILED;
+            }
+            infl_tag[0] = '\0';
+            if (is_infl_v2) {
+                ret = mobi_reconstruct_infl(infl_tag, rawml->infl, orth_entry);
+            } else if (is_infl_v1) {
+                ret = mobi_reconstruct_infl_v1(infl_tag, infl_trie, orth_entry);
+            } else {
+                debug_print("Unknown inflection scheme?%s", "\n");
+            }
+            if (ret != MOBI_SUCCESS) {
+                free(infl_tag);
+                return ret;
+            }
+            entry_length += strlen(infl_tag);
+            
+            entry_text = malloc(entry_length + 1);
+            sprintf(entry_text, start_tag, label, infl_tag);
+            free(infl_tag);
+        } else {
+            entry_text = malloc(entry_length + 1);
+            sprintf(entry_text, start_tag, label, "");
+        }
+        
         if (entry_startpos < prev_startpos) {
             curr = first;
         }
@@ -1486,6 +1566,7 @@ MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size
         prev_startpos = entry_startpos;
         if (curr == NULL) {
             debug_print("%s\n", "Memory allocation failed");
+            mobi_trie_free(infl_trie);
             return MOBI_MALLOC_FAILED;
         }
         *new_size += curr->size;
@@ -1496,12 +1577,14 @@ MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size
                                     end_tag_len, true, entry_startpos + entry_textlen);
             if (curr == NULL) {
                 debug_print("%s\n", "Memory allocation failed");
+                mobi_trie_free(infl_trie);
                 return MOBI_MALLOC_FAILED;
             }
             *new_size += curr->size;
         }
         i++;
     }
+    mobi_trie_free(infl_trie);
     return MOBI_SUCCESS;
 }
 
@@ -1908,5 +1991,3 @@ MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
     }
     return MOBI_SUCCESS;
 }
-
-
