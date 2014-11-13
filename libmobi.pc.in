@@ -8,5 +8,6 @@ Description: MOBI ebook format handling library
 URL: http://www.fabiszewski.net/libmobi
 Version: @VERSION@
 Requires:
-Libs: -L${libdir} -lmobi @LIBZ_LDFLAGS@
+Libs: -L${libdir} -lmobi
+Libs.private: @LIBZ_LDFLAGS@ @LIBXML2_LDFLAGS@
 Cflags: -I${includedir}

@@ -44,10 +44,10 @@ AC_TYPE_UINT8_T
 AC_FUNC_MKTIME
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([memset mkdir strdup strrchr strstr strtoul utime])
+AC_CHECK_FUNCS([memmove memset mkdir strdup strpbrk strrchr strstr strtoul utime])
 
 # test for --with-zlib
-AC_MSG_CHECKING([if compile with zlib])
+AC_MSG_CHECKING([whether compile with zlib])
 AC_ARG_WITH(zlib,
             AC_HELP_STRING([--with-zlib],[Use zlib instead of included miniz @<:@default=yes@:>@]),
             [if test "$withval" = yes; then use_zlib=yes; else use_zlib=no; fi],
@@ -70,7 +70,7 @@ AC_SUBST(LIBZ_LDFLAGS)
 AC_SUBST(MINIZ_CFLAGS)
 
 # test for --with-libxml2
-AC_MSG_CHECKING([if compile with libxml2])
+AC_MSG_CHECKING([whether compile with libxml2])
 AC_ARG_WITH(libxml2,
             AC_HELP_STRING([--with-libxml2],[Compile with libxml2 @<:@default=yes@:>@]),
             [if test "$withval" = yes; then use_libxml2=yes; else use_libxml2=no; fi],
@@ -160,7 +160,7 @@ AC_DEFINE_UNQUOTED([MOBI_INLINE], [$def_inline],
                    [How to obtain function inlining.])
 
 # Check --enable-debug
-AC_MSG_CHECKING([if enable debugging])
+AC_MSG_CHECKING([whether enable debugging])
 AC_ARG_ENABLE([debug],
 AS_HELP_STRING([--enable-debug],
                [enable debugging @<:@default=no@:>@]),
@@ -188,7 +188,7 @@ fi
 AC_SUBST(DEBUG_CFLAGS)
 
 # Check --enable-debug-alloc
-AC_MSG_CHECKING([if enable alloc debugging])
+AC_MSG_CHECKING([whether enable alloc debugging])
 AC_ARG_ENABLE([debug_alloc],
 AS_HELP_STRING([--enable-debug-alloc],
                [enable memory allocation debugging @<:@default=no@:>@]),
@@ -204,7 +204,7 @@ if test x$debug_alloc = xyes; then
 fi
 
 # Check --enable-mobitool-static
-AC_MSG_CHECKING([if link mobitool against static libmobi])
+AC_MSG_CHECKING([whether link mobitool against static libmobi])
 AC_ARG_ENABLE([mobitool_static],
 AS_HELP_STRING([--enable-mobitool-static],
                [link mobitool against static libmobi @<:@default=no@:>@]),

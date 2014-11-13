@@ -52,20 +52,4 @@ void buffer_setpos(MOBIBuffer *buf, size_t pos);
 void buffer_free(MOBIBuffer *buf);
 void buffer_free_null(MOBIBuffer *buf);
 
-/**
- @brief Dynamic array of uint32_t values structure
- */
-typedef struct {
-    uint32_t *data; /**< Array */
-    size_t maxsize; /**< Allocated size */
-    size_t step; /**< Step by which array will be enlarged if out of memory */
-    size_t size; /**< Current size */
-} MOBIArray;
-
-MOBIArray * array_init(const size_t len);
-MOBI_RET array_insert(MOBIArray *arr, uint32_t value);
-void array_sort(MOBIArray *arr, bool unique);
-size_t array_size(MOBIArray *arr);
-void array_free(MOBIArray *arr);
-
 #endif

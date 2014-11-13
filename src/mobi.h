@@ -400,11 +400,6 @@ extern "C"
         uint32_t *fdst_section_ends; /**< Array of section end offsets */
     } MOBIFdst;
 
-    /**
-     @brief Maximum value of tag values in index entry (MOBIIndexTag) 
-     FIXME: is 2 enough?
-     */
-#define MOBI_INDX_MAXTAGVALUES 100
     
     /**
      @brief Parsed tag for an index entry

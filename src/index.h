@@ -12,7 +12,7 @@
 #define mobi_index_h
 
 #include "config.h"
-#include "buffer.h"
+#include "structure.h"
 #include "mobi.h"
 
 /**

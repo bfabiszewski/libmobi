@@ -1,8 +1,8 @@
 # libmobi 
 
 lib_LTLIBRARIES = libmobi.la
-libmobi_la_SOURCES = buffer.c compression.c debug.c index.c memory.c parse_rawml.c read.c util.c write.c  \
-                  buffer.h compression.h config.h debug.h index.h memory.h mobi.h parse_rawml.h read.h util.h write.h
+libmobi_la_SOURCES = buffer.c compression.c debug.c index.c memory.c parse_rawml.c read.c structure.c util.c write.c  \
+                  buffer.h compression.h config.h debug.h index.h memory.h mobi.h parse_rawml.h read.h structure.h util.h write.h
 if USE_LIBXML2
 libmobi_la_SOURCES += opf.c opf.h
 endif
