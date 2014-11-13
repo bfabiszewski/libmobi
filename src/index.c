@@ -22,6 +22,7 @@
 #include "util.h"
 #include "memory.h"
 #include "debug.h"
+#include "buffer.h"
 
 /**
  @brief Parser of ORDT section of INDX record
