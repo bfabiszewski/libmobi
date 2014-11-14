@@ -1,4 +1,4 @@
-usage: mobitool [-dmrsuv7] filename
+    usage: mobitool [-dmrsuv7] filename
        without arguments prints document metadata and exits
        -d dump rawml text record
        -m print records metadata
