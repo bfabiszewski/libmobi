@@ -1,36 +1,47 @@
-2edffb8 fix: documents with text record size > 4096 failed to load
-f9ff116 add: function to decode flat index entries
-f76c109 debug: add functions for debugging indices
-d8049a5 cleanup
-fbb7631 fix: variable length value wrongly calculated when going backwards
-de84823 Merge remote-tracking branch 'origin/public' into public
-94bcd00 update documentation
-3fe983f update changelog
-81898a7 add support for reconstructing inflections index entries
-f5c337c parsing of exth header failed in some cases
-e60f206 fix: some links reconstruction in kf7 failed
-cc69574 improve debug info
-53ae8a5 failed malloc false reports
-626ceb1 fix problem with uncompressed documents
-76f852d fix broken locales
-29ff462 remove obsolete includes
-693cbe6 git log > changelog
-3911734 improved buffer handling
-5a59f41 improved OPF for dictionaries
-073ad4c proper rawml->orth initialization and freeing
-43332a8 fix subject field in opf
-ca8b252 handle UTF-16 surrogates, make ORDT lookups locale independent
-512341d move dict reconstruction to separate function
-42cc251 cleanup
-33de956 quiet gcc warning on printf format
-f63fbbf reconstruction of orth dictionary entries
-6a5c3f5 use mobi_list_del_all()
-60ed0c5 postpone conversion to utf8 after all source reconstructions
-061084e comment
-82f241b comments
-18bd3b0 doxygen comment
-c26847e data size in comment
-afee5a1 MOBIArray data type fix
-21fb2cd config.h fixes
-9c3bbcd merge master
-fea9486 initial commit
+2014-11-13: Merge remote-tracking branch 'origin/public' into public
+2014-11-13: feature: support for older inflections scheme
+2014-11-13: bug: files with short tagx header won't open
+2014-11-13: cleanup unneeded include
+2014-11-13: use strdup on linux/glibc
+2014-11-13: debugging cleanup
+2014-11-13: reorganize source files
+2014-11-13: Merge branch 'public' of /home/baf/libmobi into public
+2014-11-13: use strdup on linux/glibc
+2014-11-11: update changelog
+2014-11-11: update changeling
+2014-11-11: fix: documents with text record size > 4096 failed to load
+2014-11-11: add: function to decode flat index entries
+2014-11-11: debug: add functions for debugging indices
+2014-11-11: cleanup
+2014-11-11: fix: variable length value wrongly calculated when going backwards
+2014-11-08: Merge remote-tracking branch 'origin/public' into public
+2014-11-08: update documentation
+2014-11-08: update changelog
+2014-11-08: add support for reconstructing inflections index entries
+2014-11-08: parsing of exth header failed in some cases
+2014-11-08: fix: some links reconstruction in kf7 failed
+2014-11-08: improve debug info
+2014-11-08: failed malloc false reports
+2014-11-03: fix problem with uncompressed documents
+2014-11-03: fix broken locales
+2014-11-03: remove obsolete includes
+2014-11-03: git log > changelog
+2014-11-03: improved buffer handling
+2014-11-03: improved OPF for dictionaries
+2014-11-03: proper rawml->orth initialization and freeing
+2014-11-03: fix subject field in opf
+2014-11-03: handle UTF-16 surrogates, make ORDT lookups locale independent
+2014-11-01: move dict reconstruction to separate function
+2014-11-01: cleanup
+2014-11-01: quiet gcc warning on printf format
+2014-11-01: reconstruction of orth dictionary entries
+2014-09-27: use mobi_list_del_all()
+2014-09-25: postpone conversion to utf8 after all source reconstructions
+2014-09-24: comment
+2014-09-24: comments
+2014-09-12: doxygen comment
+2014-09-12: data size in comment
+2014-09-05: MOBIArray data type fix
+2014-09-05: config.h fixes
+2014-06-29: merge master
+2014-04-11: initial commit

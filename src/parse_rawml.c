@@ -1322,6 +1322,7 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
         }
     }
     /* now update parts */
+    debug_print("Inserting links%s", "\n");
     for (i = 0; i < 2; i++) {
         MOBIPart *part = parts[i];
         while (part) {
@@ -1488,7 +1489,6 @@ MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size
     }
     debug_print("Reconstructing orth index %s\n", (is_infl_v1)?"(infl v1)":(is_infl_v2)?"(infl v2)":"");
     if (is_infl_v1) {
-        debug_print("Building trie%s", "\n");
         size_t total = rawml->infl->entries_count;
         size_t j = 0;
         while (j < total) {
@@ -1746,6 +1746,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
     }
     if (first && first->next) {
         /* save */
+        debug_print("Inserting links%s", "\n");
         unsigned char *new_data = malloc((size_t) new_size);
         unsigned char *data_out = new_data;
         MOBIFragment *fragdata = first;
@@ -1989,6 +1990,7 @@ MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
         return ret;
     }
     if (mobi_is_cp1252(m)) {
+        debug_print("Converting cp1252 to utf8%s", "\n");
         ret = mobi_iterate_txtparts(rawml, mobi_markup_to_utf8);
         if (ret != MOBI_SUCCESS) {
             return ret;
