@@ -18,7 +18,6 @@ It may serve as an example how to use the library.
 - reconstructing dictionary markup (orth, infl tags)
 
 ## Todo:
-- handle old scheme inflections
 - process RESC records
 - exporting to EPUB documents
 - writing MOBI documents
