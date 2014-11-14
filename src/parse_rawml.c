@@ -1363,9 +1363,7 @@ MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBI
     
     if (infl_count == 0 || !infl_groups) {
         return MOBI_SUCCESS;
-    }
-    debug_print("Inflection groups count: %zu\n", infl_count);
-    
+    }    
     const char *start_tag = "<idx:infl>";
     const char *end_tag = "</idx:infl>";
     const char *iform_tag = "<idx:iform%s value=\"%s\"/>";
@@ -1460,7 +1458,7 @@ MOBI_RET mobi_reconstruct_infl_v1(char *outstring, MOBITrie *infl_tree, const MO
         outlen += strlen(infl_tag);
         if (outlen > INDX_INFLTAG_SIZEMAX) {
             debug_print("Inflections text in %s too long (%zu)\n", label, outlen);
-            return MOBI_ERROR;
+            break;
         }
         strcat(outstring, infl_tag);
     }

@@ -656,7 +656,7 @@ size_t mobi_get_indxentry_tagarray(uint32_t **tagarr, const MOBIIndexEntry *entr
         }
         i++;
     }
-    debug_print("tag[%zu] not found in entry: %s\n", tagid, entry->label);
+    //debug_print("tag[%zu] not found in entry: %s\n", tagid, entry->label);
     return 0;
 }
 

@@ -1,3 +1,7 @@
+2014-11-14: fix: dictionaries with large inflection rules failed
+2014-11-14: feature: support encoded ligatures in index entry labels
+2014-11-14: readme
+2014-11-14: update changelog
 2014-11-13: Merge remote-tracking branch 'origin/public' into public
 2014-11-13: feature: support for older inflections scheme
 2014-11-13: bug: files with short tagx header won't open

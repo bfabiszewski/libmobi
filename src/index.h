@@ -55,9 +55,9 @@
 /** @} */
 
 #define INDX_LABEL_SIZEMAX 1000 /**< Max size of index label */
-#define INDX_INFLTAG_SIZEMAX 10000 /**< Max size of inflections tags per entry */
+#define INDX_INFLTAG_SIZEMAX 25000 /**< Max size of inflections tags per entry */
 #define INDX_INFLBUF_SIZEMAX 500 /**< Max size of index label */
-#define INDX_INFLSTRINGS_MAX 100 /**< Max number of inflected strings */
+#define INDX_INFLSTRINGS_MAX 500 /**< Max number of inflected strings */
 /**
  @brief Maximum value of tag values in index entry (MOBIIndexTag)
  */
