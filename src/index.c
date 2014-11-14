@@ -24,6 +24,45 @@
 #include "debug.h"
 #include "buffer.h"
 
+size_t mobi_indx_get_label(unsigned char *output, MOBIBuffer *buf, const size_t length, const MOBIEncoding encoding) {
+    if (!output) {
+        buf->error = MOBI_PARAM_ERR;
+        return 0;
+    }
+    if (buf->offset + length > buf->maxlen) {
+        debug_print("%s", "End of buffer\n");
+        buf->error = MOBI_BUFFER_END;
+        return 0;
+    }
+    size_t output_length = 0;
+    size_t i = 0;
+    while (i < length && output_length < INDX_LABEL_SIZEMAX) {
+        unsigned char c = buffer_get8(buf);
+        i++;
+        if (c <= 5) {
+            unsigned char c2 = buffer_get8(buf);
+            if (c2 <= 5) {
+                buffer_seek(buf, -1);
+                continue;
+            }
+            // FIXME: is it needed for newer mobi files?
+            uint16_t liga = mobi_decode_ligature(c, c2, encoding);
+            if (liga & 0xff00) {
+                /* first byte */
+                *output++ = liga >> 8;
+                output_length++;
+            }
+            /* second byte */
+            c = (uint8_t) liga;
+            i++;
+        }
+        *output++ = c;
+        output_length++;
+    }
+    *output = '\0';
+    return output_length;
+}
+
 /**
  @brief Parser of ORDT section of INDX record
  
@@ -233,7 +272,7 @@ size_t mobi_getstring_ordt(const MOBIOrdt *ordt, MOBIBuffer *buf, unsigned char 
             case 4: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6;
             case 3: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6;
             case 2: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6;
-            case 1: *--output =  (uint8_t)(codepoint | init_byte[bytes]);
+            case 1: *--output = (uint8_t)(codepoint | init_byte[bytes]);
         }
         output += bytes;
         output_length += bytes;
@@ -278,7 +317,7 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
     if (ordt->ordt2) {
         label_length = mobi_getstring_ordt(ordt, buf, (unsigned char*) text, label_length);
     } else {
-        label_length = buffer_getstring_skipzeroes(text, buf, label_length);
+        label_length = mobi_indx_get_label((unsigned char*) text, buf, label_length, indx->encoding);
     }
     indx->entries[entry_number].label = malloc(label_length + 1);
     if (indx->entries[entry_number].label == NULL) {
@@ -417,7 +456,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     buffer_seek(buf, 4); /* 16: gen */
     const uint32_t idxt_offset = buffer_get32(buf); /* 20: IDXT offset */
     const size_t entries_count = buffer_get32(buf); /* 24: entries count */
-    indx->encoding = buffer_get32(buf); /* 28: encoding */
+    const uint32_t encoding = buffer_get32(buf); /* 28: encoding */
     buffer_seek(buf, 4); /* 32: zeroes */
     const size_t total_entries_count = buffer_get32(buf); /* 36: total entries count */
     if (indx->total_entries_count == 0) {
@@ -440,6 +479,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     /* TAGX metadata */
     /* if record contains TAGX section, read it (and ORDT) and return */
     if (buffer_match_magic(buf, TAGX_MAGIC)) {
+        indx->encoding = encoding;
         ret = mobi_parse_tagx(buf, tagx);
         if (ret != MOBI_SUCCESS) {
             buffer_free_null(buf);

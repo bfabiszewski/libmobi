@@ -128,10 +128,46 @@ MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, c
     return MOBI_SUCCESS;
 }
 
+/** @brief Decode ligature
+ 
+ Some latin ligatures are encoded in indices to facilitate search
+ 
+ @param[in] control First byte - control character
+ @param[in] c Second byte of the ligature
+ @param[in] encoding of the returned ligature: cp1252 if MOBI_CP1252, utf8 otherwise
+ @return Ligature, two bytes
+ */
+uint16_t mobi_decode_ligature(const uint8_t control, const uint8_t c, const MOBIEncoding encoding) {
+    uint16_t ligature = c;
+    const uint16_t lig_OE = (encoding == MOBI_CP1252) ? 0x8c : 0xc592;
+    const uint16_t lig_oe = (encoding == MOBI_CP1252) ? 0x9c : 0xc593;
+    const uint16_t lig_AE = (encoding == MOBI_CP1252) ? 0xc6 : 0xc386;
+    const uint16_t lig_ae = (encoding == MOBI_CP1252) ? 0xe6 : 0xc3a6;
+    const uint16_t lig_ss = (encoding == MOBI_CP1252) ? 0xdf : 0xc39f;
+    switch (control) {
+        case 1:
+            if (c == 0x45) { ligature = lig_OE; }
+            break;
+        case 2:
+            if (c == 0x65) { ligature = lig_oe; }
+            break;
+        case 3:
+            if (c == 0x45) { ligature = lig_AE; }
+            break;
+        case 4:
+            if (c == 0x65) { ligature = lig_ae; }
+            break;
+        case 5:
+            if (c == 0x73) { ligature = lig_ss; }
+            break;
+    }
+    return ligature;
+}
+
 /** @brief Get text encoding of mobi document
  
  @param[in] m MOBIData structure holding document data and metadata
- @return MOBIEncoding text encoding (MOBI_UTF8 or MOBI_CP1252
+ @return MOBIEncoding text encoding (MOBI_UTF8 or MOBI_CP1252)
  */
 MOBIEncoding mobi_get_encoding(const MOBIData *m) {
     if (m && m->mh) {

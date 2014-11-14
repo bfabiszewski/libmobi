@@ -41,7 +41,6 @@ void buffer_dup8(uint8_t **val, MOBIBuffer *buf);
 void buffer_dup16(uint16_t **val, MOBIBuffer *buf);
 void buffer_dup32(uint32_t **val, MOBIBuffer *buf);
 void buffer_getstring(char *str, MOBIBuffer *buf, const size_t len);
-size_t buffer_getstring_skipzeroes(char *str, MOBIBuffer *buf, const size_t len);
 void buffer_appendstring(char *str, MOBIBuffer *buf, const size_t len);
 void buffer_getraw(void *data, MOBIBuffer *buf, const size_t len);
 void buffer_copy8(MOBIBuffer *in, MOBIBuffer *source);
