@@ -306,7 +306,7 @@ void print_records_meta(const MOBIData *m) {
 }
 
 /**
- @brief Dump each document record to a file
+ @brief Dump each document record to a file into created folder
  @param[in] m MOBIData structure
  @param[in] fullpath File path will be parsed to build basenames of dumped records
  */
@@ -314,12 +314,20 @@ void dump_records(const MOBIData *m, const char *fullpath) {
     char dirname[FILENAME_MAX];
     char basename[FILENAME_MAX];
     split_fullpath(fullpath, dirname, basename);
+    char newdir[FILENAME_MAX];
+    sprintf(newdir, "%s%s_records", dirname, basename);
+    printf("Saving records to %s\n", newdir);
+#ifdef _WIN32
+    _mkdir(newdir);
+#else
+    mkdir(newdir, S_IRWXU);
+#endif
     /* Linked list of MOBIPdbRecord structures holds records data and metadata */
     const MOBIPdbRecord *currec = m->rec;
     int i = 0;
     while (currec != NULL) {
         char name[FILENAME_MAX];
-        sprintf(name, "%s%s.part_%i_uid_%i", dirname, basename, i++, currec->uid);
+        sprintf(name, "%s%crecord_%i_uid_%i", newdir, separator, i++, currec->uid);
         FILE *file = fopen(name, "wb");
         if (file == NULL) {
             printf("Could not open file for writing: %s\n", name);
