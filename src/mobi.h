@@ -429,7 +429,7 @@ extern "C"
         size_t total_entries_count; /**< Total index entries count */
         size_t ordt_offset; /**< ORDT offset */
         size_t ligt_offset; /**< LIGT offset */
-        size_t ordt_entries_count; /**< ORDT index entries count */
+        size_t ligt_entries_count; /**< LIGT index entries count */
         size_t cncx_records_count; /**< Number of compiled NCX records */
         MOBIPdbRecord *cncx_record; /**< Link to CNCX record */
         MOBIIndexEntry *entries; /**< Index entries array */

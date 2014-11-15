@@ -464,7 +464,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     }
     indx->ordt_offset = buffer_get32(buf); /* 40: ORDT offset */
     indx->ligt_offset = buffer_get32(buf); /* 44: LIGT offset */
-    indx->ordt_entries_count = buffer_get32(buf); /* 48: ORDT entries count */
+    indx->ligt_entries_count = buffer_get32(buf); /* 48: LIGT entries count */
     indx->cncx_records_count = buffer_get32(buf); /* 52: CNCX entries count */
     buffer_setpos(buf, 164);
     uint32_t ordt_type = buffer_get32(buf); /* 164: ORDT type */
