@@ -128,22 +128,59 @@ MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, c
     return MOBI_SUCCESS;
 }
 
-/** @brief Decode ligature
+/** @brief Decode ligature to cp1252
  
  Some latin ligatures are encoded in indices to facilitate search
+ They are listed in LIGT header, but it seems every LIGT header contains
+ same 5 ligatures (even if not all of them are used).
+ So, instead of parsing header, we use static replacements.
+ Invalid control characters are skipped
  
  @param[in] control First byte - control character
  @param[in] c Second byte of the ligature
- @param[in] encoding of the returned ligature: cp1252 if MOBI_CP1252, utf8 otherwise
- @return Ligature, two bytes
+ @return Ligature in cp1252 encoding, zero if not found
  */
-uint16_t mobi_decode_ligature(const uint8_t control, const uint8_t c, const MOBIEncoding encoding) {
-    uint16_t ligature = c;
-    const uint16_t lig_OE = (encoding == MOBI_CP1252) ? 0x8c : 0xc592;
-    const uint16_t lig_oe = (encoding == MOBI_CP1252) ? 0x9c : 0xc593;
-    const uint16_t lig_AE = (encoding == MOBI_CP1252) ? 0xc6 : 0xc386;
-    const uint16_t lig_ae = (encoding == MOBI_CP1252) ? 0xe6 : 0xc3a6;
-    const uint16_t lig_ss = (encoding == MOBI_CP1252) ? 0xdf : 0xc39f;
+uint8_t mobi_ligature_to_cp1252(const uint8_t control, const uint8_t c) {
+    uint8_t ligature = 0;
+    const uint8_t lig_OE = 0x8c;
+    const uint8_t lig_oe = 0x9c;
+    const uint8_t lig_AE = 0xc6;
+    const uint8_t lig_ae = 0xe6;
+    const uint8_t lig_ss = 0xdf;
+    switch (control) {
+        case 1:
+            if (c == 0x45) { ligature = lig_OE; }
+            break;
+        case 2:
+            if (c == 0x65) { ligature = lig_oe; }
+            break;
+        case 3:
+            if (c == 0x45) { ligature = lig_AE; }
+            break;
+        case 4:
+            if (c == 0x65) { ligature = lig_ae; }
+            break;
+        case 5:
+            if (c == 0x73) { ligature = lig_ss; }
+            break;
+    }
+    return ligature;
+}
+
+/** @brief Decode ligature to utf-16
+ 
+ @param[in] control First byte - control character, should be <= 5
+ @param[in] c Second byte of the ligature
+ @return Ligature in utf-16 encoding, uni_replacement if not found
+ */
+uint16_t mobi_ligature_to_utf16(const uint32_t control, const uint32_t c) {
+    const uint16_t uni_replacement = 0xfffd;
+    uint16_t ligature = uni_replacement;
+    const uint16_t lig_OE = 0x152;
+    const uint16_t lig_oe = 0x153;
+    const uint16_t lig_AE = 0xc6;
+    const uint16_t lig_ae = 0xe6;
+    const uint16_t lig_ss = 0xdf;
     switch (control) {
         case 1:
             if (c == 0x45) { ligature = lig_OE; }

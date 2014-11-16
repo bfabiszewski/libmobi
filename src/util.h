@@ -38,10 +38,11 @@
 #define HUFF_MAGIC "HUFF"
 #define CDIC_MAGIC "CDIC"
 #define FDST_MAGIC "FDST"
-#define INDX_MAGIC "INDX"
-#define TAGX_MAGIC "TAGX"
-#define ORDT_MAGIC "ORDT"
 #define IDXT_MAGIC "IDXT"
+#define INDX_MAGIC "INDX"
+#define LIGT_MAGIC "LIGT"
+#define ORDT_MAGIC "ORDT"
+#define TAGX_MAGIC "TAGX"
 #define FONT_MAGIC "FONT"
 #define AUDI_MAGIC "AUDI"
 #define VIDE_MAGIC "VIDE"
@@ -116,7 +117,8 @@ MOBI_RET mobi_swap_mobidata(MOBIData *m);
 char * mobi_strdup(const char *s);
 bool mobi_is_cp1252(const MOBIData *m);
 MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, const size_t insize);
-uint16_t mobi_decode_ligature(const uint8_t c1, const uint8_t c2, const MOBIEncoding encoding);
+uint8_t mobi_ligature_to_cp1252(const uint8_t c1, const uint8_t c2);
+uint16_t mobi_ligature_to_utf16(const uint32_t control, const uint32_t c);
 MOBIPart * mobi_get_part_by_uid(const MOBIRawml *rawml, const size_t uid);
 size_t mobi_get_first_resource_record(const MOBIData *m);
 MOBIFiletype mobi_determine_resource_type(const MOBIPdbRecord *record);
