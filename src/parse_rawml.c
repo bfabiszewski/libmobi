@@ -1042,6 +1042,9 @@ typedef struct MOBIFragment {
 static MOBIFragment * mobi_list_init(size_t raw_offset, unsigned char *fragment, const size_t size, const bool is_malloc) {
     MOBIFragment *curr = calloc(1, sizeof(MOBIFragment));
     if (curr == NULL) {
+        if (is_malloc) {
+            free(fragment);
+        }
         return NULL;
     }
     curr->raw_offset = raw_offset;
@@ -1068,6 +1071,9 @@ static MOBIFragment * mobi_list_add(MOBIFragment *curr, size_t raw_offset, unsig
     }
     curr->next = calloc(1, sizeof(MOBIFragment));
     if (curr->next == NULL) {
+        if (is_malloc) {
+            free(fragment);
+        }
         return NULL;
     }
     MOBIFragment *next = curr->next;
@@ -1105,10 +1111,16 @@ static MOBIFragment * mobi_list_insert(MOBIFragment *curr, size_t raw_offset, un
     if (!curr) {
         /* FIXME: return value is same as with malloc error */
         debug_print("Offset not found: %zu\n", offset);
+        if (is_malloc) {
+            free(fragment);
+        }
         return NULL;
     }
     MOBIFragment *new = calloc(1, sizeof(MOBIFragment));
     if (new == NULL) {
+        if (is_malloc) {
+            free(fragment);
+        }
         return NULL;
     }
     new->raw_offset = raw_offset;
@@ -1152,6 +1164,9 @@ static MOBIFragment * mobi_list_insert(MOBIFragment *curr, size_t raw_offset, un
         new2 = calloc(1, sizeof(MOBIFragment));
         if (new2 == NULL) {
             free(new);
+            if (is_malloc) {
+                free(fragment);
+            }
             return NULL;
         }
         size_t rel_offset = offset - curr->raw_offset;
