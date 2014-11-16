@@ -63,7 +63,7 @@ if test x$use_zlib = xyes; then
             [AC_MSG_ERROR([couldn't find zlib header])])
 else
             AC_DEFINE(USE_MINIZ, 1, [Define if you want to use included miniz library])
-            MINIZ_CFLAGS='-D_POSIX_C_SOURCE=200112L'
+            MINIZ_CFLAGS="-D_POSIX_C_SOURCE=200112L"
             LIBZ_LDFLAGS=
 fi
 AC_SUBST(LIBZ_LDFLAGS)
@@ -108,7 +108,7 @@ VISIBILITY_HIDDEN=
 case "$host" in
   *-*-mingw*)
     # on mingw32 we do -fvisibility=hidden and __declspec(dllexport)
-    VISIBILITY_HIDDEN='-fvisibility=hidden'
+    VISIBILITY_HIDDEN="-fvisibility=hidden"
     AC_MSG_RESULT(yes)
     ;;
   *)
@@ -123,7 +123,7 @@ case "$host" in
     CFLAGS="${SAVED_CFLAGS}"
 
     AS_IF([test "${enable_fvisibility_hidden}" = "yes"], [
-    VISIBILITY_HIDDEN='-fvisibility=hidden'
+    VISIBILITY_HIDDEN="-fvisibility=hidden"
     ])
     ;;
 esac
@@ -132,9 +132,9 @@ AC_SUBST(VISIBILITY_HIDDEN)
 # MinGW seems to need this
 case "$host" in
   *-*-mingw*)
-    NO_UNDEFINED='-no-undefined'
-    AVOID_VERSION='-avoid-version'
-    ISO99_SOURCE='-D_ISOC99_SOURCE=1'
+    NO_UNDEFINED="-no-undefined"
+    AVOID_VERSION="-avoid-version"
+    ISO99_SOURCE="-D_ISOC99_SOURCE=1"
     ;;
   *)
     NO_UNDEFINED=
@@ -145,6 +145,18 @@ esac
 AC_SUBST(NO_UNDEFINED)
 AC_SUBST(AVOID_VERSION)
 AC_SUBST(ISO99_SOURCE)
+
+# Override default versioning of Darwin linker
+case "$host" in
+  *-*-darwin*)
+    MAJOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 1`
+    DARWIN_LDFLAGS="-Wl,-compatibility_version,${MAJOR} -Wl,-current_version,${PACKAGE_VERSION}"
+    ;;
+  *)
+    DARWIN_LDFLAGS=
+    ;;
+esac
+AC_SUBST(DARWIN_LDFLAGS)
 
 # Check for non-broken inline under various spellings
 AC_MSG_CHECKING([for inline keyword])
@@ -178,10 +190,10 @@ if test x$debug = xyes; then
         *-*-mingw*)
             # I give up with std=c99 here for now
             # (http://sourceforge.net/p/mingw/bugs/2046/)
-            DEBUG_CFLAGS='-pedantic -Wall -Wextra -Werror'
+            DEBUG_CFLAGS="-pedantic -Wall -Wextra -Werror"
             ;;
         *)
-            DEBUG_CFLAGS='-std=c99 -pedantic -Wall -Wextra -Werror'
+            DEBUG_CFLAGS="-std=c99 -pedantic -Wall -Wextra -Werror"
             ;;
     esac
 fi
@@ -216,7 +228,7 @@ AS_HELP_STRING([--enable-mobitool-static],
 AC_MSG_RESULT($mobitool_static)
 MOBITOOL_STATIC=
 if test x$mobitool_static = xyes; then
-    MOBITOOL_STATIC='-static'
+    MOBITOOL_STATIC="-static"
 fi
 AC_SUBST(MOBITOOL_STATIC)
 
