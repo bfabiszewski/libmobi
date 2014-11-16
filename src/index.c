@@ -770,10 +770,6 @@ char * mobi_get_cncx_string_flat(const MOBIPdbRecord *cncx_record, const uint32_
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_decode_infl(unsigned char *decoded, int *decoded_size, const unsigned char *rule) {
-    static int cnt = 0; cnt++;
-    if (cnt == 588598) {
-        ;;
-    }
     int pos = *decoded_size;
     char mod = 'i';
     char dir = '<', olddir;

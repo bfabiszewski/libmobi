@@ -77,9 +77,9 @@ MOBI_RET mobi_search_links_kf7(MOBIResult *result, const unsigned char *data_sta
         return MOBI_SUCCESS;
     }
     unsigned char *data = (unsigned char *) data_start;
-    unsigned char last_border = '>';
     const unsigned char tag_open = '<';
     const unsigned char tag_close = '>';
+    unsigned char last_border = tag_open;
     while (data <= data_end) {
         if (*data == tag_open || *data == tag_close) {
             last_border = *data;
@@ -1617,83 +1617,82 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         array_free(links);
         return ret;
     }
+    array_sort(links, true);
     unsigned char *data_in = part->data;
     MOBIFragment *first = NULL;
     MOBIFragment *curr = NULL;
     size_t new_size = 0;
-    if (array_size(links) > 0) {
-        array_sort(links, true);
-        /* build MOBIResult list */
-        result.start = part->data;
-        const unsigned char *data_end = part->data + part->size;
-        while (true) {
-            mobi_search_links_kf7(&result, result.start, data_end);
-            if (result.start == NULL) {
+    /* build MOBIResult list */
+    result.start = part->data;
+    const unsigned char *data_end = part->data + part->size;
+    while (true) {
+        mobi_search_links_kf7(&result, result.start, data_end);
+        if (result.start == NULL) {
+            break;
+        }
+        char *attribute = (char *) result.value;
+        unsigned char *data_cur = result.start;
+        result.start = result.end;
+        char link[MOBI_ATTRVALUE_MAXSIZE];
+        const char *numbers = "0123456789";
+        char *value = strpbrk(attribute, numbers);
+        if (value == NULL) {
+            debug_print("Unknown link target: %s\n", attribute);
+            continue;
+        }
+        size_t target;
+        switch (attribute[0]) {
+            case 'f':
+                /* filepos=0000000000 */
+                /* replace link with href="#0000000000" */
+                target = strtoul(value, NULL, 10);
+                snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "href=\"#%010u\"", (uint32_t)target);
                 break;
-            }
-            char *attribute = (char *) result.value;
-            unsigned char *data_cur = result.start;
-            char link[MOBI_ATTRVALUE_MAXSIZE];
-            const char *numbers = "0123456789";
-            char *value = strpbrk(attribute, numbers);
-            if (value == NULL) {
+            case 'h':
+            case 'l':
+                data_cur += 2;
+            case 'r':
+                /* (hi|lo)recindex="00000" */
+                /* replace link with src="resource00000.ext" */
+                target = strtoul(value, NULL, 10);
+                if (target > 0) {
+                    target--;
+                }
+                MOBIFiletype filetype = mobi_get_resourcetype_by_uid(rawml, target);
+                MOBIFileMeta filemeta = mobi_get_filemeta_by_type(filetype);
+                snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "src=\"resource%05u.%s\"", (uint32_t) target, filemeta.extension);
+                break;
+            default:
                 debug_print("Unknown link target: %s\n", attribute);
                 continue;
-            }
-            size_t target;
-            switch (attribute[0]) {
-                case 'f':
-                    /* filepos=0000000000 */
-                    /* replace link with href="#0000000000" */
-                    target = strtoul(value, NULL, 10);
-                    snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "href=\"#%010u\"", (uint32_t)target);
-                    break;
-                case 'h':
-                case 'l':
-                case 'r':
-                    /* (hi|lo)recindex="00000" */
-                    /* replace link with src="resource00000.ext" */
-                    /* FIXME: it handles only first (hi|lo)recindex attribute in tag */
-                    target = strtoul(value, NULL, 10);
-                    if (target > 0) {
-                        target--;
-                    }
-                    MOBIFiletype filetype = mobi_get_resourcetype_by_uid(rawml, target);
-                    MOBIFileMeta filemeta = mobi_get_filemeta_by_type(filetype);
-                    snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "src=\"resource%05u.%s\"", (uint32_t) target, filemeta.extension);
-                    break;
-                default:
-                    debug_print("Unknown link target: %s\n", attribute);
-                    continue;
-            }
-            
-            /* first chunk */
-            if (data_cur < data_in) {
-                mobi_list_del_all(first);
-                return MOBI_DATA_CORRUPT;
-            }
-            size_t size = (size_t) (data_cur - data_in);
-            size_t raw_offset = (size_t) (data_in - part->data);
-            curr = mobi_list_add(curr, raw_offset, data_in, size, false);
-            if (curr == NULL) {
-                mobi_list_del_all(first);
-                debug_print("%s\n", "Memory allocation failed");
-                return MOBI_MALLOC_FAILED;
-            }
-            if (!first) { first = curr; }
-            new_size += curr->size;
-            /* second chunk */
-            curr = mobi_list_add(curr, SIZE_MAX,
-                                 (unsigned char *) strdup(link),
-                                 strlen(link), true);
-            if (curr == NULL) {
-                mobi_list_del_all(first);
-                debug_print("%s\n", "Memory allocation failed");
-                return MOBI_MALLOC_FAILED;
-            }
-            new_size += curr->size;
-            data_in = result.end;
         }
+        
+        /* first chunk */
+        if (data_cur < data_in) {
+            mobi_list_del_all(first);
+            return MOBI_DATA_CORRUPT;
+        }
+        size_t size = (size_t) (data_cur - data_in);
+        size_t raw_offset = (size_t) (data_in - part->data);
+        curr = mobi_list_add(curr, raw_offset, data_in, size, false);
+        if (curr == NULL) {
+            mobi_list_del_all(first);
+            debug_print("%s\n", "Memory allocation failed");
+            return MOBI_MALLOC_FAILED;
+        }
+        if (!first) { first = curr; }
+        new_size += curr->size;
+        /* second chunk */
+        curr = mobi_list_add(curr, SIZE_MAX,
+                             (unsigned char *) strdup(link),
+                             strlen(link), true);
+        if (curr == NULL) {
+            mobi_list_del_all(first);
+            debug_print("%s\n", "Memory allocation failed");
+            return MOBI_MALLOC_FAILED;
+        }
+        new_size += curr->size;
+        data_in = result.end;
     }
     if (first) {
         /* last chunk */
