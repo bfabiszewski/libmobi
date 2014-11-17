@@ -1512,7 +1512,17 @@ MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBI
     return MOBI_SUCCESS;
 }
 
-MOBI_RET mobi_reconstruct_infl_v1(char *outstring, MOBITrie *infl_tree, const MOBIIndexEntry *orth_entry) {
+/**
+ @brief Get infl index markup for given orth entry
+ 
+ This function is inflections scheme used in older mobipocket dictionaries
+ 
+ @param[in,out] outstring Reconstructed tag <idx:infl\>
+ @param[in] infl_tree MOBITrie structure with inflection rules
+ @param[in] orth_entry Orth index entry
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_reconstruct_infl_v1(char *outstring, MOBITrie * const infl_tree, const MOBIIndexEntry *orth_entry) {
     const char *label = orth_entry->label;
     const size_t label_length = strlen(label);
     if (label_length > INDX_INFLBUF_SIZEMAX) {

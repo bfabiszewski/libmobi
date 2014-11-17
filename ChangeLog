@@ -1,3 +1,12 @@
+2014-11-17: strip unneeded <aid/> tags
+2014-11-16: fix: potential leak
+2014-11-16: fix: regression, some image tags were not reconstructed
+2014-11-16: fix: improve ligatures handling
+2014-11-16: override darwin linker default versioning
+2014-11-15: fix: get proper LIGT entries count from index header
+2014-11-15: feature: unpack records into new folder
+2014-11-14: make README readable on github
+2014-11-14: add README for mobitool
 2014-11-14: fix: dictionaries with large inflection rules failed
 2014-11-14: feature: support encoded ligatures in index entry labels
 2014-11-14: readme
