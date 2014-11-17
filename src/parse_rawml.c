@@ -117,78 +117,152 @@ MOBI_RET mobi_search_links_kf7(MOBIResult *result, const unsigned char *data_sta
 }
 
 /**
- @brief Find first occurence of markup attribute with given string
+ @brief Find first occurence of markup attribute with given value
  
  @param[in,out] result MOBIResult structure will be filled with found data
  @param[in] data_start Beginning of the memory area to search in
  @param[in] data_end End of the memory area to search in
  @param[in] type Type of data (T_HTML or T_CSS)
- @param[in] needle String to find
+ @param[in] needle String to find (len <= MOBI_ATTRNAME_MAXSIZE)
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-MOBI_RET mobi_search_markup(MOBIResult *result, const unsigned char *data_start, const unsigned char *data_end, const MOBIFiletype type, const char *needle) {
-        if (!result) {
-            debug_print("Result structure is null%s", "\n");
-            return MOBI_PARAM_ERR;
+MOBI_RET mobi_find_attrvalue(MOBIResult *result, const unsigned char *data_start, const unsigned char *data_end, const MOBIFiletype type, const char *needle) {
+    if (!result) {
+        debug_print("Result structure is null%s", "\n");
+        return MOBI_PARAM_ERR;
+    }
+    result->start = result->end = NULL;
+    *(result->value) = '\0';
+    if (!data_start || !data_end) {
+        debug_print("Data is null%s", "\n");
+        return MOBI_PARAM_ERR;
+    }
+    size_t needle_length = strlen(needle);
+    if (needle_length > MOBI_ATTRNAME_MAXSIZE) {
+        debug_print("Attribute too long: %zu\n", needle_length);
+        return MOBI_PARAM_ERR;
+    }
+    if (data_start + needle_length > data_end) {
+        return MOBI_SUCCESS;
+    }
+    unsigned char *data = (unsigned char *) data_start;
+    unsigned char tag_open;
+    unsigned char tag_close;
+    if (type == T_CSS) {
+        tag_open = '{';
+        tag_close = '}';
+    } else {
+        tag_open = '<';
+        tag_close = '>';
+    }
+    unsigned char last_border = tag_close;
+    while (data <= data_end) {
+        if (*data == tag_open || *data == tag_close) {
+            last_border = *data;
         }
-        result->start = result->end = NULL;
-        *(result->value) = '\0';
-        if (!data_start || !data_end) {
-            debug_print("Data is null%s", "\n");
-            return MOBI_PARAM_ERR;
-        }
-        size_t needle_length = strlen(needle);
-        if (needle_length > MOBI_ATTRNAME_MAXSIZE) {
-            debug_print("Attribute too long: %zu\n", needle_length);
-            return MOBI_PARAM_ERR;
-        }
-        if (data_start + needle_length > data_end) {
+        if (data + needle_length <= data_end && memcmp(data, needle, needle_length) == 0) {
+            /* found match */
+            if (last_border != tag_open) {
+                /* opening char not found, not an attribute */
+                data += needle_length;
+                continue;
+            }
+            /* go to attribute value beginning */
+            while (data >= data_start && !isspace(*data) && *data != tag_open && *data != '=' && *data != '(') {
+                data--;
+            }
+            result->is_url = (*data == '(');
+            result->start = ++data;
+            /* now go forward */
+            int i = 0;
+            while (data <= data_end && !isspace(*data) && *data != tag_close && *data != ')' && i < MOBI_ATTRVALUE_MAXSIZE) {
+                result->value[i++] = (char) *data++;
+            }
+            /* self closing tag '/>' */
+            if (*(data - 1) == '/' && *data == '>') {
+                --data; --i;
+            }
+            result->end = data;
+            result->value[i] = '\0';
             return MOBI_SUCCESS;
         }
-        unsigned char *data = (unsigned char *) data_start;
-        unsigned char last_border = '>';
-        unsigned char tag_open;
-        unsigned char tag_close;
-        if (type == T_CSS) {
-            tag_open = '{';
-            tag_close = '}';
-        } else {
-            tag_open = '<';
-            tag_close = '>';
+        data++;
+    }
+    return MOBI_SUCCESS;
+}
+
+/**
+ @brief Find first occurence of markup attribute with given name
+ 
+ @param[in,out] result MOBIResult structure will be filled with found data
+ @param[in] data_start Beginning of the memory area to search in
+ @param[in] data_end End of the memory area to search in
+ @param[in] attrname String to find (len < MOBI_ATTRNAME_MAXSIZE)
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_find_attrname(MOBIResult *result, const unsigned char *data_start, const unsigned char *data_end, const char *attrname) {
+    if (!result) {
+        debug_print("Result structure is null%s", "\n");
+        return MOBI_PARAM_ERR;
+    }
+    result->start = result->end = NULL;
+    *(result->value) = '\0';
+    if (!data_start || !data_end) {
+        debug_print("Data is null%s", "\n");
+        return MOBI_PARAM_ERR;
+    }
+    size_t needle_length = strlen(attrname);
+    char needle[needle_length + 2];
+    strcpy(needle, attrname);
+    strcat(needle, "=");
+    needle_length++;
+    if (data_start + needle_length > data_end) {
+        return MOBI_SUCCESS;
+    }
+    unsigned char *data = (unsigned char *) data_start;
+    const unsigned char quote = '"';
+    const unsigned char tag_open = '<';
+    const unsigned char tag_close = '>';
+    unsigned char last_border = tag_close;
+    while (data <= data_end) {
+        if (*data == tag_open || *data == tag_close) {
+            last_border = *data;
         }
-        while (data <= data_end) {
-            if (*data == tag_open || *data == tag_close) {
-                last_border = *data;
+        if (data + needle_length + 2 <= data_end && memcmp(data, needle, needle_length) == 0) {
+            /* found match */
+            if (last_border != tag_open) {
+                /* opening char not found, not an attribute */
+                data += needle_length;
+                continue;
             }
-            if (data + needle_length <= data_end && memcmp(data, needle, needle_length) == 0) {
-                /* found match */
-                if (last_border != tag_open) {
-                    /* opening char not found, not an attribute */
+            /* go to attribute name beginning */
+            if (data > data_start) {
+                data--;
+                if (!isspace(*data) && *data != tag_open) {
+                    /* wrong name */
                     data += needle_length;
                     continue;
                 }
-                /* go to attribute value beginning */
-                while (data >= data_start && !isspace(*data) && *data != tag_open && *data != '=' && *data != '(') {
-                    data--;
-                }
-                result->is_url = (*data == '(');
-                result->start = ++data;
-                /* now go forward */
-                int i = 0;
-                while (data <= data_end && !isspace(*data) && *data != tag_close && *data != ')' && i < MOBI_ATTRVALUE_MAXSIZE) {
-                    result->value[i++] = (char) *data++;
-                }
-                /* self closing tag '/>' */
-                if (*(data - 1) == '/' && *data == '>') {
-                    --data; --i;
-                }
-                result->end = data;
-                result->value[i] = '\0';
-                return MOBI_SUCCESS;
             }
-            data++;
+            result->start = ++data;
+            /* now go forward */
+            data += needle_length;
+            if (*data++ != quote) {
+                /* not well formed attribute */
+                continue;
+            }
+            while (data <= data_end) {
+                if (*data == quote) {
+                    result->end = ++data;
+                    return MOBI_SUCCESS;
+                }
+                data++;
+            }
+            result->start = NULL;
         }
-        return MOBI_SUCCESS;
+        data++;
+    }
+    return MOBI_SUCCESS;
 }
 
 /**
@@ -203,7 +277,7 @@ MOBI_RET mobi_search_markup(MOBIResult *result, const unsigned char *data_start,
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_search_links_kf8(MOBIResult *result, const unsigned char *data_start, const unsigned char *data_end, const MOBIFiletype type) {
-    return mobi_search_markup(result, data_start, data_end, type, "kindle:");
+    return mobi_find_attrvalue(result, data_start, data_end, type, "kindle:");
 }
 
 /**
@@ -1789,7 +1863,7 @@ MOBI_RET mobi_reconstruct_links(const MOBIRawml *rawml) {
         return MOBI_INIT_FAILED;
     }
     MOBI_RET ret;
-    if (rawml->version != MOBI_NOTSET && rawml->version >= 8) {
+    if (mobi_is_rawml_kf8(rawml)) {
         /* kf8 gymnastics */
         ret = mobi_reconstruct_links_kf8(rawml);
     } else {
@@ -1864,6 +1938,78 @@ MOBI_RET mobi_markup_to_utf8(MOBIPart *part) {
     free(out_text);
     part->data = text;
     part->size = out_length;
+    return MOBI_SUCCESS;
+}
+
+/**
+ @brief Strip unneeded tags from html. Currently only <aid\>
+ 
+ @param[in,out] part MOBIPart structure
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_strip_mobitags(MOBIPart *part) {
+    if (part == NULL || part->data == NULL) {
+        return MOBI_INIT_FAILED;
+    }
+    if (part->type != T_HTML) {
+        return MOBI_SUCCESS;
+    }
+    MOBIResult result;
+    unsigned char *data_in = part->data;
+    result.start = part->data;
+    const unsigned char *data_end = part->data + part->size;
+    MOBIFragment *first = NULL;
+    MOBIFragment *curr = NULL;
+    size_t part_size = 0;
+    while (true) {
+        mobi_find_attrname(&result, result.start, data_end, "aid");
+        if (result.start == NULL) {
+            break;
+        }
+        unsigned char *data_cur = result.start;
+        result.start = result.end;
+        if (data_cur < data_in) {
+            mobi_list_del_all(first);
+            return MOBI_DATA_CORRUPT;
+        }
+        size_t size = (size_t) (data_cur - data_in);
+        /* first chunk */
+        curr = mobi_list_add(curr, (size_t) (data_in - part->data ), data_in, size, false);
+        if (curr == NULL) {
+            mobi_list_del_all(first);
+            debug_print("%s\n", "Memory allocation failed");
+            return MOBI_MALLOC_FAILED;
+        }
+        if (!first) { first = curr; }
+        part_size += curr->size;
+        data_in = result.end;
+    }
+    if (first) {
+        /* last chunk */
+        if (part->data + part->size < data_in) {
+            mobi_list_del_all(first);
+            return MOBI_DATA_CORRUPT;
+        }
+        size_t size = (size_t) (part->data + part->size - data_in);
+        curr = mobi_list_add(curr, (size_t) (data_in - part->data ), data_in, size, false);
+        if (curr == NULL) {
+            mobi_list_del_all(first);
+            debug_print("%s\n", "Memory allocation failed");
+            return MOBI_MALLOC_FAILED;
+        }
+        part_size += curr->size;
+        
+        unsigned char *new_data = malloc(part_size);
+        unsigned char *data_out = new_data;
+        while (first) {
+            memcpy(data_out, first->fragment, first->size);
+            data_out += first->size;
+            first = mobi_list_del(first);
+        }
+        free(part->data);
+        part->data = new_data;
+        part->size = part_size;
+    }
     return MOBI_SUCCESS;
 }
 
@@ -2000,6 +2146,13 @@ MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
     ret = mobi_reconstruct_links(rawml);
     if (ret != MOBI_SUCCESS) {
         return ret;
+    }
+    if (mobi_is_kf8(m)) {
+        debug_print("Stripping unneeded tags%s", "\n");
+        ret = mobi_iterate_txtparts(rawml, mobi_strip_mobitags);
+        if (ret != MOBI_SUCCESS) {
+            return ret;
+        }
     }
     if (mobi_is_cp1252(m)) {
         debug_print("Converting cp1252 to utf8%s", "\n");

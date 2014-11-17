@@ -1324,7 +1324,7 @@ bool mobi_exists_infl(const MOBIData *m) {
  @return MOBIFiletype file type
  */
 MOBIFiletype mobi_determine_flowpart_type(const MOBIRawml *rawml, const size_t part_number) {
-    if (part_number == 0 || rawml->version == MOBI_NOTSET || rawml->version < 8) {
+    if (part_number == 0 || mobi_is_rawml_kf8(rawml) == false) {
         return T_HTML;
     }
     char target[24];
@@ -1332,7 +1332,7 @@ MOBIFiletype mobi_determine_flowpart_type(const MOBIRawml *rawml, const size_t p
     unsigned char *data_start = rawml->flow->data;
     unsigned char *data_end = data_start + rawml->flow->size;
     MOBIResult result;
-    MOBI_RET ret = mobi_search_markup(&result, data_start, data_end, T_HTML, target);
+    MOBI_RET ret = mobi_find_attrvalue(&result, data_start, data_end, T_HTML, target);
     if (ret == MOBI_SUCCESS && result.start) {
         if (strstr(result.value, "text/css")) {
             return T_CSS;
@@ -1699,6 +1699,32 @@ size_t mobi_get_fileversion(const MOBIData *m) {
     return 1;
 }
 
+/**
+ @brief Is file version 8 or above
+ 
+ @param[in] m MOBIData structure with loaded Record(s) 0 headers
+ @return True if file version is 8 or greater
+ */
+bool mobi_is_kf8(const MOBIData *m) {
+    const size_t version = mobi_get_fileversion(m);
+    if (version != MOBI_NOTSET && version >= 8) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ @brief Is file version 8 or above
+ 
+ @param[in] rawml MOBIRawml structure with parsed document
+ @return True if file version is 8 or greater
+ */
+bool mobi_is_rawml_kf8(const MOBIRawml *rawml) {
+    if (rawml && rawml->version != MOBI_NOTSET && rawml->version >= 8) {
+        return true;
+    }
+    return false;
+}
 
 /**
  @brief Get maximal size of uncompressed text record

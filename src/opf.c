@@ -486,7 +486,7 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
                 debug_print("%s\n", "Memory allocation failed");
                 return MOBI_MALLOC_FAILED;
             }
-            if (rawml->version >= 8) {
+            if (mobi_is_rawml_kf8(rawml)) {
                 uint32_t posfid;
                 ret = mobi_get_indxentry_tagvalue(&posfid, ncx_entry, INDX_TAG_NCX_POSFID);
                 if (ret != MOBI_SUCCESS) {
