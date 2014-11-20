@@ -32,6 +32,14 @@
 #else
 #define PRINT_RUSAGE_ARG ""
 #endif
+/* encryption */
+#ifdef USE_ENCRYPTION
+#define PRINT_ENC_USG " [-p pid]"
+#define PRINT_ENC_ARG "p:"
+#else
+#define PRINT_ENC_USG ""
+#define PRINT_ENC_ARG ""
+#endif
 /* return codes */
 #define ERROR 1
 #define SUCCESS 0
@@ -55,6 +63,14 @@ int dump_rec_opt = 0;
 int parse_kf7_opt = 0;
 int dump_parts_opt = 0;
 int print_rusage_opt = 0;
+#ifdef USE_ENCRYPTION
+int setpid_opt = 0;
+#endif
+
+/* options values */
+#ifdef USE_ENCRYPTION
+char *pid;
+#endif
 
 #ifdef _WIN32
 const int separator = '\\';
@@ -500,6 +516,27 @@ int loadfilename(const char *fullpath) {
     }
     /* Try to print EXTH metadata */
     print_exth(m);
+#ifdef USE_ENCRYPTION
+    if (setpid_opt) {
+        /* Try to set key for decompression */
+        if (m->rh && m->rh->encryption_type == 0) {
+            printf("\nDocument is not encrypted, ignoring PID\n");
+        }
+        else if (m->rh && m->rh->encryption_type == 1) {
+            printf("\nEncryption type 1, ignoring PID\n");
+        }
+        else {
+            printf("\nVerifying PID... ");
+            mobi_ret = mobi_drm_setkey(m, pid);
+            if (mobi_ret != MOBI_SUCCESS) {
+                printf("failed (%i)\n", mobi_ret);
+                mobi_free(m);
+                return ERROR;
+            }
+            printf("ok\n");
+        }
+    }
+#endif
     if (print_rec_meta_opt) {
         printf("\nPrinting records metadata...\n");
         print_records_meta(m);
@@ -521,6 +558,7 @@ int loadfilename(const char *fullpath) {
             mobi_free(m);
             return ERROR;
         }
+
         /* Parse rawml text and other data held in MOBIData structure into MOBIRawml structure */
         mobi_ret = mobi_parse_rawml(rawml, m);
         if (mobi_ret != MOBI_SUCCESS) {
@@ -548,17 +586,20 @@ int loadfilename(const char *fullpath) {
  @param[in] progname Executed program name
  */
 void usage(const char *progname) {
-    printf("usage: %s [-dmrs" PRINT_RUSAGE_ARG "v7] filename\n", progname);
+    printf("usage: %s [-dmrs" PRINT_RUSAGE_ARG "v7]" PRINT_ENC_USG " filename\n", progname);
     printf("       without arguments prints document metadata and exits\n");
-    printf("       -d dump rawml text record\n");
-    printf("       -m print records metadata\n");
-    printf("       -r dump raw records\n");
-    printf("       -s dump recreated source files\n");
-#ifdef HAVE_SYS_RESOURCE_H
-    printf("       -u show rusage\n");
+    printf("       -d      dump rawml text record\n");
+    printf("       -m      print records metadata\n");
+#ifdef USE_ENCRYPTION
+    printf("       -p pid  decrypt document with given pid\n");
 #endif
-    printf("       -v show version and exit\n");
-    printf("       -7 parse KF7 part of hybrid file (by default KF8 part is parsed)\n");
+    printf("       -r      dump raw records\n");
+    printf("       -s      dump recreated source files\n");
+#ifdef HAVE_SYS_RESOURCE_H
+    printf("       -u      show rusage\n");
+#endif
+    printf("       -v      show version and exit\n");
+    printf("       -7      parse KF7 part of hybrid file (by default KF8 part is parsed)\n");
     exit(0);
 }
 /**
@@ -570,7 +611,7 @@ int main(int argc, char *argv[]) {
     }
     opterr = 0;
     int c;
-    while((c = getopt(argc, argv, "dmrs" PRINT_RUSAGE_ARG "v7")) != -1)
+    while((c = getopt(argc, argv, "dm" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "v7")) != -1)
         switch(c) {
             case 'd':
                 dump_rawml_opt = 1;
@@ -578,6 +619,12 @@ int main(int argc, char *argv[]) {
             case 'm':
                 print_rec_meta_opt = 1;
                 break;
+#ifdef USE_ENCRYPTION
+            case 'p':
+                setpid_opt = 1;
+                pid = optarg;
+                break;
+#endif
             case 'r':
                 dump_rec_opt = 1;
                 break;
@@ -598,6 +645,12 @@ int main(int argc, char *argv[]) {
                 parse_kf7_opt = 1;
                 break;
             case '?':
+#ifdef USE_ENCRYPTION
+                if (optopt == 'p') {
+                    fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+                }
+                else
+#endif
                 if (isprint(optopt)) {
                     fprintf(stderr, "Unknown option `-%c'\n", optopt);
                 }

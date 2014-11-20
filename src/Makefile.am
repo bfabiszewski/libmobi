@@ -9,6 +9,9 @@ endif
 if USE_MINIZ
 libmobi_la_SOURCES += miniz.c miniz.h
 endif
+if USE_ENCRYPTION
+libmobi_la_SOURCES += encryption.c encryption.h
+endif
 include_HEADERS = mobi.h
 libmobi_la_LDFLAGS = $(AVOID_VERSION) $(NO_UNDEFINED) $(DARWIN_LDFLAGS) $(LIBZ_LDFLAGS) $(LIBXML2_LDFLAGS)
 libmobi_la_CFLAGS = $(VISIBILITY_HIDDEN) $(ISO99_SOURCE) $(DEBUG_CFLAGS) $(MINIZ_CFLAGS) $(LIBXML2_CFLAGS)

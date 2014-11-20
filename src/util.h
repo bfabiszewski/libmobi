@@ -25,12 +25,16 @@
 #ifdef USE_MINIZ
 #include "miniz.h"
 #define m_uncompress mz_uncompress
+#define m_crc32 mz_crc32
 #define M_OK MZ_OK
 #else
 #include <zlib.h>
 #define m_uncompress uncompress
+#define m_crc32 crc32
 #define M_OK Z_OK
 #endif
+
+#define UNUSED(x) (void)(x)
 
 /** @brief Magic numbers of records */
 #define MOBI_MAGIC "MOBI"

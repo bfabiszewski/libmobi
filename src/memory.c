@@ -28,6 +28,7 @@ MOBIData * mobi_init(void) {
 	if (m == NULL) return NULL;
     m->use_kf8 = true;
     m->kf8_boundary_offset = MOBI_NOTSET;
+    m->drm_key = NULL;
     m->ph = NULL;
     m->rh = NULL;
     m->mh = NULL;
@@ -171,6 +172,9 @@ void mobi_free(MOBIData *m) {
         free(m->next->rh);
         free(m->next);
         m->next = NULL;
+    }
+    if (m->drm_key) {
+        free(m->drm_key);
     }
     free(m);
     m = NULL;

@@ -22,6 +22,10 @@
 #include "index.h"
 #include "debug.h"
 
+#ifdef USE_ENCRYPTION
+#include "encryption.h"
+#endif
+
 #ifdef USE_LIBXML2
 #include "opf.h"
 #endif
@@ -1002,10 +1006,6 @@ int mobi_bitcount(const uint8_t byte) {
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *file, size_t *len) {
-    if (mobi_is_encrypted(m)) {
-        debug_print("%s", "Document is encrypted\n");
-        return MOBI_FILE_ENCRYPTED;
-    }
     int dump = false;
     if (file != NULL) {
         dump = true;
@@ -1013,6 +1013,10 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
     if (m == NULL) {
         debug_print("%s", "Mobi structure not initialized\n");
         return MOBI_INIT_FAILED;
+    }
+    if (mobi_is_encrypted(m) && m->drm_key == NULL) {
+        debug_print("%s", "Document is encrypted\n");
+        return MOBI_FILE_ENCRYPTED;
     }
     const size_t offset = mobi_get_kf8offset(m);
     if (m->rh == NULL || m->rh->text_record_count == 0) {
@@ -1061,6 +1065,21 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
             return MOBI_MALLOC_FAILED;
         }
         MOBI_RET ret = MOBI_SUCCESS;
+#ifdef USE_ENCRYPTION
+        if (mobi_is_encrypted(m) && m->drm_key) {
+            size_t decrypt_size = record_size;
+            if (compression_type != RECORD0_HUFF_COMPRESSION) {
+                /* decrypt also multibyte extra data */
+                size_t mb_size = mobi_get_record_mb_extrasize(curr, extra_flags);
+                decrypt_size += mb_size;
+            }
+            ret = mobi_decrypt(decompressed, curr->data, decrypt_size, m);
+            if (ret != MOBI_SUCCESS) {
+                return ret;
+            }
+            memcpy(curr->data, decompressed, decrypt_size);
+        }
+#endif
         switch (compression_type) {
             case RECORD0_NO_COMPRESSION:
                 /* no compression */
@@ -1948,4 +1967,38 @@ MOBI_RET mobi_swap_mobidata(MOBIData *m) {
     free(tmp);
     tmp = NULL;
     return MOBI_SUCCESS;
+}
+
+/**
+ @brief Store PID for encryption in MOBIData stucture
+ 
+ @param[in,out] m MOBIData structure with raw data and metadata
+ @param[in] pid PID
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_drm_setkey(MOBIData *m, const char *pid) {
+#ifdef USE_ENCRYPTION
+    return mobi_drm_setkey_internal(m, pid);
+#else
+    UNUSED(m);
+    UNUSED(pid);
+    debug_print("Libmobi compiled without encryption support%s", "\n");
+    return MOBI_DRM_UNSUPPORTED;
+#endif
+}
+
+/**
+ @brief Remove PID stored for encryption from MOBIData structure
+ 
+ @param[in,out] m MOBIData structure with raw data and metadata
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_drm_delkey(MOBIData *m) {
+#ifdef USE_ENCRYPTION
+    return mobi_drm_delkey_internal(m);
+#else
+    UNUSED(m);
+    debug_print("Libmobi compiled without encryption support%s", "\n");
+    return MOBI_DRM_UNSUPPORTED;
+#endif
 }

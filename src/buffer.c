@@ -353,6 +353,23 @@ void buffer_getraw(void *data, MOBIBuffer *buf, const size_t len) {
 }
 
 /**
+ @brief Get pointer to MOBIBuffer data at offset
+ 
+ @param[in] buf MOBIBuffer structure containing data
+ @param[in] len Check if requsted length is available in buffer
+ @return Pointer to offset, or NULL on failure
+ */
+unsigned char * buffer_getpointer(MOBIBuffer *buf, const size_t len) {
+    if (buf->offset + len > buf->maxlen) {
+        debug_print("%s", "End of buffer\n");
+        buf->error = MOBI_BUFFER_END;
+        return NULL;
+    }
+    buf->offset += len;
+    return buf->data + buf->offset - len;
+}
+
+/**
  @brief Read 8-bit value from MOBIBuffer into allocated memory
  
  Read 8-bit value from buffer into memory allocated by the function.

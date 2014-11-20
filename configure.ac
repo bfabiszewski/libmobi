@@ -171,6 +171,23 @@ AC_MSG_RESULT($def_inline)
 AC_DEFINE_UNQUOTED([MOBI_INLINE], [$def_inline],
                    [How to obtain function inlining.])
 
+# Check --enable-encryption
+AC_MSG_CHECKING([whether enable encryption])
+AC_ARG_ENABLE([encryption],
+AS_HELP_STRING([--enable-encryption],
+[enable encryption @<:@default=yes@:>@]),
+[case "${enableval}" in
+yes) encryption=yes ;;
+no)  encryption=no ;;
+*) AC_MSG_ERROR([bad value ${enableval} for --enable-encryption]) ;;
+esac],
+[encryption=yes])
+AC_MSG_RESULT($encryption)
+AM_CONDITIONAL(USE_ENCRYPTION,[test x$encryption = xyes])
+if test x$encryption = xyes; then
+AC_DEFINE([USE_ENCRYPTION], 1, [Enable encryption])
+fi
+
 # Check --enable-debug
 AC_MSG_CHECKING([whether enable debugging])
 AC_ARG_ENABLE([debug],

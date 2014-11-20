@@ -457,9 +457,46 @@ size_t mobi_get_record_extrasize(const MOBIPdbRecord *record, const uint16_t fla
             const uint8_t b = buffer_get8(buf);
             /* two first bits hold size */
             extra_size += (b & 0x3) + 1;
-        
     }
     buffer_free_null(buf);
+    return extra_size;
+}
+
+/**
+ @brief Calculate the size of extra multibyte section at the end of text record
+ 
+ @param[in] record MOBIPdbRecord structure containing the record
+ @param[in] flags Flags from MOBI header (extra_flags)
+ @return The size of trailing bytes, MOBI_NOTSET on failure
+ */
+size_t mobi_get_record_mb_extrasize(const MOBIPdbRecord *record, const uint16_t flags) {
+    size_t extra_size = 0;
+    if (flags & 1) {
+        MOBIBuffer *buf = buffer_init_null(record->size);
+        if (buf == NULL) {
+            debug_print("%s", "Buffer init in extrasize failed\n");
+            return MOBI_NOTSET;
+        }
+        buf->data = record->data;
+        /* set pointer at the end of the record data */
+        buffer_setpos(buf, buf->maxlen - 1);
+        for (int bit = 15; bit > 0; bit--) {
+            if (flags & (1 << bit)) {
+                /* bit is set */
+                size_t len = 0;
+                /* size contains varlen itself and optional data */
+                const uint32_t size = buffer_get_varlen_dec(buf, &len);
+                /* skip data */
+                /* TODO: read and store in record struct */
+                buffer_seek(buf, (int) -(size - len));
+            }
+        };
+        /* read multibyte section */
+        const uint8_t b = buffer_get8(buf);
+        /* two first bits hold size */
+        extra_size += (b & 0x3) + 1;
+        buffer_free_null(buf);
+    }
     return extra_size;
 }
 
@@ -733,6 +770,11 @@ MOBI_RET mobi_load_file(MOBIData *m, FILE *file) {
     if (ret != MOBI_SUCCESS) {
         return ret;
     }
+    if (m->rh && m->rh->encryption_type == 1) {
+        /* try to set key for encryption type 1 */
+        debug_print("Trying to set key for encryption type 1%s", "\n")
+        mobi_drm_setkey(m, NULL);
+    }
     /* if EXTH is loaded and use_kf8 flag is set parse KF8 record0 for hybrid KF7/KF8 file */
     if (m->eh && m->use_kf8) {
         const size_t boundary_rec_number = mobi_get_kf8boundary_seqnumber(m);
@@ -743,6 +785,7 @@ MOBI_RET mobi_load_file(MOBIData *m, FILE *file) {
             /* link pdb header and records data to KF8data structure */
             m->next->ph = m->ph;
             m->next->rec = m->rec;
+            m->next->drm_key = m->drm_key;
             /* close next loop */
             m->next->next = m;
             ret = mobi_parse_record0(m->next, boundary_rec_number + 1);

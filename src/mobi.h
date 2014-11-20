@@ -52,6 +52,9 @@ extern "C"
         MOBI_INIT_FAILED = 8, /**< Initialization error */
         MOBI_BUFFER_END = 9, /**< Out of buffer error */
         MOBI_XML_ERR = 10, /**< LibXML2 error */
+        MOBI_DRM_PIDINV = 11,  /**< Invalid DRM PID */
+        MOBI_DRM_KEYNOTFOUND = 12,  /**< Key not found */
+        MOBI_DRM_UNSUPPORTED = 13, /**< DRM support not included */
     } MOBI_RET;
     
     /**
@@ -373,6 +376,7 @@ extern "C"
     typedef struct MOBIData {
         bool use_kf8; /**< Flag: if set to true (default), KF8 part of hybrid file is parsed, if false - KF7 part will be parsed */
         uint32_t kf8_boundary_offset; /**< Set to KF8 boundary rec number if present, otherwise: MOBI_NOTSET */
+        unsigned char *drm_key; /**< key for decryption, NULL if not set */
         MOBIPdbHeader *ph; /**< Palmdoc database header structure or NULL if not loaded */
         MOBIRecord0Header *rh; /**< Record0 header structure or NULL if not loaded */
         MOBIMobiHeader *mh; /**< MOBI header structure or NULL if not loaded */
@@ -500,6 +504,7 @@ extern "C"
     MOBI_EXPORT size_t mobi_get_kf8offset(const MOBIData *m);
     MOBI_EXPORT size_t mobi_get_kf8boundary_seqnumber(const MOBIData *m);
     MOBI_EXPORT size_t mobi_get_record_extrasize(const MOBIPdbRecord *record, const uint16_t flags);
+    MOBI_EXPORT size_t mobi_get_record_mb_extrasize(const MOBIPdbRecord *record, const uint16_t flags);
     MOBI_EXPORT size_t mobi_get_fileversion(const MOBIData *m);
     MOBI_EXPORT size_t mobi_get_fdst_record_number(const MOBIData *m);
     MOBI_EXPORT MOBIExthMeta mobi_get_exthtagmeta_by_tag(const MOBIExthTag tag);
@@ -527,6 +532,8 @@ extern "C"
     MOBI_EXPORT MOBIRawml * mobi_init_rawml(const MOBIData *m);
     MOBI_EXPORT void mobi_free_rawml(MOBIRawml *rawml);
     
+    MOBI_EXPORT MOBI_RET mobi_drm_setkey(MOBIData *m, const char *pid);
+    MOBI_EXPORT MOBI_RET mobi_drm_delkey(MOBIData *m);
     /** @} */ // end of mobi_export group
     
 #ifdef __cplusplus
