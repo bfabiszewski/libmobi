@@ -16,6 +16,7 @@ It may serve as an example how to use the library.
 - reconstructing references (links and embedded) in html files
 - reconstructing source structure that can be fed back to kindlegen
 - reconstructing dictionary markup (orth, infl tags)
+- handling encrypted documents
 
 ## Todo:
 - process RESC records
