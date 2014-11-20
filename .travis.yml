@@ -5,9 +5,22 @@ compiler:
 before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -y autotools-dev pkg-config automake autoconf libtool
-- sudo apt-get install -y libtool zlib1g-dev libxml2-dev
+- sudo apt-get install -y zlib1g-dev libxml2-dev
 - git config --global user.name "Travis CI (libmobi)"
 - git config --global user.email $HOSTNAME":not-for-mail@travis-ci.org"
 script:
 - ./autogen.sh
 - ./configure && make
+
+env:
+  global:
+  - secure: "ShIL3IDvH59cJx4QAKWhVTs7ynCAfID11DqK8pIWJX2UtvXc4pdDQUq6U5ZRLUT0BR6kmLNxYrQUpUKvZ9sYnPuj4X5o9jzXzXsJPXTy/qpjiLK4MCZLIlI4OAHexfAuZTOVZHOoE/B8ABpk8nGYUXk02++LxlmwtE/fIWOOWHs="
+
+addons:
+  coverity_scan:
+    project:
+      name: "bfabiszewski/libmobi"
+      description: "Build submitted via Travis CI"
+    build_command_prepend: "./autogen.sh && ./configure"
+    build_command:   "make -j 4"
+    branch_pattern: coverity_scan
