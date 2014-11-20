@@ -1,3 +1,6 @@
+2014-11-20: feature: add decryption support
+2014-11-20: mkdir cleanup
+2014-11-17: documentation
 2014-11-17: strip unneeded <aid/> tags
 2014-11-16: fix: potential leak
 2014-11-16: fix: regression, some image tags were not reconstructed

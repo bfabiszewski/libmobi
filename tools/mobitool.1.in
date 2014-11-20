@@ -3,7 +3,7 @@
 .\"man mdoc.samples for a complete listing of options
 .\"man mdoc for the short list of editing options
 .\"/usr/share/misc/mdoc.template
-.Dd 26.03.14               \" DATE 
+.Dd 26.03.14               \" DATE
 .Dt mobitool 1      \" Program name and manual section number
 .Os Unix
 .Sh NAME                 \" Section Header - required - don't modify 
@@ -15,10 +15,13 @@
 .Sh SYNOPSIS             \" Section Header - required - don't modify
 .Nm
 .Op Fl dmrsu7            \" [-dmrsu7]
+.if !'@ENCRYPTION_OPT@'yes' .ig
+.Op Fl p Ar pid          \" [-p pid]
+..
 .Ar file                 \" Underlined argument - use .Ar anywhere to underline
 .Sh DESCRIPTION          \" Section Header - required - don't modify
 Written as a test case for libmobi library.
-Run without arguments prints document metadata and exits.
+Invoked without arguments prints document metadata and exits.
 .Pp
 A list of flags and their descriptions:
 .Bl -tag -width -indent
@@ -26,6 +29,10 @@ A list of flags and their descriptions:
 dump rawml text record
 .It Fl m
 print records metadata
+.if !'@ENCRYPTION_OPT@'yes' .ig
+.It Fl p Ar pid
+set pid for decryption
+..
 .It Fl r
 dump raw records
 .It Fl s

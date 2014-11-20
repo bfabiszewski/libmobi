@@ -591,7 +591,7 @@ void usage(const char *progname) {
     printf("       -d      dump rawml text record\n");
     printf("       -m      print records metadata\n");
 #ifdef USE_ENCRYPTION
-    printf("       -p pid  decrypt document with given pid\n");
+    printf("       -p pid  set pid for decryption\n");
 #endif
     printf("       -r      dump raw records\n");
     printf("       -s      dump recreated source files\n");
