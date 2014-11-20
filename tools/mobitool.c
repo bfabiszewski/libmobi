@@ -62,6 +62,16 @@ const int separator = '\\';
 const int separator = '/';
 #endif
 
+static int mt_mkdir (const char *filename) {
+    int ret;
+#ifdef _WIN32
+    ret = _mkdir(filename);
+#else
+    ret = mkdir(filename, S_IRWXU);
+#endif
+    return ret;
+}
+
 /**
  @brief Parse file name into file path and base name
  @param[in] fullpath Full file path
@@ -317,11 +327,7 @@ void dump_records(const MOBIData *m, const char *fullpath) {
     char newdir[FILENAME_MAX];
     sprintf(newdir, "%s%s_records", dirname, basename);
     printf("Saving records to %s\n", newdir);
-#ifdef _WIN32
-    _mkdir(newdir);
-#else
-    mkdir(newdir, S_IRWXU);
-#endif
+    mt_mkdir(newdir);
     /* Linked list of MOBIPdbRecord structures holds records data and metadata */
     const MOBIPdbRecord *currec = m->rec;
     int i = 0;
@@ -380,11 +386,7 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
     char newdir[FILENAME_MAX];
     sprintf(newdir, "%s%s_markup", dirname, basename);
     printf("Saving markup to %s\n", newdir);
-#ifdef _WIN32
-    _mkdir(newdir);
-#else
-    mkdir(newdir, S_IRWXU);
-#endif
+    mt_mkdir(newdir);
     char partname[FILENAME_MAX];
     if (rawml->markup != NULL) {
         /* Linked list of MOBIPart structures in rawml->markup holds main text files */
