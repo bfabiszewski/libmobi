@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/bfabiszewski/libmobi.svg?branch=public)](https://travis-ci.org/bfabiszewski/libmobi)
+
 # Libmobi
 
 C library for handling Mobipocket (MOBI) ebook format documents.
