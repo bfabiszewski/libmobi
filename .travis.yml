@@ -1,0 +1,13 @@
+language: c
+compiler:
+- clang
+- gcc
+before_install:
+- sudo apt-get update -qq
+- sudo apt-get install -y autotools-dev pkg-config automake autoconf libtool
+- sudo apt-get install -y libtool zlib1g-dev libxml2-dev
+- git config --global user.name "Travis CI (libmobi)"
+- git config --global user.email $HOSTNAME":not-for-mail@travis-ci.org"
+script:
+- ./autogen.sh
+- ./configure && make
