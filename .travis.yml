@@ -22,5 +22,5 @@ addons:
       name: "bfabiszewski/libmobi"
       description: "Build submitted via Travis CI"
     build_command_prepend: "./autogen.sh && ./configure"
-    build_command:   "make -j 4"
-    branch_pattern: coverity_scan
+    build_command: "make -j 4"
+    branch_pattern: public
