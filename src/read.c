@@ -603,7 +603,7 @@ MOBI_RET mobi_parse_cdic(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record, co
     }
     /* allocate memory for symbol offsets if not already allocated */
     if (num == 0) {
-        if (index_count > (1 << code_length) * CDIC_RECORD_MAXCNT) {
+        if (index_count > (1 << HUFF_CODELEN_MAX) * CDIC_RECORD_MAXCNT) {
             debug_print("CDIC index count too large %zu\n", index_count);
             buffer_free_null(buf);
             return MOBI_DATA_CORRUPT;
