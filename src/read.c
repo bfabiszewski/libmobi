@@ -208,7 +208,8 @@ MOBI_RET mobi_parse_extheader(MOBIData *m, MOBIBuffer *buf) {
     const size_t rec_count = buffer_get32(buf);
     if (strncmp(exth_magic, EXTH_MAGIC, 4) != 0 ||
         exth_length + buf->offset + 12 > buf->maxlen ||
-        rec_count == 0) {
+        rec_count == 0 || rec_count > MOBI_EXTH_MAXCNT) {
+        debug_print("%s", "Sanity checks for EXTH header failed\n");
         return MOBI_DATA_CORRUPT;
     }
     const size_t saved_maxlen = buf->maxlen;
@@ -224,6 +225,7 @@ MOBI_RET mobi_parse_extheader(MOBIData *m, MOBIBuffer *buf) {
             curr->next = calloc(1, sizeof(MOBIExthHeader));
             if (curr->next == NULL) {
                 debug_print("%s", "Memory allocation for EXTH header failed\n");
+                mobi_free_eh(m);
                 return MOBI_MALLOC_FAILED;
             }
             curr = curr->next;
@@ -231,9 +233,14 @@ MOBI_RET mobi_parse_extheader(MOBIData *m, MOBIBuffer *buf) {
         curr->tag = buffer_get32(buf);
         /* data size = record size minus 8 bytes for uid and size */
         curr->size = buffer_get32(buf) - 8;
-        if (curr->size == 0 || buf->offset + curr->size > buf->maxlen) {
+        if (curr->size == 0) {
             debug_print("Skip record %i, data too short\n", curr->tag);
             continue;
+        }
+        if (buf->offset + curr->size > buf->maxlen) {
+            debug_print("Record %i too long\n", curr->tag);
+            mobi_free_eh(m);
+            return MOBI_DATA_CORRUPT;
         }
         curr->data = malloc(curr->size);
         if (curr->data == NULL) {

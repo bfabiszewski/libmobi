@@ -127,6 +127,7 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
         ret = mobi_get_indxentry_tagvalue(&frag_number, guide_entry, INDX_TAG_FRAG_POSITION);
         if (ret != MOBI_SUCCESS) {
             debug_print("INDX_TAG_FRAG_POSITION not found (%i)\n", ret);
+            free(ref_title);
             continue;
             /* FIXME: I need some examples which use other tags */
             //mobi_get_indxentry_tagvalue(&frag_number, guide_entry, INDX_TAG_FRAG_FILE_NR);

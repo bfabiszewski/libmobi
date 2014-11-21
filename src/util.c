@@ -1043,7 +1043,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         }
         MOBI_RET ret = mobi_parse_huffdic(m, huffcdic);
         if (ret != MOBI_SUCCESS) {
-            free(huffcdic);
+            mobi_free_huffcdic(huffcdic);
             return ret;
         }
     }
@@ -1054,6 +1054,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         if (extra_flags) {
             extra_size = mobi_get_record_extrasize(curr, extra_flags);
             if (extra_size == MOBI_NOTSET || extra_size >= curr->size) {
+                mobi_free_huffcdic(huffcdic);
                 return MOBI_DATA_CORRUPT;
             }
         }
@@ -1061,6 +1062,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         size_t decompressed_size = mobi_get_textrecord_maxsize(m);
         unsigned char *decompressed = malloc(decompressed_size);
         if (decompressed == NULL) {
+            mobi_free_huffcdic(huffcdic);
             debug_print("Memory allocation failed%s", "\n");
             return MOBI_MALLOC_FAILED;
         }
@@ -1075,7 +1077,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
             }
             ret = mobi_decrypt(decompressed, curr->data, decrypt_size, m);
             if (ret != MOBI_SUCCESS) {
-                free(huffcdic);
+                mobi_free_huffcdic(huffcdic);
                 free(decompressed);
                 return ret;
             }
@@ -1112,6 +1114,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                 break;
             default:
                 debug_print("%s", "Unknown compression type\n");
+                mobi_free_huffcdic(huffcdic);
                 free(decompressed);
                 return MOBI_DATA_CORRUPT;
         }
@@ -1122,9 +1125,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
             if (text_length > *len) {
                 debug_print("%s", "Text buffer too small\n");
                 /* free huff/cdic tables */
-                if (compression_type == RECORD0_HUFF_COMPRESSION) {
-                    mobi_free_huffcdic(huffcdic);
-                }
+                mobi_free_huffcdic(huffcdic);
                 free(decompressed);
                 return MOBI_PARAM_ERR;
             }
@@ -1135,9 +1136,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         free(decompressed);
     }
     /* free huff/cdic tables */
-    if (compression_type == RECORD0_HUFF_COMPRESSION) {
-        mobi_free_huffcdic(huffcdic);
-    }
+    mobi_free_huffcdic(huffcdic);
     if (len) {
         *len = text_length;
     }
@@ -1783,7 +1782,11 @@ size_t mobi_get_text_maxsize(const MOBIData *m) {
         /* FIXME: is it safe to use data from Record 0 header? */
         if (m->rh->text_record_count > 0) {
             uint16_t max_record_size = mobi_get_textrecord_maxsize(m);
-            size_t maxsize = m->rh->text_record_count * max_record_size;
+            size_t maxsize = (size_t) m->rh->text_record_count * (size_t) max_record_size;
+            if (maxsize > RAWTEXT_SIZEMAX) {
+                debug_print("Raw text too large (%zu)\n", maxsize);
+                return MOBI_NOTSET;
+            }
             return maxsize;
         }
     }

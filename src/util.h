@@ -106,6 +106,8 @@
 #define FONT_HEADER_LEN 24
 #define MEDIA_HEADER_LEN 12
 #define FONT_SIZEMAX (50 * 1024 * 1024)
+#define RAWTEXT_SIZEMAX 0xfffffff
+#define ORDT_RECORD_MAXCNT 1024
 /** @} */
 
 /**

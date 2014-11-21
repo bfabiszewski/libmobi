@@ -520,6 +520,11 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
         }
         if (indx->encoding == MOBI_UTF16 || ordt_entries_count > 0) {
             /* parse ORDT sections */
+            if (ordt_entries_count > ORDT_RECORD_MAXCNT) {
+                debug_print("Too many ORDT entries (%u)\n", ordt_entries_count);
+                buffer_free_null(buf);
+                return MOBI_DATA_CORRUPT;
+            }
             buffer_setpos(buf, ordt1_offset);
             ordt->offsets_count = ordt_entries_count;
             ordt->type = ordt_type;

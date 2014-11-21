@@ -2051,6 +2051,10 @@ MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
     
     /* Get maximal size of text data */
     const size_t maxlen = mobi_get_text_maxsize(m);
+    if (maxlen == MOBI_NOTSET) {
+        debug_print("%s", "Insane text lenght\n");
+        return MOBI_DATA_CORRUPT;
+    }
     char *text = malloc(maxlen + 1);
     if (text == NULL) {
         debug_print("%s", "Memory allocation failed\n");

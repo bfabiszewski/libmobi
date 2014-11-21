@@ -344,8 +344,10 @@ int dump_records(const MOBIData *m, const char *fullpath) {
     char newdir[FILENAME_MAX];
     sprintf(newdir, "%s%s_records", dirname, basename);
     printf("Saving records to %s\n", newdir);
+    errno = 0;
     if (mt_mkdir(newdir) != 0 && errno != EEXIST) {
-        printf("Creating directory failed (%s)\n", strerror(errno));
+        int errsv = errno;
+        printf("Creating directory failed (%s)\n", strerror(errsv));
         return ERROR;
     }
     /* Linked list of MOBIPdbRecord structures holds records data and metadata */
@@ -354,9 +356,11 @@ int dump_records(const MOBIData *m, const char *fullpath) {
     while (currec != NULL) {
         char name[FILENAME_MAX];
         sprintf(name, "%s%crecord_%i_uid_%i", newdir, separator, i++, currec->uid);
+        errno = 0;
         FILE *file = fopen(name, "wb");
         if (file == NULL) {
-            printf("Could not open file for writing: %s (%s)\n", name, strerror(errno));
+            int errsv = errno;
+            printf("Could not open file for writing: %s (%s)\n", name, strerror(errsv));
             return ERROR;
         }
         fwrite(currec->data, 1, currec->size, file);
@@ -377,9 +381,11 @@ int dump_rawml(const MOBIData *m, const char *fullpath) {
     split_fullpath(fullpath, dirname, basename);
     char name[FILENAME_MAX];
     sprintf(name, "%s%s.rawml", dirname, basename);
+    errno = 0;
     FILE *file = fopen(name, "wb");
     if (file == NULL) {
-        printf("Could not open file for writing: %s (%s)\n", name, strerror(errno));
+        int errsv = errno;
+        printf("Could not open file for writing: %s (%s)\n", name, strerror(errsv));
         return ERROR;
     }
     const MOBI_RET mobi_ret = mobi_dump_rawml(m, file);
@@ -407,8 +413,10 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
     char newdir[FILENAME_MAX];
     sprintf(newdir, "%s%s_markup", dirname, basename);
     printf("Saving markup to %s\n", newdir);
+    errno = 0;
     if (mt_mkdir(newdir) != 0 && errno != EEXIST) {
-        printf("Creating directory failed (%s)\n", strerror(errno));
+        int errsv = errno;
+        printf("Creating directory failed (%s)\n", strerror(errsv));
         return ERROR;
     }
     char partname[FILENAME_MAX];
@@ -418,16 +426,20 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
         while (curr != NULL) {
             MOBIFileMeta file_meta = mobi_get_filemeta_by_type(curr->type);
             sprintf(partname, "%s%cpart%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
+            errno = 0;
             FILE *file = fopen(partname, "wb");
             if (file == NULL) {
-                printf("Could not open file for writing: %s (%s)\n", partname, strerror(errno));
+                int errsv = errno;
+                printf("Could not open file for writing: %s (%s)\n", partname, strerror(errsv));
                 return ERROR;
             }
             printf("part%05zu.%s\n", curr->uid, file_meta.extension);
+            errno = 0;
             fwrite(curr->data, 1, curr->size, file);
             if (ferror(file)) {
-                printf("Error writing: %s\n", partname);
-                perror(NULL);
+                int errsv = errno;
+                printf("Error writing: %s (%s)\n", partname, strerror(errsv));
+                fclose(file);
                 return ERROR;
             }
             fclose(file);
@@ -442,16 +454,20 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
         while (curr != NULL) {
             MOBIFileMeta file_meta = mobi_get_filemeta_by_type(curr->type);
             sprintf(partname, "%s%cflow%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
+            errno = 0;
             FILE *file = fopen(partname, "wb");
             if (file == NULL) {
-                printf("Could not open file for writing: %s (%s)\n", partname, strerror(errno));
+                int errsv = errno;
+                printf("Could not open file for writing: %s (%s)\n", partname, strerror(errsv));
                 return ERROR;
             }
             printf("flow%05zu.%s\n", curr->uid, file_meta.extension);
+            errno = 0;
             fwrite(curr->data, 1, curr->size, file);
             if (ferror(file)) {
-                printf("Error writing: %s\n", partname);
-                perror(NULL);
+                int errsv = errno;
+                printf("Error writing: %s (%s)\n", partname, strerror(errsv));
+                fclose(file);
                 return ERROR;
             }
             fclose(file);
@@ -466,16 +482,19 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
             MOBIFileMeta file_meta = mobi_get_filemeta_by_type(curr->type);
             if (curr->size > 0) {
                 sprintf(partname, "%s%cresource%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
+                errno = 0;
                 FILE *file = fopen(partname, "wb");
                 if (file == NULL) {
-                    printf("Could not open file for writing: %s (%s)\n", partname, strerror(errno));
+                    int errsv = errno;
+                    printf("Could not open file for writing: %s (%s)\n", partname, strerror(errsv));
                     return ERROR;
                 }
                 printf("resource%05zu.%s\n", curr->uid, file_meta.extension);
+                errno = 0;
                 fwrite(curr->data, 1, curr->size, file);
                 if (ferror(file)) {
-                    printf("Error writing: %s\n", partname);
-                    perror(NULL);
+                    int errsv = errno;
+                    printf("Error writing: %s (%s)\n", partname, strerror(errsv));
                     fclose(file);
                     return ERROR;
                 }
@@ -506,9 +525,11 @@ int loadfilename(const char *fullpath) {
         /* Force it to parse KF7 part */
         mobi_parse_kf7(m);
     }
+    errno = 0;
     FILE *file = fopen(fullpath, "rb");
     if (file == NULL) {
-        printf("Error opening file: %s (%s)\n", fullpath, strerror(errno));
+        int errsv = errno;
+        printf("Error opening file: %s (%s)\n", fullpath, strerror(errsv));
         mobi_free(m);
         return ERROR;
     }
