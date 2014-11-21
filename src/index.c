@@ -492,16 +492,41 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     buffer_seek(buf, 4); /* 16: gen */
     const uint32_t idxt_offset = buffer_get32(buf); /* 20: IDXT offset */
     const size_t entries_count = buffer_get32(buf); /* 24: entries count */
+    if (entries_count > INDX_RECORD_MAXCNT) {
+        debug_print("Too many index entries (%zu)\n", entries_count);
+        buffer_free_null(buf);
+        return MOBI_DATA_CORRUPT;
+    }
     const uint32_t encoding = buffer_get32(buf); /* 28: encoding */
     buffer_seek(buf, 4); /* 32: zeroes */
     const size_t total_entries_count = buffer_get32(buf); /* 36: total entries count */
+    if (total_entries_count > INDX_TOTAL_MAXCNT) {
+        debug_print("Too many total index entries (%zu)\n", total_entries_count);
+        buffer_free_null(buf);
+        return MOBI_DATA_CORRUPT;
+    }
     const uint32_t ordt_offset = buffer_get32(buf); /* 40: old ORDT offset */
     const uint32_t ligt_offset = buffer_get32(buf); /* 44: LIGT offset */
-    uint32_t ligt_count = buffer_get32(buf); /* 48: LIGT entries count */
+    uint32_t ligt_entries_count = buffer_get32(buf); /* 48: LIGT entries count */
+    if (ligt_entries_count > LIGT_RECORD_MAXCNT) {
+        debug_print("Too many LIGT entries (%u)\n", ligt_entries_count);
+        buffer_free_null(buf);
+        return MOBI_DATA_CORRUPT;
+    }
     const uint32_t cncx_records_count = buffer_get32(buf); /* 52: CNCX entries count */
+    if (cncx_records_count > CNCX_RECORD_MAXCNT) {
+        debug_print("Too many CNCX records (%u)\n", cncx_records_count);
+        buffer_free_null(buf);
+        return MOBI_DATA_CORRUPT;
+    }
     buffer_setpos(buf, 164);
     const uint32_t ordt_type = buffer_get32(buf); /* 164: ORDT type */
     const uint32_t ordt_entries_count = buffer_get32(buf); /* 168: ORDT entries count */
+    if (ordt_entries_count > ORDT_RECORD_MAXCNT) {
+        debug_print("Too many ORDT entries (%u)\n", ordt_entries_count);
+        buffer_free_null(buf);
+        return MOBI_DATA_CORRUPT;
+    }
     const uint32_t ordt1_offset = buffer_get32(buf); /* 172: ORDT1 offset */
     const uint32_t ordt2_offset = buffer_get32(buf); /* 176: ORDT2 offset */
     const uint32_t index_name_offset = buffer_get32(buf); /* 180: Default index string offset ? */
@@ -520,11 +545,6 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
         }
         if (indx->encoding == MOBI_UTF16 || ordt_entries_count > 0) {
             /* parse ORDT sections */
-            if (ordt_entries_count > ORDT_RECORD_MAXCNT) {
-                debug_print("Too many ORDT entries (%u)\n", ordt_entries_count);
-                buffer_free_null(buf);
-                return MOBI_DATA_CORRUPT;
-            }
             buffer_setpos(buf, ordt1_offset);
             ordt->offsets_count = ordt_entries_count;
             ordt->type = ordt_type;
@@ -534,7 +554,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
             debug_print("ORDT: %u, %u, %u, %u\n", ordt_type, ordt_entries_count, ordt1_offset, ordt2_offset);
         }
         if (index_name_offset > 0 && index_name_length > 0) {
-            if (index_name_length <= header_length - index_name_offset) {
+            if (index_name_length <= header_length - index_name_offset && index_name_length < INDX_NAME_SIZEMAX) {
                 buffer_setpos(buf, index_name_offset);
                 char *name = malloc(index_name_length + 1);
                 buffer_getstring(name, buf, index_name_length);
@@ -547,10 +567,10 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
         indx->total_entries_count = total_entries_count;
         indx->ligt_offset = ligt_offset;
         buffer_setpos(buf, ligt_offset);
-        if (ligt_count != 0 && !buffer_match_magic(buf, LIGT_MAGIC)) {
-            ligt_count = 0;
+        if (ligt_entries_count != 0 && !buffer_match_magic(buf, LIGT_MAGIC)) {
+            ligt_entries_count = 0;
         }
-        indx->ligt_entries_count = ligt_count;
+        indx->ligt_entries_count = ligt_entries_count;
         indx->ordt_offset = ordt_offset;
         indx->cncx_records_count = cncx_records_count;
         buffer_free_null(buf);
