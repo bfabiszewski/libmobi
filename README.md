@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/bfabiszewski/libmobi.svg?branch=public)](https://travis-ci.org/bfabiszewski/libmobi)
-
 # Libmobi
 
 C library for handling Mobipocket (MOBI) ebook format documents.
@@ -52,6 +50,10 @@ It may serve as an example how to use the library.
 - works cross-compiled on Kindle :)
 - zlib (optional, configure --with-zlib=no to use included miniz.c instead)
 - libxml2 (optional, enables OPF handling, configure --with-libxml2=no to disable)
+
+## Tests
+- [![Travis status](https://travis-ci.org/bfabiszewski/libmobi.svg?branch=public)](https://travis-ci.org/bfabiszewski/libmobi)
+- [![Coverity status](https://scan.coverity.com/projects/3521/badge.svg)](https://scan.coverity.com/projects/3521)
 
 ## License:
 - LGPL, either version 3, or any later
