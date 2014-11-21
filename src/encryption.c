@@ -187,6 +187,7 @@ static size_t mobi_drm_parse(MOBIDrm **drm, const MOBIData *m) {
     }
     buf->data = rec->data;
     if (offset + size > rec->size) {
+        buffer_free_null(buf);
         return 0;
     }
     buffer_setpos(buf, offset);
@@ -339,6 +340,7 @@ MOBI_RET mobi_drm_getkey_v1(unsigned char key[KEYSIZE], const MOBIData *m) {
     }
     unsigned char key_enc[KEYSIZE];
     buffer_getraw(key_enc, buf, KEYSIZE);
+    buffer_free_null(buf);
     MOBI_RET ret = mobi_pk1_decrypt(key, key_enc, KEYSIZE, KEYVEC1_V1);
     return ret;
 }

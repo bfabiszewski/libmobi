@@ -46,6 +46,7 @@ MOBI_RET mobi_load_pdbheader(MOBIData *m, FILE *file) {
     m->ph = calloc(1, sizeof(MOBIPdbHeader));
     if (m->ph == NULL) {
         debug_print("%s", "Memory allocation for pdb header failed\n");
+        buffer_free(buf);
         return MOBI_MALLOC_FAILED;
     }
     /* parse header */
@@ -104,6 +105,7 @@ MOBI_RET mobi_load_reclist(MOBIData *m, FILE *file) {
             curr->next = calloc(1, sizeof(MOBIPdbRecord));
             if (curr->next == NULL) {
                 debug_print("%s", "Memory allocation for pdb record failed\n");
+                buffer_free(buf);
                 return MOBI_MALLOC_FAILED;
             }
             curr = curr->next;
@@ -229,7 +231,7 @@ MOBI_RET mobi_parse_extheader(MOBIData *m, MOBIBuffer *buf) {
         curr->tag = buffer_get32(buf);
         /* data size = record size minus 8 bytes for uid and size */
         curr->size = buffer_get32(buf) - 8;
-        if (curr->size == 0) {
+        if (curr->size == 0 || buf->offset + curr->size > buf->maxlen) {
             debug_print("Skip record %i, data too short\n", curr->tag);
             continue;
         }
@@ -587,6 +589,11 @@ MOBI_RET mobi_parse_cdic(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record, co
     if (huffcdic->index_count && huffcdic->index_count != index_count) {
         debug_print("Warning: CDIC different index count %zu in record %i, previous was %zu\n", huffcdic->index_count, record->uid, index_count);
     }
+    if (code_length == 0 || code_length > HUFF_CODELEN_MAX) {
+        debug_print("Code length exceeds sanity checks (%zu)\n", code_length);
+        buffer_free_null(buf);
+        return MOBI_DATA_CORRUPT;
+    }
     huffcdic->code_length = code_length;
     huffcdic->index_count = index_count;
     if (index_count == 0) {
@@ -596,6 +603,11 @@ MOBI_RET mobi_parse_cdic(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record, co
     }
     /* allocate memory for symbol offsets if not already allocated */
     if (num == 0) {
+        if (index_count > (1 << code_length) * CDIC_RECORD_MAXCNT) {
+            debug_print("CDIC index count too large %zu\n", index_count);
+            buffer_free_null(buf);
+            return MOBI_DATA_CORRUPT;
+        }
         huffcdic->symbol_offsets = malloc(index_count * sizeof(*huffcdic->symbol_offsets));
         if (huffcdic->symbol_offsets == NULL) {
             debug_print("%s", "CDIC cannot allocate memory");

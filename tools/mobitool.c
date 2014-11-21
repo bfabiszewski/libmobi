@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <errno.h>
 /* include libmobi header */
 #include <mobi.h>
 #ifdef HAVE_CONFIG_H
@@ -336,14 +337,17 @@ void print_records_meta(const MOBIData *m) {
  @param[in] m MOBIData structure
  @param[in] fullpath File path will be parsed to build basenames of dumped records
  */
-void dump_records(const MOBIData *m, const char *fullpath) {
+int dump_records(const MOBIData *m, const char *fullpath) {
     char dirname[FILENAME_MAX];
     char basename[FILENAME_MAX];
     split_fullpath(fullpath, dirname, basename);
     char newdir[FILENAME_MAX];
     sprintf(newdir, "%s%s_records", dirname, basename);
     printf("Saving records to %s\n", newdir);
-    mt_mkdir(newdir);
+    if (mt_mkdir(newdir) != 0 && errno != EEXIST) {
+        printf("Creating directory failed (%s)\n", strerror(errno));
+        return ERROR;
+    }
     /* Linked list of MOBIPdbRecord structures holds records data and metadata */
     const MOBIPdbRecord *currec = m->rec;
     int i = 0;
@@ -352,13 +356,14 @@ void dump_records(const MOBIData *m, const char *fullpath) {
         sprintf(name, "%s%crecord_%i_uid_%i", newdir, separator, i++, currec->uid);
         FILE *file = fopen(name, "wb");
         if (file == NULL) {
-            printf("Could not open file for writing: %s\n", name);
-            return;
+            printf("Could not open file for writing: %s (%s)\n", name, strerror(errno));
+            return ERROR;
         }
         fwrite(currec->data, 1, currec->size, file);
         fclose(file);
         currec = currec->next;
     }
+    return SUCCESS;
 }
 
 /**
@@ -374,7 +379,7 @@ int dump_rawml(const MOBIData *m, const char *fullpath) {
     sprintf(name, "%s%s.rawml", dirname, basename);
     FILE *file = fopen(name, "wb");
     if (file == NULL) {
-        printf("Could not open file for writing: %s\n", name);
+        printf("Could not open file for writing: %s (%s)\n", name, strerror(errno));
         return ERROR;
     }
     const MOBI_RET mobi_ret = mobi_dump_rawml(m, file);
@@ -402,7 +407,10 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
     char newdir[FILENAME_MAX];
     sprintf(newdir, "%s%s_markup", dirname, basename);
     printf("Saving markup to %s\n", newdir);
-    mt_mkdir(newdir);
+    if (mt_mkdir(newdir) != 0 && errno != EEXIST) {
+        printf("Creating directory failed (%s)\n", strerror(errno));
+        return ERROR;
+    }
     char partname[FILENAME_MAX];
     if (rawml->markup != NULL) {
         /* Linked list of MOBIPart structures in rawml->markup holds main text files */
@@ -412,7 +420,7 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
             sprintf(partname, "%s%cpart%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
             FILE *file = fopen(partname, "wb");
             if (file == NULL) {
-                printf("Could not open file for writing: %s\n", partname);
+                printf("Could not open file for writing: %s (%s)\n", partname, strerror(errno));
                 return ERROR;
             }
             printf("part%05zu.%s\n", curr->uid, file_meta.extension);
@@ -436,7 +444,7 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
             sprintf(partname, "%s%cflow%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
             FILE *file = fopen(partname, "wb");
             if (file == NULL) {
-                printf("Could not open file for writing: %s\n", partname);
+                printf("Could not open file for writing: %s (%s)\n", partname, strerror(errno));
                 return ERROR;
             }
             printf("flow%05zu.%s\n", curr->uid, file_meta.extension);
@@ -460,7 +468,7 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
                 sprintf(partname, "%s%cresource%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
                 FILE *file = fopen(partname, "wb");
                 if (file == NULL) {
-                    printf("Could not open file for writing: %s\n", partname);
+                    printf("Could not open file for writing: %s (%s)\n", partname, strerror(errno));
                     return ERROR;
                 }
                 printf("resource%05zu.%s\n", curr->uid, file_meta.extension);
@@ -468,6 +476,7 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
                 if (ferror(file)) {
                     printf("Error writing: %s\n", partname);
                     perror(NULL);
+                    fclose(file);
                     return ERROR;
                 }
                 fclose(file);
@@ -499,7 +508,7 @@ int loadfilename(const char *fullpath) {
     }
     FILE *file = fopen(fullpath, "rb");
     if (file == NULL) {
-        printf("Error opening file: %s\n", fullpath);
+        printf("Error opening file: %s (%s)\n", fullpath, strerror(errno));
         mobi_free(m);
         return ERROR;
     }
@@ -543,7 +552,7 @@ int loadfilename(const char *fullpath) {
     }
     if (dump_rec_opt) {
         printf("\nDumping raw records...\n");
-        dump_records(m, fullpath);
+        ret = dump_records(m, fullpath);
     }
     if (dump_rawml_opt) {
         printf("\nDumping rawml...\n");

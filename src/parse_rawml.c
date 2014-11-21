@@ -408,14 +408,10 @@ MOBI_RET mobi_get_offset_by_posoff(uint32_t *file_number, size_t *offset, const 
         debug_print("Entry for pos:fid:%zu doesn't exist\n", pos_fid);
         return MOBI_DATA_CORRUPT;
     }
-    const MOBIIndexEntry *entry = &rawml->frag->entries[pos_fid];
-    if (entry == NULL) {
-        debug_print("Fragment entry for pos:fid:%zu not found\n", pos_fid);
-        return MOBI_DATA_CORRUPT;
-    }
-    *offset = strtoul(entry->label, NULL, 10);
+    const MOBIIndexEntry entry = rawml->frag->entries[pos_fid];
+    *offset = strtoul(entry.label, NULL, 10);
     uint32_t file_nr;
-    ret = mobi_get_indxentry_tagvalue(&file_nr, entry, INDX_TAG_FRAG_FILE_NR);
+    ret = mobi_get_indxentry_tagvalue(&file_nr, &entry, INDX_TAG_FRAG_FILE_NR);
     if (ret != MOBI_SUCCESS) {
         return ret;
     }
@@ -424,9 +420,9 @@ MOBI_RET mobi_get_offset_by_posoff(uint32_t *file_number, size_t *offset, const 
         return MOBI_DATA_CORRUPT;
         
     }
-    const MOBIIndexEntry *skel_entry = &rawml->skel->entries[file_nr];
+    const MOBIIndexEntry skel_entry = rawml->skel->entries[file_nr];
     uint32_t skel_position;
-    ret = mobi_get_indxentry_tagvalue(&skel_position, skel_entry, INDX_TAG_SKEL_POSITION);
+    ret = mobi_get_indxentry_tagvalue(&skel_position, &skel_entry, INDX_TAG_SKEL_POSITION);
     if (ret != MOBI_SUCCESS) {
         return ret;
     }
@@ -743,7 +739,7 @@ MOBI_RET mobi_reconstruct_flow(MOBIRawml *rawml, const char *text, const size_t 
             free(pdf);
         } else {
             /* text data */
-            section_length = strlen(text);
+            section_length = length;
             section_data = malloc(section_length);
             if (section_data == NULL) {
                 debug_print("%s", "Memory allocation failed\n");
@@ -1749,6 +1745,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                 break;
             case 'h':
             case 'l':
+                /* fallthrough */
                 data_cur += 2;
             case 'r':
                 /* (hi|lo)recindex="00000" */
@@ -1769,6 +1766,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         /* first chunk */
         if (data_cur < data_in) {
             mobi_list_del_all(first);
+            array_free(links);
             return MOBI_DATA_CORRUPT;
         }
         size_t size = (size_t) (data_cur - data_in);
@@ -1776,6 +1774,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         curr = mobi_list_add(curr, raw_offset, data_in, size, false);
         if (curr == NULL) {
             mobi_list_del_all(first);
+            array_free(links);
             debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
         }
@@ -1787,6 +1786,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                              strlen(link), true);
         if (curr == NULL) {
             mobi_list_del_all(first);
+            array_free(links);
             debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
         }
@@ -1797,6 +1797,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         /* last chunk */
         if (part->data + part->size < data_in) {
             mobi_list_del_all(first);
+            array_free(links);
             return MOBI_DATA_CORRUPT;
         }
         size_t size = (size_t) (part->data + part->size - data_in);
@@ -1804,6 +1805,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         curr = mobi_list_add(curr, raw_offset, data_in, size, false);
         if (curr == NULL) {
             mobi_list_del_all(first);
+            array_free(links);
             debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
         }
@@ -1811,6 +1813,11 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
     } else {
         /* add whole part as one fragment */
         first = mobi_list_add(first, 0, part->data, part->size, false);
+        if (first == NULL) {
+            array_free(links);
+            debug_print("%s\n", "Memory allocation failed");
+            return MOBI_MALLOC_FAILED;
+        }
         new_size += first->size;
     }
     /* insert chunks from links array */
@@ -1825,6 +1832,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                                 strlen(anchor), true, offset);
         if (curr == NULL) {
             mobi_list_del_all(first);
+            array_free(links);
             debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
         }

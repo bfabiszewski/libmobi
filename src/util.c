@@ -1075,6 +1075,8 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
             }
             ret = mobi_decrypt(decompressed, curr->data, decrypt_size, m);
             if (ret != MOBI_SUCCESS) {
+                free(huffcdic);
+                free(decompressed);
                 return ret;
             }
             memcpy(curr->data, decompressed, decrypt_size);
@@ -1518,6 +1520,10 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
         return MOBI_DATA_CORRUPT;
     }
     MOBIBuffer *buf = buffer_init(part->size);
+    if (buf == NULL) {
+        debug_print("Memory allocation failed%s", "\n");
+        return MOBI_MALLOC_FAILED;
+    }
     memcpy(buf->data, part->data, part->size);
     struct header {
         char magic[5];
@@ -1535,13 +1541,18 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
         return MOBI_DATA_CORRUPT;
     }
     h.decoded_size = buffer_get32(buf);
+    if (h.decoded_size == 0 || h.decoded_size > FONT_SIZEMAX) {
+        debug_print("Invalid declared font resource size: %u\n", h.decoded_size);
+        buffer_free(buf);
+        return MOBI_DATA_CORRUPT;
+    }
     h.flags = buffer_get32(buf);
     h.data_offset = buffer_get32(buf);
     h.xor_key_len = buffer_get32(buf);
     h.xor_data_off = buffer_get32(buf);
     const uint32_t zlib_flag = 1; /* bit 0 */
     const uint32_t xor_flag = 2; /* bit 1 */
-    if (h.flags & xor_flag) {
+    if (h.flags & xor_flag && h.xor_key_len > 0) {
         /* deobfuscate */
         buffer_setpos(buf, h.data_offset);
         const unsigned char *xor_key = buf->data + h.xor_data_off;
@@ -1772,7 +1783,8 @@ size_t mobi_get_text_maxsize(const MOBIData *m) {
         /* FIXME: is it safe to use data from Record 0 header? */
         if (m->rh->text_record_count > 0) {
             uint16_t max_record_size = mobi_get_textrecord_maxsize(m);
-            return (m->rh->text_record_count * max_record_size);
+            size_t maxsize = m->rh->text_record_count * max_record_size;
+            return maxsize;
         }
     }
     return MOBI_NOTSET;

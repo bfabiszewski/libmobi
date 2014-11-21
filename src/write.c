@@ -86,7 +86,8 @@ MOBIPdbRecord * build_pdbrecord(uint32_t offset) {
     MOBIPdbRecord *record = NULL;
     record = malloc(sizeof(MOBIPdbRecord));
     record->data = malloc(RECORD0_TEXT_SIZE_MAX);
-    memcpy(record->data, "<html><body>test</body></html>", RECORD0_TEXT_SIZE_MAX);
+    char test[] = "<html><body>test</body></html>";
+    memcpy(record->data, test, strlen(test));
     if (record->data == NULL) {
 		free(record);
 		return NULL;

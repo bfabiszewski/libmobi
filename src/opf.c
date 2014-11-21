@@ -137,6 +137,7 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
         if (ret != MOBI_SUCCESS) {
             free(reference);
             free(opf->guide);
+            free(ref_title);
             opf->guide = NULL;
             return ret;
         }

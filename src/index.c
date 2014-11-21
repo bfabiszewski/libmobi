@@ -86,6 +86,10 @@ static MOBI_RET mobi_parse_ordt(MOBIBuffer *buf, MOBIOrdt *ordt) {
     if (buffer_match_magic(buf, ORDT_MAGIC)) {
         debug_print("%s\n", "ORDT1 section found");
         buffer_seek(buf, 4);
+        if (ordt->offsets_count + buf->offset > buf->maxlen) {
+            debug_print("ORDT1 section too long (%zu)", ordt->offsets_count);
+            return MOBI_DATA_CORRUPT;
+        }
         ordt->ordt1 = malloc(ordt->offsets_count * sizeof(*ordt->ordt1));
         if (ordt->ordt1 == NULL) {
             debug_print("%s", "Memory allocation failed for ORDT1 offsets\n");
@@ -102,6 +106,10 @@ static MOBI_RET mobi_parse_ordt(MOBIBuffer *buf, MOBIOrdt *ordt) {
     if (buffer_match_magic(buf, ORDT_MAGIC)) {
         debug_print("%s\n", "ORDT2 section found");
         buffer_seek(buf, 4);
+        if (ordt->offsets_count * 2 + buf->offset > buf->maxlen) {
+            debug_print("ORDT2 section too long (%zu)", ordt->offsets_count);
+            return MOBI_DATA_CORRUPT;
+        }
         ordt->ordt2 = malloc(ordt->offsets_count * sizeof(*ordt->ordt2));
         if (ordt->ordt2 == NULL) {
             debug_print("%s", "Memory allocation failed for ORDT2 offsets\n");
@@ -128,19 +136,24 @@ static MOBI_RET mobi_parse_tagx(MOBIBuffer *buf, MOBITagx *tagx) {
     tagx->tags_count = 0;
     tagx->tags = NULL;
     buffer_seek(buf, 4); /* skip header */
-    const uint32_t tagx_header_length = buffer_get32(buf);
-    if (tagx_header_length < 12) {
-        debug_print("INDX wrong header length: %u\n", tagx_header_length);
+    uint32_t tagx_record_length = buffer_get32(buf);
+    if (tagx_record_length < 12) {
+        debug_print("INDX record too short: %u\n", tagx_record_length);
         return MOBI_DATA_CORRUPT;
     }
     tagx->control_byte_count = buffer_get32(buf);
-    const size_t tagx_data_length = (tagx_header_length - 12) / 4;
-    tagx->tags = malloc(tagx_header_length * sizeof(TAGXTags));
+    tagx_record_length -= 12;
+    if (tagx_record_length + buf->offset > buf->maxlen) {
+        debug_print("INDX record too long: %u\n", tagx_record_length);
+        return MOBI_DATA_CORRUPT;
+    }
+    tagx->tags = malloc(tagx_record_length * sizeof(TAGXTags));
     if (tagx->tags == NULL) {
         debug_print("%s", "Memory allocation failed for TAGX tags\n");
         return MOBI_MALLOC_FAILED;
     }
     size_t i = 0;
+    const size_t tagx_data_length = tagx_record_length / 4;
     while (i < tagx_data_length) {
         tagx->tags[i].tag = buffer_get8(buf);
         tagx->tags[i].values_count = buffer_get8(buf);
@@ -728,8 +741,8 @@ char * mobi_get_cncx_string(const MOBIPdbRecord *cncx_record, const uint32_t cnc
     char *string = malloc(string_length + 1);
     if (string) {
         buffer_getstring(string, buf, string_length);
-        buffer_free_null(buf);
     }
+    buffer_free_null(buf);
     return string;
 }
 
@@ -751,8 +764,8 @@ char * mobi_get_cncx_string_flat(const MOBIPdbRecord *cncx_record, const uint32_
     char *string = malloc(length + 1);
     if (string) {
         buffer_getstring(string, buf, length);
-        buffer_free_null(buf);
     }
+    buffer_free_null(buf);
     return string;
 }
 

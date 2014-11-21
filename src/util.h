@@ -99,10 +99,13 @@
  @{ 
  */
 #define CDIC_HEADER_LEN 16
+#define CDIC_RECORD_MAXCNT 1024
+#define HUFF_CODELEN_MAX 16
 #define HUFF_HEADER_LEN 24
 #define HUFF_RECORD_MINSIZE 2584
 #define FONT_HEADER_LEN 24
 #define MEDIA_HEADER_LEN 12
+#define FONT_SIZEMAX (50 * 1024 * 1024)
 /** @} */
 
 /**
