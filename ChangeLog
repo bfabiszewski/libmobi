@@ -1,3 +1,16 @@
+2014-11-21: README
+2014-11-21: fix: add sanity checks
+2014-11-21: Fix: add sanity checks
+2014-11-21: add sanity check to huffcdic indices count
+2014-11-21: fix number of leaks and other minor issues (by coverity scan)
+2014-11-20: missing notification email kills coverity scan
+2014-11-20: update travis.yml
+2014-11-20: upgrade travis.ml with covert scan
+2014-11-20: update README.md
+2014-11-20: add .travis.yml
+2014-11-20: update REAME.md
+2014-11-20: update README.md
+2014-11-20: update docs
 2014-11-20: feature: add decryption support
 2014-11-20: mkdir cleanup
 2014-11-17: documentation
