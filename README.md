@@ -1,17 +1,17 @@
 # Libmobi
 
-C library for handling Mobipocket (MOBI) ebook format documents.
-It is in a beta stage currently marked as version 0.1.
+C library for handling Mobipocket/Kindle (MOBI) ebook format documents.
+Current version supports reading and parsing functions.
 
 There is a simple program included in the project: mobitool.c.
 It may serve as an example how to use the library.
 
 ## What works:
 - reading and parsing: 
-  - some older text Palmdoc formats, 
-  - Mobipocket files, 
-  - newer MOBI files including KF8 format,
-  - Replica Print files
+  - some older text Palmdoc formats (pdb), 
+  - Mobipocket files (prc, mobi), 
+  - newer MOBI files including KF8 format (azw, azw3),
+  - Replica Print files (azw4)
 - recreating source files using indices
 - reconstructing references (links and embedded) in html files
 - reconstructing source structure that can be fed back to kindlegen
@@ -19,9 +19,9 @@ It may serve as an example how to use the library.
 - handling encrypted documents
 
 ## Todo:
+- writing MOBI documents
 - process RESC records
 - exporting to EPUB documents
-- writing MOBI documents
 
 ## Doxygen documentation:
 - [functions](http://www.fabiszewski.net/libmobi/group__mobi__export.html),

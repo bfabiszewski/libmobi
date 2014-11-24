@@ -3,15 +3,15 @@
 .\"man mdoc.samples for a complete listing of options
 .\"man mdoc for the short list of editing options
 .\"/usr/share/misc/mdoc.template
-.Dd 26.03.14               \" DATE
-.Dt mobitool 1      \" Program name and manual section number
+.Dd November 22, 2014              \" DATE
+.Dt mobitool 1 URM     \" Program name and manual section number
 .Os Unix
 .Sh NAME                 \" Section Header - required - don't modify 
 .Nm mobitool
 .\" The following lines are read in generating the apropos(man -k) database. Use only key
 .\" words here as the database is built based on the words here and in the .ND line. 
 .\" Use .Nm macro to designate other names for the documented program.
-.Nd Tool for handling MOBI format ebook files.
+.Nd Utility for handling MOBI format ebook files.
 .Sh SYNOPSIS             \" Section Header - required - don't modify
 .Nm
 .Op Fl dmrsu7            \" [-dmrsu7]
@@ -20,7 +20,10 @@
 ..
 .Ar file                 \" Underlined argument - use .Ar anywhere to underline
 .Sh DESCRIPTION          \" Section Header - required - don't modify
-Written as a test case for libmobi library.
+The program handles .prc, .mobi, .azw; .azw3, .azw4, some .pdb documents. Written as a test case for
+.Nm libmobi
+library.
+.Pp
 Invoked without arguments prints document metadata and exits.
 .Pp
 A list of flags and their descriptions:
@@ -45,12 +48,32 @@ show version and exit
 parse KF7 part of hybrid file (by default KF8 part is parsed)
 .El                      \" Ends the list
 .Pp
-.Sh FILES                \" File used or created by the topic of the man page
-.Bl -tag -width "/Users/joeuser/Library/really_long_file_name" -compact
-.\"It Pa /usr/local/lib/libmobi.so
-.\"libmobi library
-.El                      \" Ends the list
-.\" .Sh DIAGNOSTICS       \" May not be needed
+.Sh EXAMPLES
+The following command decompiles given mobi document.
+.Pp
+.Dl "mobitool -s example.mobi"
+.Sh RETURN VALUES
+The
+.Nm mobitool
+utility returns 0 on success, 1 on error.
+.\".Sh FILES                \" File used or created by the topic of the man page
+.\".Bl -tag -width /usr/local/lib/libmobi.soXXXXX -compact
+.\".It Pa /usr/local/lib/libmobi.so
+.\".Nm libmobi
+.\"library
+.\".El                      \" Ends the list
+.Sh COPYRIGHT
+Copyright (C) 2014 Bartek Fabiszewski.
+.Pp
+Released under LGPL version 3 or any later (same as libmobi).
+.Sh WEB SITE
+Visit http://www.fabiszewski.net for details.
+.Sh DIAGNOSTICS       \" May not be needed
+For diagnostics
+.Nm libmobi
+must be configured with
+.Op Fl Fl enable-debug
+option.
 .\" .Bl -diag
 .\" .It Diagnostic Tag
 .\" Diagnostic informtion here.

@@ -10,7 +10,7 @@ before_install:
 - git config --global user.email $HOSTNAME":not-for-mail@travis-ci.org"
 script:
 - ./autogen.sh
-- ./configure && make
+- ./configure --enable-debug && make
 
 env:
   global:
