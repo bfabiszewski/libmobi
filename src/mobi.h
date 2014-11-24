@@ -206,20 +206,6 @@ extern "C"
      @defgroup raw_structs Exported structures for the raw, unparsed records metadata and data
      @{
      */
-    
-    /**
-     @brief Parsed data from HUFF and CDIC records needed to unpack huffman compressed text
-     */
-    typedef struct {
-        size_t index_count; /**< Total number of indices in all CDIC records, stored in each CDIC record header */
-        size_t index_read; /**< Number of indices parsed, used by parser */
-        size_t code_length; /**< Code length value stored in CDIC record header */
-        uint32_t table1[256]; /**< Table of big-endian indices from HUFF record data1 */
-        uint32_t mincode_table[33]; /**< Table of big-endian mincodes from HUFF record data2 */
-        uint32_t maxcode_table[33]; /**< Table of big-endian maxcodes from HUFF record data2 */
-        uint16_t *symbol_offsets; /**< Index of symbol offsets parsed from CDIC records (index_count entries) */
-        unsigned char **symbols; /**< Array of pointers to start of symbols data in each CDIC record (index = number of CDIC record) */
-    } MOBIHuffCdic;
 
     /**
      @brief Header of palmdoc database file
@@ -403,7 +389,6 @@ extern "C"
         uint32_t *fdst_section_starts; /**< Array of section start offsets */
         uint32_t *fdst_section_ends; /**< Array of section end offsets */
     } MOBIFdst;
-
     
     /**
      @brief Parsed tag for an index entry
@@ -480,15 +465,12 @@ extern "C"
     MOBI_EXPORT MOBI_RET mobi_load_file(MOBIData *m, FILE *file);
     MOBI_EXPORT MOBI_RET mobi_load_filename(MOBIData *m, const char *path);
     
-    MOBI_EXPORT MOBIData * mobi_init();
+    MOBI_EXPORT MOBIData * mobi_init(void);
     MOBI_EXPORT void mobi_free(MOBIData *m);
     
     MOBI_EXPORT MOBI_RET mobi_parse_kf7(MOBIData *m);
     MOBI_EXPORT MOBI_RET mobi_parse_kf8(MOBIData *m);
     
-    MOBI_EXPORT MOBI_RET mobi_parse_huffdic(const MOBIData *m, MOBIHuffCdic *cdic);
-    MOBI_EXPORT MOBI_RET mobi_parse_fdst(const MOBIData *m, MOBIRawml *rawml);
-    MOBI_EXPORT MOBI_RET mobi_parse_index(const MOBIData *m, MOBIIndx *indx, const size_t indx_record_number);
     MOBI_EXPORT MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m);
     MOBI_EXPORT MOBI_RET mobi_get_rawml(const MOBIData *m, char *text, size_t *len);
     MOBI_EXPORT MOBI_RET mobi_dump_rawml(const MOBIData *m, FILE *file);

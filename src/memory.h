@@ -13,6 +13,7 @@
 
 #include "config.h"
 #include "index.h"
+#include "compression.h"
 #include "mobi.h"
 
 MOBIData * mobi_init(void);

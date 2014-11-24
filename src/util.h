@@ -15,6 +15,7 @@
 #include "mobi.h"
 #include "memory.h"
 #include "buffer.h"
+#include "read.h"
 #include "compression.h"
 
 #ifndef HAVE_STRDUP
