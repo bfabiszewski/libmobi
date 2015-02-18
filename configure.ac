@@ -149,8 +149,16 @@ AC_SUBST(ISO99_SOURCE)
 # Override default versioning of Darwin linker
 case "$host" in
   *-*-darwin*)
-    MAJOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 1`
-    DARWIN_LDFLAGS="-Wl,-compatibility_version,${MAJOR} -Wl,-current_version,${PACKAGE_VERSION}"
+    case "$host" in
+      # exclude ppc as it breaks linker
+      ppc-* | powerpc-*)
+        DARWIN_LDFLAGS=
+        ;;
+      *)
+        MAJOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 1`
+        DARWIN_LDFLAGS="-Wl,-compatibility_version,${MAJOR} -Wl,-current_version,${PACKAGE_VERSION}"
+        ;;
+    esac
     ;;
   *)
     DARWIN_LDFLAGS=
