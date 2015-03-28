@@ -1,3 +1,9 @@
+2015-03-28: fix solaris studio compiler warnings
+2015-03-28: fix solaris studio compiler build
+2015-02-18: Fix "more than one: -compatibility_version specified" error on powerpc
+2014-11-24: improve docs
+2014-11-24: simplify public header
+2014-11-21: changelog update [ci skip]
 2014-11-21: README
 2014-11-21: fix: add sanity checks
 2014-11-21: Fix: add sanity checks

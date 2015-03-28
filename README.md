@@ -45,11 +45,12 @@ It may serve as an example how to use the library.
 
 ## Requirements
 - compiler supporting C99
-- tested with gcc (>=4.2.4), clang (llvm >=3.4)
-- builds on Linux, MacOS X, Windows (MinGW)
-- works cross-compiled on Kindle :)
 - zlib (optional, configure --with-zlib=no to use included miniz.c instead)
 - libxml2 (optional, enables OPF handling, configure --with-libxml2=no to disable)
+- tested with gcc (>=4.2.4), clang (llvm >=3.4), sun c (>=5.13)
+- builds on Linux, MacOS X, Windows (MinGW), Solaris
+- tested architectures: x86, x86-64, arm, ppc
+- works cross-compiled on Kindle :)
 
 ## Tests
 - [![Travis status](https://travis-ci.org/bfabiszewski/libmobi.svg?branch=public)](https://travis-ci.org/bfabiszewski/libmobi)
