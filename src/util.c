@@ -953,7 +953,7 @@ char * mobi_decode_exthstring(const MOBIData *m, const unsigned char *data, cons
  */
 struct tm * mobi_pdbtime_to_time(const long pdb_time) {
     time_t time = pdb_time;
-    const uint32_t mactime_flag = (uint32_t) (1 << 31);
+    const uint32_t mactime_flag = (uint32_t) (1U << 31);
     if (time & mactime_flag) {
         printf("MAC TIME\n");
         time += EPOCH_MAC_DIFF;

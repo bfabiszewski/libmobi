@@ -101,32 +101,47 @@ fi
 AC_SUBST(LIBXML2_LDFLAGS)
 AC_SUBST(LIBXML2_CFLAGS)
 
+# Check for oracle solaris studio c compiler
+AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
+
 # Check for -fvisibility=hidden to determine if we can do GNU-style
 # visibility attributes for symbol export control
-AC_MSG_CHECKING([for -fvisibility=hidden compiler flag])
+AC_MSG_CHECKING([for visibility hidden compiler flag])
 VISIBILITY_HIDDEN=
-case "$host" in
-  *-*-mingw*)
-    # on mingw32 we do -fvisibility=hidden and __declspec(dllexport)
-    VISIBILITY_HIDDEN="-fvisibility=hidden"
-    AC_MSG_RESULT(yes)
-    ;;
-  *)
-    # on other compilers, check if we can do -fvisibility=hidden
+if test "x$SUNCC" = "xyes"; then
+    # check if we can use -xldscope=hidden
     SAVED_CFLAGS="${CFLAGS}"
-    CFLAGS="-fvisibility=hidden -Werror"
+    CFLAGS="-xldscope=hidden"
     AC_TRY_COMPILE([], [],
-                   AC_MSG_RESULT(yes)
-                   enable_fvisibility_hidden=yes,
-                   AC_MSG_RESULT(no)
-                   enable_fvisibility_hidden=no)
+                    enable_fvisibility_hidden=yes,
+                    enable_fvisibility_hidden=no)
     CFLAGS="${SAVED_CFLAGS}"
 
     AS_IF([test "${enable_fvisibility_hidden}" = "yes"], [
-    VISIBILITY_HIDDEN="-fvisibility=hidden"
+    VISIBILITY_HIDDEN="-xldscope=hidden"
     ])
-    ;;
-esac
+else
+    case "$host" in
+      *-*-mingw*)
+        # on mingw32 we do -fvisibility=hidden and __declspec(dllexport)
+        VISIBILITY_HIDDEN="-fvisibility=hidden"
+        ;;
+      *)
+        # on other compilers, check if we can do -fvisibility=hidden
+        SAVED_CFLAGS="${CFLAGS}"
+        CFLAGS="-fvisibility=hidden -Werror"
+        AC_TRY_COMPILE([], [],
+                       enable_fvisibility_hidden=yes,
+                       enable_fvisibility_hidden=no)
+        CFLAGS="${SAVED_CFLAGS}"
+
+        AS_IF([test "${enable_fvisibility_hidden}" = "yes"], [
+        VISIBILITY_HIDDEN="-fvisibility=hidden"
+        ])
+        ;;
+    esac
+fi
+AC_MSG_RESULT($VISIBILITY_HIDDEN)
 AC_SUBST(VISIBILITY_HIDDEN)
 
 # MinGW seems to need this
@@ -214,16 +229,12 @@ AC_MSG_RESULT($debug)
 DEBUG_CFLAGS=
 if test x$debug = xyes; then
     AC_DEFINE([MOBI_DEBUG], 1, [Enable debugging])
-    case "$host" in
-        *-*-mingw*)
-            # I give up with std=c99 here for now
-            # (http://sourceforge.net/p/mingw/bugs/2046/)
-            DEBUG_CFLAGS="-pedantic -Wall -Wextra -Werror"
-            ;;
-        *)
-            DEBUG_CFLAGS="-std=c99 -pedantic -Wall -Wextra -Werror"
-            ;;
-    esac
+    if test "x$SUNCC" = "xyes"; then
+        DEBUG_CFLAGS="-v -errwarn"
+    else
+        DEBUG_CFLAGS="-pedantic -Wall -Wextra -Werror"
+
+    fi
 fi
 AC_SUBST(DEBUG_CFLAGS)
 
