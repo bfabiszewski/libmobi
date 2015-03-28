@@ -45,8 +45,13 @@
 #define ERROR 1
 #define SUCCESS 0
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
 #if defined(__clang__)
 #define COMPILER "clang " __VERSION__
+#elif defined(__SUNPRO_C)
+#define COMPILER "suncc " STR(__SUNPRO_C)
 #elif defined(__GNUC__)
 #if (defined(__MINGW32__) || defined(__MINGW64__))
 #define COMPILER "gcc (MinGW) " __VERSION__
@@ -54,7 +59,7 @@
 #define COMPILER "gcc " __VERSION__
 #endif
 #else
-#define COMPILER
+#define COMPILER "unknown"
 #endif
 
 /* command line options */
@@ -670,7 +675,6 @@ int main(int argc, char *argv[]) {
                 printf("mobitool build: " __DATE__ " " __TIME__ " (" COMPILER ")\n");
                 printf("libmobi: %s\n", mobi_version());
                 return 0;
-                break;
             case '7':
                 parse_kf7_opt = 1;
                 break;

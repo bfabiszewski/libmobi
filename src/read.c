@@ -285,7 +285,25 @@ MOBI_RET mobi_parse_mobiheader(MOBIData *m, MOBIBuffer *buf) {
     /* read only declared MOBI header length (curr offset minus 8 already read bytes) */
     buf->maxlen = *m->mh->header_length + buf->offset - 8;
     buffer_dup32(&m->mh->mobi_type, buf);
-    buffer_dup32(&m->mh->text_encoding, buf);
+    uint32_t encoding = buffer_get32(buf);
+    if (encoding == 1252) {
+        m->mh->text_encoding = malloc(sizeof(MOBIEncoding));
+        if (m->mh->text_encoding == NULL) {
+            debug_print("%s", "Memory allocation for MOBI header failed\n");
+            return MOBI_MALLOC_FAILED;
+        }
+        *m->mh->text_encoding = MOBI_CP1252;
+    }
+    else if (encoding == 65001) {
+        m->mh->text_encoding = malloc(sizeof(MOBIEncoding));
+        if (m->mh->text_encoding == NULL) {
+            debug_print("%s", "Memory allocation for MOBI header failed\n");
+            return MOBI_MALLOC_FAILED;
+        }
+        *m->mh->text_encoding = MOBI_UTF8;
+    } else {
+        debug_print("Unknown encoding in mobi header: %i\n", encoding);
+    }
     buffer_dup32(&m->mh->uid, buf);
     buffer_dup32(&m->mh->version, buf);
     if (m->mh->version && *m->mh->version == 8) {
