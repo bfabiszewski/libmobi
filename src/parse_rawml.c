@@ -983,19 +983,29 @@ MOBI_RET mobi_get_ncx_filepos_array(MOBIArray *links, const MOBIPart *part) {
  @brief Replace kindle:pos link with html href
  
  @param[in,out] link Memory area which will be filled with "part00000.html#customid", including quotation marks
- @param[in] rawml Structure rawml will be filled with reconstructed parts and resources
+ @param[in] rawml Structure rawml
  @param[in] value String kindle:pos:fid:0000:off:0000000000, without quotation marks
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_posfid_to_link(char *link, const MOBIRawml *rawml, const char *value) {
     /* "kindle:pos:fid:0000:off:0000000000" */
     /* extract fid and off */
-    value += 15; /* strlen("kindle:pos:fid:"); */
+    if (strlen(value) < (sizeof("kindle:pos:fid:0000:off:0000000000") - 1)) {
+        debug_print("Skipping too short link: %s\n", value);
+        *link = '\0';
+        return MOBI_SUCCESS;
+    }
+    value += (sizeof("kindle:pos:fid:") - 1);
+    if (value[4] != ':') {
+        debug_print("Skipping malformed link: kindle:pos:fid:%s\n", value);
+        *link = '\0';
+        return MOBI_SUCCESS;
+    }
     char str_fid[4 + 1];
     strncpy(str_fid, value, 4);
     str_fid[4] = '\0';
     char str_off[10 + 1];
-    value += 9; /* strlen("0001:off:"); */
+    value += (sizeof("0001:off:") - 1);
     strncpy(str_off, value, 10);
     str_off[10] = '\0';
     
@@ -1028,13 +1038,23 @@ MOBI_RET mobi_posfid_to_link(char *link, const MOBIRawml *rawml, const char *val
  @brief Replace kindle:flow link with html href
  
  @param[in,out] link Memory area which will be filled with "part00000.ext", including quotation marks
- @param[in] rawml Structure rawml will be filled with reconstructed parts and resources
+ @param[in] rawml Structure rawml
  @param[in] value String kindle:flow:0000?mime=type, without quotation marks
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_flow_to_link(char *link, const MOBIRawml *rawml, const char *value) {
     /* "kindle:flow:0000?mime=" */
-    value += 12; /* strlen("kindle:flow:"); */
+    if (strlen(value) < (sizeof("kindle:flow:0000?mime=") - 1)) {
+        debug_print("Skipping too short link: %s\n", value);
+        *link = '\0';
+        return MOBI_SUCCESS;
+    }
+    value += (sizeof("kindle:flow:") - 1);
+    if (value[4] != '?') {
+        debug_print("Skipping malformed link: kindle:flow:%s\n", value);
+        *link = '\0';
+        return MOBI_SUCCESS;
+    }
     char str_fid[4 + 1];
     strncpy(str_fid, value, 4);
     str_fid[4] = '\0';
@@ -1046,6 +1066,10 @@ MOBI_RET mobi_flow_to_link(char *link, const MOBIRawml *rawml, const char *value
         return ret;
     }
     MOBIPart *flow = mobi_get_flow_by_uid(rawml, part_id);
+    if (flow == NULL) {
+        debug_print("Link corrupt: kindle:flow:%s\n", value);
+        return MOBI_DATA_CORRUPT;
+    }
     MOBIFileMeta meta = mobi_get_filemeta_by_type(flow->type);
     char *extension = meta.extension;
     snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "\"flow%05u.%s\"", part_id, extension);
@@ -1056,7 +1080,7 @@ MOBI_RET mobi_flow_to_link(char *link, const MOBIRawml *rawml, const char *value
  @brief Replace kindle:embed link with html href
  
  @param[in,out] link Memory area which will be filled with "resource00000.ext", including quotation marks
- @param[in] rawml Structure rawml will be filled with reconstructed parts and resources
+ @param[in] rawml Structure rawml
  @param[in] value String kindle:embed:0000?mime=type, with optional quotation marks
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
@@ -1066,7 +1090,17 @@ MOBI_RET mobi_embed_to_link(char *link, const MOBIRawml *rawml, const char *valu
     while (*value == '"' || *value == '\'' || isspace(*value)) {
         value++;
     }
-    value += strlen("kindle:embed:");
+    if (strlen(value) < (sizeof("kindle:embed:0000?mime=") - 1)) {
+        debug_print("Skipping too short link: %s\n", value);
+        *link = '\0';
+        return MOBI_SUCCESS;
+    }
+    value += (sizeof("kindle:embed:") - 1);
+    if (value[4] != '?') {
+        debug_print("Skipping malformed link: kindle:embed:%s\n", value);
+        *link = '\0';
+        return MOBI_SUCCESS;
+    }
     char str_fid[4 + 1];
     strncpy(str_fid, value, 4);
     str_fid[4] = '\0';
@@ -1079,6 +1113,10 @@ MOBI_RET mobi_embed_to_link(char *link, const MOBIRawml *rawml, const char *valu
     }
     part_id--;
     MOBIPart *resource = mobi_get_resource_by_uid(rawml, part_id);
+    if (resource == NULL) {
+        debug_print("Link corrupt: kindle:embed:%s\n", value);
+        return MOBI_DATA_CORRUPT;
+    }
     MOBIFileMeta meta = mobi_get_filemeta_by_type(resource->type);
     char *extension = meta.extension;
     snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "\"resource%05u.%s\"", part_id, extension);
@@ -1352,7 +1390,7 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
                         return ret;
                     }
                 }
-                if (target) {
+                if (target && *link != '\0') {
                     /* first chunk */
                     curr = mobi_list_add(curr, (size_t) (data_in - part->data ), data_in, size, false);
                     if (curr == NULL) {
