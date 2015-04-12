@@ -19,7 +19,7 @@
 #endif
 
 /* FIXME: what is the reasonable value? */
-#define MOBI_HUFFMAN_MAXDEPTH 15 /**< Maximal recursion level for huffman decompression routine */
+#define MOBI_HUFFMAN_MAXDEPTH 20 /**< Maximal recursion level for huffman decompression routine */
 
 
 /**
