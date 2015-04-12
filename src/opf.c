@@ -92,7 +92,7 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
         debug_print("%s\n", "Initialization failed");
         return MOBI_INIT_FAILED;
     }
-    size_t i = 0;
+    size_t i = 0, j = 0;
     MOBI_RET ret;
     size_t count = rawml->guide->entries_count;
     if (count == 0) {
@@ -128,6 +128,7 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
         if (ret != MOBI_SUCCESS) {
             debug_print("INDX_TAG_FRAG_POSITION not found (%i)\n", ret);
             free(ref_title);
+            i++;
             continue;
             /* FIXME: I need some examples which use other tags */
             //mobi_get_indxentry_tagvalue(&frag_number, guide_entry, INDX_TAG_FRAG_FILE_NR);
@@ -159,12 +160,13 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
         char href[FILENAME_MAX + 1];
         snprintf(href, FILENAME_MAX, "part%05u.html", file_number);
         char *ref_href = strdup(href);
-        reference[i] = calloc(1, sizeof(OPFreference));
-        *reference[i] = (OPFreference) { ref_type, ref_title, ref_href };
+        reference[j] = calloc(1, sizeof(OPFreference));
+        *reference[j] = (OPFreference) { ref_type, ref_title, ref_href };
         i++;
+        j++;
     }
     /* terminate array with NULL */
-    reference[i] = NULL;
+    reference[j] = NULL;
     opf->guide->reference = reference;
     return MOBI_SUCCESS;
 }
