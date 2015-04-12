@@ -1085,22 +1085,17 @@ MOBI_RET mobi_flow_to_link(char *link, const MOBIRawml *rawml, const char *value
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_embed_to_link(char *link, const MOBIRawml *rawml, const char *value) {
-    /* "kindle:embed:0000?mime=" */
+    /* "kindle:embed:0000[?mime=]" */
     /* skip quotation marks or spaces */
     while (*value == '"' || *value == '\'' || isspace(*value)) {
         value++;
     }
-    if (strlen(value) < (sizeof("kindle:embed:0000?mime=") - 1)) {
+    if (strlen(value) < (sizeof("kindle:embed:0000") - 1)) {
         debug_print("Skipping too short link: %s\n", value);
         *link = '\0';
         return MOBI_SUCCESS;
     }
     value += (sizeof("kindle:embed:") - 1);
-    if (value[4] != '?') {
-        debug_print("Skipping malformed link: kindle:embed:%s\n", value);
-        *link = '\0';
-        return MOBI_SUCCESS;
-    }
     char str_fid[4 + 1];
     strncpy(str_fid, value, 4);
     str_fid[4] = '\0';
@@ -1383,6 +1378,7 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
                     }
                 } else if ((target = strstr(value, "kindle:embed:")) != NULL) {
                     /* kindle:embed:0000?mime=image/jpg */
+                    /* kindle:embed:0000 (font resources) */
                     /* replace link with href="resource00000.ext" */
                     MOBI_RET ret = mobi_embed_to_link(link, rawml, target);
                     if (ret != MOBI_SUCCESS) {
