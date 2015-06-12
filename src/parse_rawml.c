@@ -1508,6 +1508,10 @@ MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBI
         for (size_t j = 0; j < part_cnt; j++) {
             name_attr[0] = '\0';
             char *group_name = mobi_get_cncx_string(infl->cncx_record, groups[j]);
+            if (group_name == NULL) {
+                debug_print("%s\n", "Memory allocation failed");
+                return MOBI_MALLOC_FAILED;
+            }
             if (strlen(group_name)) {
                 snprintf(name_attr, INDX_INFLBUF_SIZEMAX, " name=\"%s\"", group_name);
             }

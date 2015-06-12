@@ -123,6 +123,13 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
         }
         const MOBIPdbRecord *cncx_record = rawml->guide->cncx_record;
         char *ref_title = mobi_get_cncx_string(cncx_record, cncx_offset);
+        if (ref_title == NULL) {
+            free(reference);
+            free(opf->guide);
+            opf->guide = NULL;
+            debug_print("%s\n", "Memory allocation failed");
+            return MOBI_MALLOC_FAILED;
+        }
         uint32_t frag_number = MOBI_NOTSET;
         ret = mobi_get_indxentry_tagvalue(&frag_number, guide_entry, INDX_TAG_FRAG_POSITION);
         if (ret != MOBI_SUCCESS) {

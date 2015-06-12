@@ -754,7 +754,7 @@ bool mobi_indx_has_tag(const MOBIIndx *indx, const size_t tagid) {
  
  @param[in] cncx_record MOBIPdbRecord structure with cncx record
  @param[in] cncx_offset Offset of string entry from the beginning of the record
- @return Entry string
+ @return Entry string or null if malloc failed
  */
 char * mobi_get_cncx_string(const MOBIPdbRecord *cncx_record, const uint32_t cncx_offset) {
     /* TODO: handle multiple cncx records */
