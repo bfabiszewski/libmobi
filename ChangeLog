@@ -1,3 +1,12 @@
+2015-06-12: fix: reconstruction failed when there were gaps between fragments
+2015-06-12: add EXTH tags
+2015-06-12: prevent return of garbage value check return value in case of failed malloc
+2015-06-12: fix invalid memory access
+2015-04-12: Fix reconstruction of "kindle:embed" links without mime type (regression)
+2015-04-12: Add sanity checks to link reconstruction functions, allow skipping some malformed patterns
+2015-04-12: Fix infinite loop in guide build while unknown tag was found
+2015-04-12: Increase max recursion level for huffman decompression
+2015-03-28: update docs
 2015-03-28: fix solaris studio compiler warnings
 2015-03-28: fix solaris studio compiler build
 2015-02-18: Fix "more than one: -compatibility_version specified" error on powerpc
