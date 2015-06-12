@@ -273,7 +273,7 @@ void print_exth(const MOBIData *m) {
             char str[curr->size + 1];
             unsigned i = 0;
             unsigned char *p = curr->data;
-            while (isprint(*p) && i < curr->size) {
+            while (i < curr->size && isprint(*p)) {
                 str[i] = (char)*p++;
                 i++;
             }
