@@ -2,7 +2,7 @@
        without arguments prints document metadata and exits
        -d      dump rawml text record
        -m      print records metadata
-       -p pid  print records metadata
+       -p pid  set pid for decryption
        -r      dump raw records
        -s      dump recreated source files
        -u      show rusage
