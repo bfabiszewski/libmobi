@@ -141,12 +141,13 @@ extern "C"
         EXTH_PUBLISHERFILEAS = 522,
         EXTH_LANGUAGE = 524, /**< <dc:language> */
         EXTH_ALIGNMENT = 525, /**< <primary-writing-mode> */
+        EXTH_CREATORSTRING = 526,
         EXTH_PAGEDIR = 527,
         EXTH_OVERRIDEFONTS = 528, /**< <override-kindle-fonts> */
         EXTH_SORCEDESC = 529,
         EXTH_DICTLANGIN = 531,
         EXTH_DICTLANGOUT = 532,
-        EXTH_UNK534 = 534,
+        EXTH_INPUTSOURCE = 534,
         EXTH_CREATORBUILDREV = 535,
     } MOBIExthTag;
     
