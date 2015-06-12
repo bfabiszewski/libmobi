@@ -797,6 +797,7 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
     }
     /* parse skeleton data */
     size_t i = 0, j = 0;
+    size_t curr_position = 0;
     while (i < rawml->skel->entries_count) {
         const MOBIIndexEntry *entry = &rawml->skel->entries[i];
         uint32_t fragments_count;
@@ -824,14 +825,13 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
         while (fragments_count--) {
             entry = &rawml->frag->entries[j];
             uint32_t insert_position = (uint32_t) strtoul(entry->label, NULL, 10);
-            insert_position -= skel_position;
-            uint32_t cncx_offset;
-            ret = mobi_get_indxentry_tagvalue(&cncx_offset, entry, INDX_TAG_FRAG_AID_CNCX);
-            if (ret != MOBI_SUCCESS) {
+            if (insert_position < curr_position) {
+                debug_print("Insert position (%u) before part start (%zu)\n", insert_position, curr_position);
                 free(skel_text);
                 buffer_free_null(buf);
-                return ret;
+                return MOBI_DATA_CORRUPT;
             }
+            insert_position -= curr_position;
             uint32_t file_number;
             ret = mobi_get_indxentry_tagvalue(&file_number, entry, INDX_TAG_FRAG_FILE_NR);
             if (ret != MOBI_SUCCESS) {
@@ -839,6 +839,21 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
                 buffer_free_null(buf);
                 return ret;
             }
+            if (file_number != i) {
+                debug_print("%s", "SKEL part number and fragment sequence number don't match\n");
+                free(skel_text);
+                buffer_free_null(buf);
+                return MOBI_DATA_CORRUPT;
+            }
+            uint32_t frag_length;
+            ret = mobi_get_indxentry_tagvalue(&frag_length, entry, INDX_TAG_FRAG_LENGTH);
+            if (ret != MOBI_SUCCESS) {
+                free(skel_text);
+                buffer_free_null(buf);
+                return ret;
+            }
+#if (MOBI_DEBUG)
+            /* FIXME: this fragment metadata is currently unused */
             uint32_t seq_number;
             ret = mobi_get_indxentry_tagvalue(&seq_number, entry, INDX_TAG_FRAG_SEQUENCE_NR);
             if (ret != MOBI_SUCCESS) {
@@ -853,25 +868,24 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
                 buffer_free_null(buf);
                 return ret;
             }
-            uint32_t frag_length;
-            ret = mobi_get_indxentry_tagvalue(&frag_length, entry, INDX_TAG_FRAG_LENGTH);
+            uint32_t cncx_offset;
+            ret = mobi_get_indxentry_tagvalue(&cncx_offset, entry, INDX_TAG_FRAG_AID_CNCX);
             if (ret != MOBI_SUCCESS) {
                 free(skel_text);
                 buffer_free_null(buf);
                 return ret;
             }
-            /* FIXME: aid_text is unused */
             const MOBIPdbRecord *cncx_record = rawml->frag->cncx_record;
             char *aid_text = mobi_get_cncx_string(cncx_record, cncx_offset);
-            if (file_number != i) {
-                debug_print("%s", "SKEL part number and fragment sequence number don't match\n");
-                free(aid_text);
+            if (aid_text == NULL) {
                 free(skel_text);
                 buffer_free_null(buf);
-                return MOBI_DATA_CORRUPT;
+                debug_print("%s\n", "Memory allocation failed");
+                return MOBI_MALLOC_FAILED;
             }
             debug_print("posfid[%zu]\t%i\t%i\t%s\t%i\t%i\t%i\t%i\n", j, insert_position, cncx_offset, aid_text, file_number, seq_number, frag_position, frag_length);
             free(aid_text);
+#endif
             char *tmp = realloc(skel_text, (skel_length + frag_length + 1));
             if (tmp == NULL) {
                 free(skel_text);
@@ -905,6 +919,7 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
         curr->data = (unsigned char *) skel_text;
         curr->type = T_HTML;
         curr->next = NULL;
+        curr_position += skel_length;
         i++;
     }
     buffer_free_null(buf);
@@ -1363,6 +1378,7 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
                 if ((target = strstr(value, "kindle:pos:fid:")) != NULL) {
                     /* "kindle:pos:fid:0001:off:0000000000" */
                     /* replace link with href="part00000.html#00" */
+                    /* FIXME: this requires present target id tag */
                     MOBI_RET ret = mobi_posfid_to_link(link, rawml, target);
                     if (ret != MOBI_SUCCESS) {
                         mobi_list_del_all(first);
