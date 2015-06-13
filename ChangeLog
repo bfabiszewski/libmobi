@@ -1,3 +1,7 @@
+2015-06-13: fix: various invalid memory access
+2015-06-13: don't quit on invalid input, instead substitute with replacement character
+2015-06-12: fix typo
+2015-06-12: update changelog
 2015-06-12: fix: reconstruction failed when there were gaps between fragments
 2015-06-12: add EXTH tags
 2015-06-12: prevent return of garbage value check return value in case of failed malloc
