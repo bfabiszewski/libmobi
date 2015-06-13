@@ -113,8 +113,11 @@ MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, c
                 i++;
             }
             if (i == 0) {
-                /* unassigned character in input */
-                return MOBI_DATA_CORRUPT;
+                /* unmappable character in input */
+                /* substitute with utf-8 replacement character */
+                *out++ = 0xff;
+                *out++ = 0xfd;
+                debug_print("Invalid character found: %c\n", *in);
             }
             in++;
         }
