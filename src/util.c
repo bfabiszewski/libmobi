@@ -97,7 +97,7 @@ MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, c
     unsigned char *out = (unsigned char *) output;
     const unsigned char *outend = out + *outsize;
     const unsigned char *inend = in + insize;
-    while (*in && in < inend && out < outend) {
+    while (in < inend && out < outend && *in) {
         if (*in < 0x80) {
            *out++ = *in++;
         }
@@ -1354,7 +1354,7 @@ MOBIFiletype mobi_determine_flowpart_type(const MOBIRawml *rawml, const size_t p
     char target[24];
     sprintf(target, "\"kindle:flow:%04zu?mime=", part_number);
     unsigned char *data_start = rawml->flow->data;
-    unsigned char *data_end = data_start + rawml->flow->size;
+    unsigned char *data_end = data_start + rawml->flow->size - 1;
     MOBIResult result;
     MOBI_RET ret = mobi_find_attrvalue(&result, data_start, data_end, T_HTML, target);
     if (ret == MOBI_SUCCESS && result.start) {

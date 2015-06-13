@@ -831,7 +831,6 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
                 buffer_free_null(buf);
                 return MOBI_DATA_CORRUPT;
             }
-            insert_position -= curr_position;
             uint32_t file_number;
             ret = mobi_get_indxentry_tagvalue(&file_number, entry, INDX_TAG_FRAG_FILE_NR);
             if (ret != MOBI_SUCCESS) {
@@ -894,6 +893,13 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
                 return MOBI_MALLOC_FAILED;
             }
             skel_text = tmp;
+            insert_position -= curr_position;
+            if (skel_length < insert_position) {
+                debug_print("Insert position (%u) after part end (%u)\n", insert_position, skel_length);
+                // FIXME: shouldn't the fragment be ignored?
+                // For now insert it at the end.
+                insert_position = skel_length;
+            }
             size_t skel_end_length = skel_length - insert_position;
             char skel_text_end[skel_end_length + 1];
             strncpy(skel_text_end, skel_text + insert_position, skel_end_length);
@@ -1357,7 +1363,7 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
         while (part) {
             unsigned char *data_in = part->data;
             result.start = part->data;
-            const unsigned char *data_end = part->data + part->size;
+            const unsigned char *data_end = part->data + part->size - 1;
             MOBIFragment *first = NULL;
             MOBIFragment *curr = NULL;
             size_t part_size = 0;
@@ -1773,7 +1779,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
     size_t new_size = 0;
     /* build MOBIResult list */
     result.start = part->data;
-    const unsigned char *data_end = part->data + part->size;
+    const unsigned char *data_end = part->data + part->size - 1;
     while (true) {
         mobi_search_links_kf7(&result, result.start, data_end);
         if (result.start == NULL) {
@@ -1998,12 +2004,14 @@ MOBI_RET mobi_markup_to_utf8(MOBIPart *part) {
     if (ret != MOBI_SUCCESS || out_length == 0) {
         debug_print("%s", "conversion from cp1252 to utf8 failed\n");
         free(out_text);
+        part->data = NULL;
         return ret;
     }
     text = malloc(out_length);
     if (text == NULL) {
         debug_print("%s", "Memory allocation failed\n");
         free(out_text);
+        part->data = NULL;
         return MOBI_MALLOC_FAILED;
     }
     memcpy(text, out_text, out_length);
@@ -2029,7 +2037,7 @@ MOBI_RET mobi_strip_mobitags(MOBIPart *part) {
     MOBIResult result;
     unsigned char *data_in = part->data;
     result.start = part->data;
-    const unsigned char *data_end = part->data + part->size;
+    const unsigned char *data_end = part->data + part->size - 1;
     MOBIFragment *first = NULL;
     MOBIFragment *curr = NULL;
     size_t part_size = 0;
