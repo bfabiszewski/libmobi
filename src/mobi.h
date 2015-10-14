@@ -481,6 +481,9 @@ extern "C"
     
     MOBI_EXPORT MOBIPdbRecord * mobi_get_record_by_uid(const MOBIData *m, const size_t uid);
     MOBI_EXPORT MOBIPdbRecord * mobi_get_record_by_seqnumber(const MOBIData *m, const size_t uid);
+    MOBI_EXPORT MOBIPart * mobi_get_flow_by_uid(const MOBIRawml *rawml, const size_t uid);
+    MOBI_EXPORT MOBIPart * mobi_get_resource_by_uid(const MOBIRawml *rawml, const size_t uid);
+    MOBI_EXPORT MOBIPart * mobi_get_part_by_uid(const MOBIRawml *rawml, const size_t uid);
     MOBI_EXPORT MOBI_RET mobi_get_fullname(const MOBIData *m, char *fullname, const size_t len);
     MOBI_EXPORT size_t mobi_get_text_maxsize(const MOBIData *m);
     MOBI_EXPORT uint16_t mobi_get_textrecord_maxsize(const MOBIData *m);
@@ -490,6 +493,7 @@ extern "C"
     MOBI_EXPORT size_t mobi_get_record_mb_extrasize(const MOBIPdbRecord *record, const uint16_t flags);
     MOBI_EXPORT size_t mobi_get_fileversion(const MOBIData *m);
     MOBI_EXPORT size_t mobi_get_fdst_record_number(const MOBIData *m);
+    MOBI_EXPORT MOBIExthHeader * mobi_get_exthrecord_by_tag(const MOBIData *m, const MOBIExthTag tag);
     MOBI_EXPORT MOBIExthMeta mobi_get_exthtagmeta_by_tag(const MOBIExthTag tag);
     MOBI_EXPORT MOBIFileMeta mobi_get_filemeta_by_type(const MOBIFiletype type);
     MOBI_EXPORT uint32_t mobi_decode_exthvalue(const unsigned char *data, const size_t size);
