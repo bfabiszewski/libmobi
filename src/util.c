@@ -1405,7 +1405,7 @@ MOBI_RET mobi_add_audio_resource(MOBIPart *part) {
     part->size = size;
     /* FIXME: the only possible audio type is mp3 */
     part->type = T_MP3;
-    ;
+
     return MOBI_SUCCESS;
 }
 
@@ -1434,7 +1434,7 @@ MOBI_RET mobi_decode_audio_resource(unsigned char **decoded_resource, size_t *de
     uint32_t offset = buffer_get32(buf);
     buffer_setpos(buf, offset);
     *decoded_size = buf->maxlen - buf->offset;
-    *decoded_resource = buf->data;
+    *decoded_resource = buffer_getpointer(buf, *decoded_size);
     buffer_free_null(buf);
     return MOBI_SUCCESS;
 }
@@ -1455,7 +1455,7 @@ MOBI_RET mobi_add_video_resource(MOBIPart *part) {
     part->data = data;
     part->size = size;
     part->type = T_MPG; /* FIXME: other types? */
-;
+
     return MOBI_SUCCESS;
 }
 
@@ -1477,7 +1477,7 @@ MOBI_RET mobi_decode_video_resource(unsigned char **decoded_resource, size_t *de
     char magic[5];
     buffer_getstring(magic, buf, 4);
     if (strncmp(magic, VIDE_MAGIC, 4) != 0) {
-        debug_print("Wrong magic for audio resource: %s\n", magic);
+        debug_print("Wrong magic for video resource: %s\n", magic);
         buffer_free_null(buf);
         return MOBI_DATA_CORRUPT;
     }
@@ -1485,7 +1485,7 @@ MOBI_RET mobi_decode_video_resource(unsigned char **decoded_resource, size_t *de
     /* offset is always(?) 12, next four bytes are unknown */
     buffer_setpos(buf, offset);
     *decoded_size = buf->maxlen - buf->offset;
-    *decoded_resource = buf->data;
+    *decoded_resource = buffer_getpointer(buf, *decoded_size);
     buffer_free_null(buf);
     return MOBI_SUCCESS;
 }

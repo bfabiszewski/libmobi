@@ -357,7 +357,7 @@ void buffer_getraw(void *data, MOBIBuffer *buf, const size_t len) {
  @brief Get pointer to MOBIBuffer data at offset
  
  @param[in] buf MOBIBuffer structure containing data
- @param[in] len Check if requsted length is available in buffer
+ @param[in] len Check if requested length is available in buffer
  @return Pointer to offset, or NULL on failure
  */
 unsigned char * buffer_getpointer(MOBIBuffer *buf, const size_t len) {
