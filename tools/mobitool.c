@@ -23,23 +23,23 @@
 /* include libmobi header */
 #include <mobi.h>
 #ifdef HAVE_CONFIG_H
-#include "../config.h"
+# include "../config.h"
 #endif
 
 #ifdef HAVE_SYS_RESOURCE_H
 /* rusage */
-#include <sys/resource.h>
-#define PRINT_RUSAGE_ARG "u"
+# include <sys/resource.h>
+# define PRINT_RUSAGE_ARG "u"
 #else
-#define PRINT_RUSAGE_ARG ""
+# define PRINT_RUSAGE_ARG ""
 #endif
 /* encryption */
 #ifdef USE_ENCRYPTION
-#define PRINT_ENC_USG " [-p pid]"
-#define PRINT_ENC_ARG "p:"
+# define PRINT_ENC_USG " [-p pid]"
+# define PRINT_ENC_ARG "p:"
 #else
-#define PRINT_ENC_USG ""
-#define PRINT_ENC_ARG ""
+# define PRINT_ENC_USG ""
+# define PRINT_ENC_ARG ""
 #endif
 /* return codes */
 #define ERROR 1
@@ -49,17 +49,24 @@
 #define STR(x) STR_HELPER(x)
 
 #if defined(__clang__)
-#define COMPILER "clang " __VERSION__
+# define COMPILER "clang " __VERSION__
 #elif defined(__SUNPRO_C)
-#define COMPILER "suncc " STR(__SUNPRO_C)
+# define COMPILER "suncc " STR(__SUNPRO_C)
 #elif defined(__GNUC__)
-#if (defined(__MINGW32__) || defined(__MINGW64__))
-#define COMPILER "gcc (MinGW) " __VERSION__
+# if (defined(__MINGW32__) || defined(__MINGW64__))
+#  define COMPILER "gcc (MinGW) " __VERSION__
+# else
+#  define COMPILER "gcc " __VERSION__
+# endif
 #else
-#define COMPILER "gcc " __VERSION__
+# define COMPILER "unknown"
 #endif
-#else
-#define COMPILER "unknown"
+
+#if !defined S_ISDIR && defined S_IFDIR
+# define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+#ifndef S_ISDIR
+# error "At least one of S_ISDIR or S_IFDIR macros is required"
 #endif
 
 /* command line options */
@@ -69,11 +76,13 @@ int dump_rec_opt = 0;
 int parse_kf7_opt = 0;
 int dump_parts_opt = 0;
 int print_rusage_opt = 0;
+int outdir_opt = 0;
 #ifdef USE_ENCRYPTION
 int setpid_opt = 0;
 #endif
 
 /* options values */
+char outdir[FILENAME_MAX];
 #ifdef USE_ENCRYPTION
 char *pid;
 #endif
@@ -116,6 +125,24 @@ void split_fullpath(const char *fullpath, char *dirname, char *basename) {
     if (p) {
         *p = '\0';
     }
+}
+
+/**
+ @brief Check whether given path exists and is a directory
+ @param[in] path Path to be tested
+ */
+bool dir_exists(const char *path) {
+    struct stat sb;
+    if (stat(path, &sb) != 0) {
+        int errsv = errno;
+        printf("Path \"%s\" is not accessible (%s)\n", path, strerror(errsv));
+        return false;
+    }
+    else if (!S_ISDIR(sb.st_mode)) {
+        printf("Path \"%s\" is not a directory\n", path);
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -347,7 +374,11 @@ int dump_records(const MOBIData *m, const char *fullpath) {
     char basename[FILENAME_MAX];
     split_fullpath(fullpath, dirname, basename);
     char newdir[FILENAME_MAX];
-    sprintf(newdir, "%s%s_records", dirname, basename);
+    if (outdir_opt) {
+        sprintf(newdir, "%s%s_records", outdir, basename);
+    } else {
+        sprintf(newdir, "%s%s_records", dirname, basename);
+    }
     printf("Saving records to %s\n", newdir);
     errno = 0;
     if (mt_mkdir(newdir) != 0 && errno != EEXIST) {
@@ -384,13 +415,18 @@ int dump_rawml(const MOBIData *m, const char *fullpath) {
     char dirname[FILENAME_MAX];
     char basename[FILENAME_MAX];
     split_fullpath(fullpath, dirname, basename);
-    char name[FILENAME_MAX];
-    sprintf(name, "%s%s.rawml", dirname, basename);
+    char newdir[FILENAME_MAX];
+    if (outdir_opt) {
+        sprintf(newdir, "%s%s.rawml", outdir, basename);
+    } else {
+        sprintf(newdir, "%s%s.rawml", dirname, basename);
+    }
+    printf("Saving rawml to %s\n", newdir);
     errno = 0;
-    FILE *file = fopen(name, "wb");
+    FILE *file = fopen(newdir, "wb");
     if (file == NULL) {
         int errsv = errno;
-        printf("Could not open file for writing: %s (%s)\n", name, strerror(errsv));
+        printf("Could not open file for writing: %s (%s)\n", newdir, strerror(errsv));
         return ERROR;
     }
     const MOBI_RET mobi_ret = mobi_dump_rawml(m, file);
@@ -416,7 +452,11 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
     char basename[FILENAME_MAX];
     split_fullpath(fullpath, dirname, basename);
     char newdir[FILENAME_MAX];
-    sprintf(newdir, "%s%s_markup", dirname, basename);
+    if (outdir_opt) {
+        sprintf(newdir, "%s%s_markup", outdir, basename);
+    } else {
+        sprintf(newdir, "%s%s_markup", dirname, basename);
+    }
     printf("Saving markup to %s\n", newdir);
     errno = 0;
     if (mt_mkdir(newdir) != 0 && errno != EEXIST) {
@@ -621,10 +661,11 @@ int loadfilename(const char *fullpath) {
  @param[in] progname Executed program name
  */
 void usage(const char *progname) {
-    printf("usage: %s [-dmrs" PRINT_RUSAGE_ARG "v7]" PRINT_ENC_USG " filename\n", progname);
+    printf("usage: %s [-dmrs" PRINT_RUSAGE_ARG "v7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
     printf("       without arguments prints document metadata and exits\n");
     printf("       -d      dump rawml text record\n");
     printf("       -m      print records metadata\n");
+    printf("       -o dir  save output to dir folder\n");
 #ifdef USE_ENCRYPTION
     printf("       -p pid  set pid for decryption\n");
 #endif
@@ -646,13 +687,35 @@ int main(int argc, char *argv[]) {
     }
     opterr = 0;
     int c;
-    while((c = getopt(argc, argv, "dm" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "v7")) != -1)
+    while((c = getopt(argc, argv, "dmo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "v7")) != -1)
         switch(c) {
             case 'd':
                 dump_rawml_opt = 1;
                 break;
             case 'm':
                 print_rec_meta_opt = 1;
+                break;
+            case 'o':
+                outdir_opt = 1;
+                size_t outdir_length = strlen(optarg);
+                if (outdir_length >= FILENAME_MAX - 1) {
+                    printf("Output directory name too long\n");
+                    return ERROR;
+                }
+                strncpy(outdir, optarg, FILENAME_MAX - 1);
+                if (!dir_exists(outdir)) {
+                    printf("Output directory is not valid\n");
+                    return ERROR;
+                }
+                if (optarg[outdir_length - 1] != separator) {
+                    // append separator
+                    if (outdir_length >= FILENAME_MAX - 2) {
+                        printf("Output directory name too long\n");
+                        return ERROR;
+                    }
+                    outdir[outdir_length++] = separator;
+                    outdir[outdir_length] = '\0';
+                }
                 break;
 #ifdef USE_ENCRYPTION
             case 'p':
