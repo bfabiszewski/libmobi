@@ -7,6 +7,7 @@ AC_CONFIG_SRCDIR([src/buffer.c])
 
 # Enable automake
 AM_INIT_AUTOMAKE([-Wall foreign])
+AM_EXTRA_RECURSIVE_TARGETS([test])
 # all defined C macros (HAVE_*) will be saved to this file
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -271,10 +272,32 @@ if test x$mobitool_static = xyes; then
 fi
 AC_SUBST(MOBITOOL_STATIC)
 
+# Check for md5 or md5sum program, needed for tests
+AC_ARG_VAR([MD5PROG], [md5 hashing program executable])
+AS_IF([test "x$MD5PROG" = "x"], AC_CHECK_PROG([MD5PROG], [md5sum], [md5sum]), [])
+AS_IF([test "x$MD5PROG" = "x"], AC_CHECK_PROG([MD5PROG], [md5], [md5 -r]), [])
+AS_IF([test "x$MD5PROG" = "x"], AC_MSG_WARN([md5 hashing program not found, some tests will be skipped]), [])
+
+# List test files
+CR=$'\n'
+for f in tests/samples/*.{mobi,fail}
+do
+    PASSLIST="${PASSLIST} ${f#*/} \\${CR}"
+done
+AC_SUBST(PASSLIST)
+for f in tests/samples/*.fail
+do
+    FAILLIST="${FAILLIST} ${f#*/} \\${CR}"
+done
+AC_SUBST(FAILLIST)
+
+
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([libmobi.pc])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([tools/Makefile])
 AC_CONFIG_FILES([tools/mobitool.1])
+AC_CONFIG_FILES([tests/Makefile])
+AC_CONFIG_FILES([tests/test.sh], [chmod +x tests/test.sh])
 
 AC_OUTPUT

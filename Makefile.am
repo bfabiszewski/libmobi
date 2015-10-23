@@ -1,6 +1,6 @@
 # project Makefile.am
 
-SUBDIRS = src tools
+SUBDIRS = src tools tests
 ACLOCAL_AMFLAGS = -I m4
 
 pkgconfigdir = $(libdir)/pkgconfig
