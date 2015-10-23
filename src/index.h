@@ -58,7 +58,7 @@
 #define ORDT_RECORD_MAXCNT 1024 /* max entries count */
 #define LIGT_RECORD_MAXCNT 5 /* max entries count */
 #define CNCX_RECORD_MAXCNT 0xf /* max entries count */
-#define INDX_RECORD_MAXCNT 0xfff /* max index entries per record */
+#define INDX_RECORD_MAXCNT 5000 /* max index entries per record */
 #define INDX_TOTAL_MAXCNT ((size_t) INDX_RECORD_MAXCNT * 0xffff) /* max total index entries */
 #define INDX_NAME_SIZEMAX 0xff
 
