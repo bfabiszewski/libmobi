@@ -77,9 +77,10 @@ ${mobitool} -o "${tmp_dir}" -s ${options} "${testfile}" || die "Recreating sourc
 if [[ ${do_md5} ]]; then
     if [[ -f "${md5file_markup}" ]]; then
         (
-            cd "${tmp_dir}/${markup_dir}"
-            ${md5prog} * > md5
-            diff md5 "../../${md5file_markup}" || die "Wrong md5 checksum in ${markup_dir}" $?
+            cd "${tmp_dir}/${markup_dir}" || die "Could not change directory to ${tmp_dir}/${markup_dir}" $?
+            rm -f ../md5
+            ${md5prog} * | tr -s ' ' > ../md5
+            diff ../md5 "../../${md5file_markup}" || die "Wrong md5 checksum in ${markup_dir}" $?
         ) || exit $?
         log "Checksum correct"
     else
@@ -94,7 +95,7 @@ log "Running ${mobitool} -o \"${tmp_dir}\" -d ${options} \"${testfile}\""
 ${mobitool} -o "${tmp_dir}" -d ${options} "${testfile}" || die "Dumping rawml failed, mobitool error ($?)" $?
 [[ -f "${tmp_dir}/${rawml_file}" ]] || die "Dumping rawml failed" 1
 
-# verify checksums
+# verify checksum
 if [[ ${do_md5} ]]; then
     if [[ -f "${md5file_rawml}" ]]; then
         md5_1=$(cat ${md5file_rawml})
