@@ -7,7 +7,6 @@ AC_CONFIG_SRCDIR([src/buffer.c])
 
 # Enable automake
 AM_INIT_AUTOMAKE([-Wall foreign])
-AM_EXTRA_RECURSIVE_TARGETS([test])
 # all defined C macros (HAVE_*) will be saved to this file
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])

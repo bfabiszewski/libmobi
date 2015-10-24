@@ -10,13 +10,7 @@
 # suffix "_rawml" for rawml checksum and "_markup" for all markup files checksums.
 # Re-run ./configure after adding new samples
 
-.PHONY: test-local
-test-local:  tool check
-
-.PHONY: tool
-tool:
-	make -C $(top_builddir) $*
-
+AUTOMAKE_OPTIONS = parallel-tests
 TESTS = @PASSLIST@
 XFAIL_TESTS = @FAILLIST@
 TEST_EXTENSIONS = .mobi .fail
