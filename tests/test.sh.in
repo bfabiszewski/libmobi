@@ -78,9 +78,10 @@ if [[ ${do_md5} ]]; then
     if [[ -f "${md5file_markup}" ]]; then
         (
             cd "${tmp_dir}/${markup_dir}" || die "Could not change directory to ${tmp_dir}/${markup_dir}" $?
-            rm -f ../md5
-            ${md5prog} * | tr -s ' ' > ../md5
-            diff ../md5 "../../${md5file_markup}" || die "Wrong md5 checksum in ${markup_dir}" $?
+            rm -f "../${testfile_md5}.md5"
+            ${md5prog} * | tr -s ' ' > "../${testfile_md5}.md5"
+            diff "../${testfile_md5}.md5" "../../${md5file_markup}" || die "Wrong md5 checksum in ${markup_dir}" $?
+            rm -f "../${testfile_md5}.md5"
         ) || exit $?
         log "Checksum correct"
     else
