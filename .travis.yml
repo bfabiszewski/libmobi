@@ -1,11 +1,19 @@
+os:
+- linux
+- osx
 language: c
 compiler:
 - clang
 - gcc
 before_install:
-- sudo apt-get update -qq
-- sudo apt-get install -y autotools-dev pkg-config automake autoconf libtool
-- sudo apt-get install -y zlib1g-dev libxml2-dev
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    sudo apt-get update -qq
+    sudo apt-get install -y autotools-dev pkg-config automake autoconf libtool
+    sudo apt-get install -y zlib1g-dev libxml2-dev
+  elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    brew update > /dev/null
+    brew install autoconf automake libtool
+  fi
 - git config --global user.name "Travis CI (libmobi)"
 - git config --global user.email $HOSTNAME":not-for-mail@travis-ci.org"
 script:
