@@ -12,7 +12,9 @@ before_install:
     sudo apt-get install -y zlib1g-dev libxml2-dev;
   elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
     brew update > /dev/null;
-    brew install autoconf automake libtool;
+    brew outdated autoconf || brew upgrade autoconf
+    brew outdated automake || brew upgrade automake
+    brew outdated libtool || brew upgrade libtool
   fi
 - git config --global user.name "Travis CI (libmobi)"
 - git config --global user.email $HOSTNAME":not-for-mail@travis-ci.org"
