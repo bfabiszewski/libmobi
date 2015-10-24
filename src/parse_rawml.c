@@ -606,8 +606,8 @@ MOBI_RET mobi_reconstruct_resources(const MOBIData *m, MOBIRawml *rawml) {
             }
         } else if (filetype == T_VIDEO) {
             ret = mobi_add_video_resource(curr_part);
-            printf("Decoding video resource failed\n");
             if (ret != MOBI_SUCCESS) {
+                printf("Decoding video resource failed\n");
                 return ret;
             }
         } else {
