@@ -1,3 +1,22 @@
+2015-11-02: Update docs
+2015-11-02: Feature: add helper functions to find resources by flow id
+2015-11-02: Feature: export MOBI_NOTSET macro
+2015-11-02: Feature: give more options to parse rawml function
+2015-10-24: Restore travis.yml
+2015-10-24: Fix OSX travis build
+2015-10-24: Fix OSX travis build
+2015-10-24: Fix multiline inline script
+2015-10-24: Enable multi-OS feature
+2015-10-24: Fix: unique temporary name for parallel tests
+2015-10-24: Fix: decoding video resources falsely reported as failed
+2015-10-24: Fix: tests, some md5sum implementations insert double spaces
+2015-10-24: Fix for automake < 1.13
+2015-10-23: Add simple tests framework
+2015-10-23: Fix: increase max index entries per record count, as some rare samples fail
+2015-10-22: Fix: incorrectly decoded video/audio resources
+2015-10-22: Feature: add option to specify output path
+2015-10-14: Add some internal functions to public API: mobi_get_flow_by_uid, mobi_get_resource_by_uid, mobi_get_part_by_uid, mobi_get_exthrecord_by_tag
+2015-06-13: update changelog
 2015-06-13: fix: various invalid memory access
 2015-06-13: don't quit on invalid input, instead substitute with replacement character
 2015-06-12: fix typo

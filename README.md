@@ -37,6 +37,7 @@ It may serve as an example how to use the library.
     $ ./autogen.sh
     $ ./configure
     $ make
+    [optionally] $ make test
     $ sudo make install
 
 ## Usage
