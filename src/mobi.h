@@ -28,6 +28,12 @@
 #define MOBI_EXPORT __attribute__((__visibility__("default")))
 #endif
 
+/** 
+ @brief Usually 32-bit values in mobi records
+ with value 0xffffffff mean "value not set"
+ */
+#define MOBI_NOTSET UINT32_MAX
+
 #ifdef __cplusplus
 extern "C"
 {

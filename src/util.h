@@ -110,13 +110,6 @@
 #define RAWTEXT_SIZEMAX 0xfffffff
 /** @} */
 
-/**
- @defgroup mobi_return Values returned by functions
- @{
- */
-#define MOBI_NOTSET UINT32_MAX /**< Value is not set */
-/** @} */
-
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
