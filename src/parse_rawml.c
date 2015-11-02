@@ -2101,6 +2101,21 @@ MOBI_RET mobi_strip_mobitags(MOBIPart *part) {
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
+    return mobi_parse_rawml_opt(rawml, m, true, true, true);
+}
+
+/**
+ @brief Parse raw records into html flow parts, markup parts, resources and indices.
+        Individual stages of the parsing may be turned on/off.
+ 
+ @param[in,out] rawml Structure rawml will be filled with reconstructed parts and resources
+ @param[in] m MOBIData structure
+ @param[in] parse_toc bool Parse content indices if true
+ @param[in] parse_dict bool Parse dictionary indices if true
+ @param[in] reconstruct bool Recounstruct links, build opf, strip mobi-specific tags if true
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_parse_rawml_opt(MOBIRawml *rawml, const MOBIData *m, bool parse_toc, bool parse_dict, bool reconstruct) {
     
     MOBI_RET ret;
     if (m == NULL) {
@@ -2174,29 +2189,31 @@ MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
         rawml->frag = frag_meta;
     }
     
-    /* guide index */
-    if (mobi_exists_guide_indx(m)) {
-        MOBIIndx *guide_meta = mobi_init_indx();
-        const size_t indx_record_number = *m->mh->guide_index + offset;
-        ret = mobi_parse_index(m, guide_meta, indx_record_number);
-        if (ret != MOBI_SUCCESS) {
-            return ret;
+    if (parse_toc) {
+        /* guide index */
+        if (mobi_exists_guide_indx(m)) {
+            MOBIIndx *guide_meta = mobi_init_indx();
+            const size_t indx_record_number = *m->mh->guide_index + offset;
+            ret = mobi_parse_index(m, guide_meta, indx_record_number);
+            if (ret != MOBI_SUCCESS) {
+                return ret;
+            }
+            rawml->guide = guide_meta;
         }
-        rawml->guide = guide_meta;
+        
+        /* ncx index */
+        if (mobi_exists_ncx(m)) {
+            MOBIIndx *ncx_meta = mobi_init_indx();
+            const size_t indx_record_number = *m->mh->ncx_index + offset;
+            ret = mobi_parse_index(m, ncx_meta, indx_record_number);
+            if (ret != MOBI_SUCCESS) {
+                return ret;
+            }
+            rawml->ncx = ncx_meta;
+        }
     }
     
-    /* ncx index */
-    if (mobi_exists_ncx(m)) {
-        MOBIIndx *ncx_meta = mobi_init_indx();
-        const size_t indx_record_number = *m->mh->ncx_index + offset;
-        ret = mobi_parse_index(m, ncx_meta, indx_record_number);
-        if (ret != MOBI_SUCCESS) {
-            return ret;
-        }
-        rawml->ncx = ncx_meta;
-    }
-    
-    if (mobi_is_dictionary(m)) {
+    if (parse_dict && mobi_is_dictionary(m)) {
         /* orth */
         MOBIIndx *orth_meta = mobi_init_indx();
         size_t indx_record_number = *m->mh->orth_index + offset;
@@ -2221,22 +2238,25 @@ MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m) {
     if (ret != MOBI_SUCCESS) {
         return ret;
     }
+    if (reconstruct) {
 #ifdef USE_LIBXML2
-    ret = mobi_build_opf(rawml, m);
-    if (ret != MOBI_SUCCESS) {
-        return ret;
-    }
-#endif
-    ret = mobi_reconstruct_links(rawml);
-    if (ret != MOBI_SUCCESS) {
-        return ret;
-    }
-    if (mobi_is_kf8(m)) {
-        debug_print("Stripping unneeded tags%s", "\n");
-        ret = mobi_iterate_txtparts(rawml, mobi_strip_mobitags);
+        ret = mobi_build_opf(rawml, m);
         if (ret != MOBI_SUCCESS) {
             return ret;
         }
+#endif
+        ret = mobi_reconstruct_links(rawml);
+        if (ret != MOBI_SUCCESS) {
+            return ret;
+        }
+        if (mobi_is_kf8(m)) {
+            debug_print("Stripping unneeded tags%s", "\n");
+            ret = mobi_iterate_txtparts(rawml, mobi_strip_mobitags);
+            if (ret != MOBI_SUCCESS) {
+                return ret;
+            }
+        }
+
     }
     if (mobi_is_cp1252(m)) {
         debug_print("Converting cp1252 to utf8%s", "\n");

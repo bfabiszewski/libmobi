@@ -473,6 +473,8 @@ extern "C"
     MOBI_EXPORT MOBI_RET mobi_parse_kf8(MOBIData *m);
     
     MOBI_EXPORT MOBI_RET mobi_parse_rawml(MOBIRawml *rawml, const MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_parse_rawml_opt(MOBIRawml *rawml, const MOBIData *m, bool parse_toc, bool parse_dict, bool reconstruct);
+
     MOBI_EXPORT MOBI_RET mobi_get_rawml(const MOBIData *m, char *text, size_t *len);
     MOBI_EXPORT MOBI_RET mobi_dump_rawml(const MOBIData *m, FILE *file);
     MOBI_EXPORT MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded_size, MOBIPart *part);
