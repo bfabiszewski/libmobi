@@ -490,7 +490,9 @@ extern "C"
     MOBI_EXPORT MOBIPdbRecord * mobi_get_record_by_uid(const MOBIData *m, const size_t uid);
     MOBI_EXPORT MOBIPdbRecord * mobi_get_record_by_seqnumber(const MOBIData *m, const size_t uid);
     MOBI_EXPORT MOBIPart * mobi_get_flow_by_uid(const MOBIRawml *rawml, const size_t uid);
+    MOBI_EXPORT MOBIPart * mobi_get_flow_by_fid(const MOBIRawml *rawml, const char *fid);
     MOBI_EXPORT MOBIPart * mobi_get_resource_by_uid(const MOBIRawml *rawml, const size_t uid);
+    MOBI_EXPORT MOBIPart * mobi_get_resource_by_fid(const MOBIRawml *rawml, const char *fid);
     MOBI_EXPORT MOBIPart * mobi_get_part_by_uid(const MOBIRawml *rawml, const size_t uid);
     MOBI_EXPORT MOBI_RET mobi_get_fullname(const MOBIData *m, char *fullname, const size_t len);
     MOBI_EXPORT size_t mobi_get_text_maxsize(const MOBIData *m);

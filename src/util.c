@@ -655,6 +655,24 @@ MOBIPart * mobi_get_flow_by_uid(const MOBIRawml *rawml, const size_t uid) {
 }
 
 /**
+ @brief Find flow part by flow id (fid) from kindle:flow:fid link.
+ Flow fid is base32 encoded part uid.
+ 
+ @param[in] rawml Structure MOBIRawml
+ @param[in] fid String four character base32 fid
+ @return Pointer to MOBIPart structure, NULL on failure
+ */
+MOBIPart * mobi_get_flow_by_fid(const MOBIRawml *rawml, const char *fid) {
+    /* get file number */
+    uint32_t part_id;
+    MOBI_RET ret = mobi_base32_decode(&part_id, fid);
+    if (ret != MOBI_SUCCESS) {
+        return NULL;
+    }
+    return mobi_get_flow_by_uid(rawml, part_id);
+}
+
+/**
  @brief Get MOBIPart resource record with given unique id
  
  @param[in] rawml MOBIRawml structure with loaded data
@@ -678,6 +696,25 @@ MOBIPart * mobi_get_resource_by_uid(const MOBIRawml *rawml, const size_t uid) {
         curr = curr->next;
     }
     return NULL;
+}
+
+/**
+ @brief Find resource by flow id (fid) from kindle:embed:fid link.
+ Flow fid is base32 encoded part uid.
+ 
+ @param[in] rawml Structure MOBIRawml
+ @param[in] fid String four character base32 fid
+ @return Pointer to MOBIPart structure, NULL on failure
+ */
+MOBIPart * mobi_get_resource_by_fid(const MOBIRawml *rawml, const char *fid) {
+    /* get file number */
+    uint32_t part_id;
+    MOBI_RET ret = mobi_base32_decode(&part_id, fid);
+    if (ret != MOBI_SUCCESS) {
+        return NULL;
+    }
+    part_id--;
+    return mobi_get_resource_by_uid(rawml, part_id);
 }
 
 /**

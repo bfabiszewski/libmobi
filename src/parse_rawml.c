@@ -1080,20 +1080,14 @@ MOBI_RET mobi_flow_to_link(char *link, const MOBIRawml *rawml, const char *value
     strncpy(str_fid, value, 4);
     str_fid[4] = '\0';
     
-    /* get file number */
-    uint32_t part_id;
-    MOBI_RET ret = mobi_base32_decode(&part_id, str_fid);
-    if (ret != MOBI_SUCCESS) {
-        return ret;
-    }
-    MOBIPart *flow = mobi_get_flow_by_uid(rawml, part_id);
+    MOBIPart *flow = mobi_get_flow_by_fid(rawml, str_fid);
     if (flow == NULL) {
         debug_print("Link corrupt: kindle:flow:%s\n", value);
         return MOBI_DATA_CORRUPT;
     }
     MOBIFileMeta meta = mobi_get_filemeta_by_type(flow->type);
     char *extension = meta.extension;
-    snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "\"flow%05u.%s\"", part_id, extension);
+    snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "\"flow%05zu.%s\"", flow->uid, extension);
     return MOBI_SUCCESS;
 }
 
