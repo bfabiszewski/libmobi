@@ -121,7 +121,6 @@ bool mobi_is_cp1252(const MOBIData *m);
 MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, const size_t insize);
 uint8_t mobi_ligature_to_cp1252(const uint8_t c1, const uint8_t c2);
 uint16_t mobi_ligature_to_utf16(const uint32_t control, const uint32_t c);
-size_t mobi_get_first_resource_record(const MOBIData *m);
 MOBIFiletype mobi_determine_resource_type(const MOBIPdbRecord *record);
 MOBIFiletype mobi_determine_flowpart_type(const MOBIRawml *rawml, const size_t part_number);
 MOBI_RET mobi_base32_decode(uint32_t *decoded, const char *encoded);
