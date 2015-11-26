@@ -707,7 +707,6 @@ MOBI_RET mobi_parse_huffdic(const MOBIData *m, MOBIHuffCdic *huffcdic) {
         ret = mobi_parse_cdic(huffcdic, curr, i++);
         if (ret != MOBI_SUCCESS) {
             debug_print("%s", "CDIC parsing failed\n");
-            free(huffcdic->symbols);
             return ret;
         }
         curr = curr->next;
