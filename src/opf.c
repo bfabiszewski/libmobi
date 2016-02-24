@@ -110,6 +110,13 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
+    if (rawml->guide->cncx_record == NULL) {
+        free(reference);
+        free(opf->guide);
+        opf->guide = NULL;
+        debug_print("%s\n", "Missing cncx record");
+        return MOBI_DATA_CORRUPT;
+    }
     while (i < count) {
         const MOBIIndexEntry *guide_entry = &rawml->guide->entries[i];
         const char *type = guide_entry->label;
@@ -139,6 +146,12 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
             continue;
             /* FIXME: I need some examples which use other tags */
             //mobi_get_indxentry_tagvalue(&frag_number, guide_entry, INDX_TAG_FRAG_FILE_NR);
+        }
+        if (frag_number > rawml->frag->entries_count) {
+            debug_print("Wrong frag entry index (%i)\n", frag_number);
+            free(ref_title);
+            i++;
+            continue;
         }
         const MOBIIndexEntry *frag_entry = &rawml->frag->entries[frag_number];
         uint32_t file_number;
@@ -224,7 +237,7 @@ MOBI_RET mobi_write_ncx_level(xmlTextWriterPtr writer, const NCX *ncx, const siz
         xml_ret = xmlTextWriterEndElement(writer);
         if (xml_ret < 0) { return MOBI_XML_ERR; }
         debug_print("%s - %s\n", ncx[i].text, ncx[i].target);
-        if (ncx[i].first_child != MOBI_NOTSET) {
+        if (ncx[i].first_child != MOBI_NOTSET && ncx[i].last_child != MOBI_NOTSET) {
             mobi_write_ncx_level(writer, ncx, level + 1, ncx[i].first_child, ncx[i].last_child, seq);
         }
         /* end <navPoint> */
@@ -411,7 +424,7 @@ MOBI_RET mobi_write_ncx(MOBIRawml *rawml, const NCX *ncx, const OPF *opf, uint32
     /* start <navMap> */
     xml_ret = xmlTextWriterStartElement(writer, BAD_CAST "navMap");
     if (xml_ret < 0) { goto cleanup; }
-    if (rawml->ncx) {
+    if (ncx) {
         const size_t count = rawml->ncx->entries_count;
         size_t seq = 1;
         ret = mobi_write_ncx_level(writer, ncx, 0, 0, count, &seq);
@@ -464,7 +477,7 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
         debug_print("%s\n", "Initialization failed");
         return MOBI_INIT_FAILED;
     }
-    if (rawml->ncx) {
+    if (rawml->ncx && rawml->ncx->cncx_record) {
         size_t i = 0;
         uint32_t maxlevel = 0;
         MOBI_RET ret;
@@ -576,8 +589,15 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
                 mobi_free_ncx(ncx, i);
                 return ret;
             }
+            if ((first_child != MOBI_NOTSET && first_child > rawml->ncx->entries_count) ||
+                (last_child != MOBI_NOTSET && last_child > rawml->ncx->entries_count)) {
+                free(text);
+                free(target);
+                mobi_free_ncx(ncx, i);
+                return MOBI_DATA_CORRUPT;
+            }
             debug_print("seq=%zu, id=%zu, text='%s', target='%s', level=%u, parent=%u, fchild=%u, lchild=%u\n", i, id, text, target, level, parent, first_child, last_child);
-            ncx[i++] = (NCX) {id, text, target, level, parent, first_child,last_child};
+            ncx[i++] = (NCX) {id, text, target, level, parent, first_child, last_child};
         }
         mobi_write_ncx(rawml, ncx, opf, maxlevel);
         mobi_free_ncx(ncx, count);
@@ -1021,7 +1041,7 @@ MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m, const MOBIRawml *
             return MOBI_MALLOC_FAILED;
         }
         if (m->mh && m->mh->full_name_offset && m->mh->full_name_length) {
-            size_t len = *m->mh->full_name_length;
+            size_t len = min(*m->mh->full_name_length, RECORD0_TEXT_SIZE_MAX);
             char full_name[len + 1];
             mobi_get_fullname(m, full_name, len);
             opf->metadata->dc_meta->title[0] = strdup(full_name);
@@ -1037,9 +1057,13 @@ MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m, const MOBIRawml *
             debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
         }
+        const char *lang_string = NULL;
         if (m->mh && m->mh->locale) {
             uint32_t lang_code = *m->mh->locale;
-            opf->metadata->dc_meta->language[0] = strdup(mobi_get_locale_string(lang_code));
+            lang_string = mobi_get_locale_string(lang_code);
+        }
+        if (lang_string) {
+            opf->metadata->dc_meta->language[0] = strdup(lang_string);
         } else {
             opf->metadata->dc_meta->language[0] = strdup("en");
         }

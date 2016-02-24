@@ -574,7 +574,11 @@ MOBI_RET mobi_get_fullname(const MOBIData *m, char *fullname, const size_t len) 
         return MOBI_INIT_FAILED;
     }
     size_t size = min(len, *m->mh->full_name_length);
-    memcpy(fullname, record0->data + *m->mh->full_name_offset, size);
+    size_t name_offset = *m->mh->full_name_offset;
+    if (name_offset + size > record0->size) {
+        return MOBI_DATA_CORRUPT;
+    }
+    memcpy(fullname, record0->data + name_offset, size);
     fullname[size] = '\0';
     return MOBI_SUCCESS;
 }

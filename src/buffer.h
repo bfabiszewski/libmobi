@@ -45,6 +45,7 @@ void buffer_appendstring(char *str, MOBIBuffer *buf, const size_t len);
 void buffer_getraw(void *data, MOBIBuffer *buf, const size_t len);
 unsigned char * buffer_getpointer(MOBIBuffer *buf, const size_t len);
 void buffer_copy8(MOBIBuffer *in, MOBIBuffer *source);
+void buffer_move(MOBIBuffer *buf, const int offset, const size_t len);
 void buffer_copy(MOBIBuffer *dest, MOBIBuffer *source, size_t len);
 bool buffer_match_magic(MOBIBuffer *buf, const char *magic);
 void buffer_seek(MOBIBuffer *buf, int diff);

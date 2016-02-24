@@ -336,6 +336,10 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
     const size_t entry_length = idxt.offsets[curr_number + 1] - idxt.offsets[curr_number];
     buffer_setpos(buf, idxt.offsets[curr_number]);
     size_t entry_number = curr_number + entry_offset;
+    if (entry_number >= indx->total_entries_count) {
+        debug_print("Entry number beyond array: %zu\n", entry_number);
+        return MOBI_DATA_CORRUPT;
+    }
     /* save original record maxlen */
     const size_t buf_maxlen = buf->maxlen;
     if (buf->offset + entry_length > buf_maxlen) {
@@ -365,6 +369,8 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
     unsigned char *control_bytes;
     control_bytes = buf->data + buf->offset;
     buffer_seek(buf, (int) tagx->control_byte_count);
+    indx->entries[entry_number].tags_count = 0;
+    indx->entries[entry_number].tags = NULL;
     if (tagx->tags_count > 0) {
         typedef struct {
             uint8_t tag;
@@ -414,7 +420,6 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
             i++;
         }
         indx->entries[entry_number].tags = malloc(tagx->tags_count * sizeof(MOBIIndexTag));
-        indx->entries[entry_number].tags_count = 0;
         i = 0;
         while (i < ptagx_count) {
             uint32_t tagvalues_count = 0;
@@ -469,6 +474,10 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBITagx *tagx, MOBIOrdt *ordt) {
+    if (indx_record == NULL || indx == NULL || tagx == NULL || ordt == NULL) {
+        debug_print("%s", "index structure not initialized\n");
+        return MOBI_INIT_FAILED;
+    }
     MOBI_RET ret;
     MOBIBuffer *buf = buffer_init_null(indx_record->size);
     if (buf == NULL) {
@@ -536,7 +545,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     
     /* TAGX metadata */
     /* if record contains TAGX section, read it (and ORDT) and return */
-    if (buffer_match_magic(buf, TAGX_MAGIC)) {
+    if (buffer_match_magic(buf, TAGX_MAGIC) && indx->total_entries_count == 0) {
         indx->encoding = encoding;
         ret = mobi_parse_tagx(buf, tagx);
         if (ret != MOBI_SUCCESS) {
@@ -663,6 +672,13 @@ MOBI_RET mobi_parse_index(const MOBIData *m, MOBIIndx *indx, const size_t indx_r
             mobi_free_ordt(ordt);
             return ret;
         }
+    }
+    if (indx->entries_count != indx->total_entries_count) {
+        debug_print("Entries count %zu != total entries count %zu\n", indx->entries_count, indx->total_entries_count);
+        mobi_free_indx(indx);
+        mobi_free_tagx(tagx);
+        mobi_free_ordt(ordt);
+        return MOBI_DATA_CORRUPT;
     }
     /* copy pointer to first cncx record if present and set info from first record */
     if (indx->cncx_records_count) {

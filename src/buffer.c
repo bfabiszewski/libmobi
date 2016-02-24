@@ -470,6 +470,39 @@ void buffer_copy(MOBIBuffer *dest, MOBIBuffer *source, const size_t len) {
 }
 
 /**
+ @brief Copy raw value within one MOBIBuffer
+ 
+ Memmove len bytes from offset (relative to current position)
+ to current position in buffer and advance buffer position.
+ Data may overlap.
+ 
+ @param[out] buf Buffer
+ @param[in] offset Offset to read from
+ @param[in] len Number of bytes to copy
+ */
+void buffer_move(MOBIBuffer *buf, const int offset, const size_t len) {
+    size_t aoffset = (size_t) abs(offset);
+    unsigned char *source = buf->data + buf->offset;
+    if (offset >= 0) {
+        if (buf->offset + aoffset + len > buf->maxlen) {
+            debug_print("%s", "End of buffer\n");
+            buf->error = MOBI_BUFFER_END;
+            return;
+        }
+        source += aoffset;
+    } else {
+        if (buf->offset < aoffset) {
+            debug_print("%s", "End of buffer\n");
+            buf->error = MOBI_BUFFER_END;
+            return;
+        }
+        source -= aoffset;
+    }
+    memmove(buf->data + buf->offset, source, len);
+    buf->offset += len;
+}
+
+/**
  @brief Check if buffer data header contains magic signature
  
  @param[in] buf MOBIBuffer buffer containing data

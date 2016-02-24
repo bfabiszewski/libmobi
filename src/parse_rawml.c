@@ -249,6 +249,7 @@ MOBI_RET mobi_find_attrname(MOBIResult *result, const unsigned char *data_start,
             data += needle_length;
             if (*data++ != quote) {
                 /* not well formed attribute */
+                result->start = NULL;
                 continue;
             }
             while (data <= data_end) {
@@ -291,6 +292,7 @@ MOBI_RET mobi_search_links_kf8(MOBIResult *result, const unsigned char *data_sta
  @return Offset from the beginning of the data, SIZE_MAX if not found
  */
 size_t mobi_get_attribute_value(char *value, const unsigned char *data, const size_t size, const char *attribute, bool only_quoted) {
+    /* FIXME: this function could be replaced by mobi_find_attrvalue()? */
     if (!data) {
         debug_print("Data is null%s", "\n");
         return SIZE_MAX;
@@ -346,9 +348,13 @@ size_t mobi_get_attribute_value(char *value, const unsigned char *data, const si
                 length--;
             }
             size_t j;
-            for (j = 0; j < MOBI_ATTRVALUE_MAXSIZE && length && *data != separator; j++) {
+            for (j = 0; j < MOBI_ATTRVALUE_MAXSIZE && length && *data != separator && *data != '>'; j++) {
                 *value++ = (char) *data++;
                 length--;
+            }
+            /* self closing tag '/>' */
+            if (*(data - 1) == '/' && *data == '>') {
+                value--;
             }
             *value = '\0';
             /* return offset to the beginning of the attribute value string */
@@ -692,6 +698,10 @@ MOBI_RET mobi_reconstruct_flow(MOBIRawml *rawml, const char *text, const size_t 
             const uint32_t section_start = rawml->fdst->fdst_section_starts[i];
             const uint32_t section_end = rawml->fdst->fdst_section_ends[i];
             const size_t section_length = section_end - section_start;
+            if (section_start + section_length > length) {
+                debug_print("Wrong fdst section length: %zu\n", section_length);
+                return MOBI_DATA_CORRUPT;
+            }
             unsigned char *section_data = malloc(section_length);
             if (section_data == NULL) {
                 debug_print("%s", "Memory allocation failed\n");
@@ -798,6 +808,7 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
     /* parse skeleton data */
     size_t i = 0, j = 0;
     size_t curr_position = 0;
+    size_t total_fragments_count = rawml->frag->total_entries_count;
     while (i < rawml->skel->entries_count) {
         const MOBIIndexEntry *entry = &rawml->skel->entries[i];
         uint32_t fragments_count;
@@ -806,6 +817,12 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
             buffer_free_null(buf);
             return ret;
         }
+        if (fragments_count > total_fragments_count) {
+            debug_print("%s", "Wrong count of fragments\n");
+            buffer_free_null(buf);
+            return MOBI_DATA_CORRUPT;
+        }
+        total_fragments_count -= fragments_count;
         uint32_t skel_position;
         ret = mobi_get_indxentry_tagvalue(&skel_position, entry, INDX_TAG_SKEL_POSITION);
         if (ret != MOBI_SUCCESS) {
@@ -814,9 +831,9 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
         }
         uint32_t skel_length;
         ret = mobi_get_indxentry_tagvalue(&skel_length, entry, INDX_TAG_SKEL_LENGTH);
-        if (ret != MOBI_SUCCESS) {
+        if (ret != MOBI_SUCCESS || skel_position + skel_length > buf->maxlen) {
             buffer_free_null(buf);
-            return ret;
+            return MOBI_DATA_CORRUPT;
         }
         debug_print("%zu\t%s\t%i\t%i\t%i\n", i, entry->label, fragments_count, skel_position, skel_length);
         char *skel_text = malloc(skel_length + 1);
@@ -947,7 +964,7 @@ MOBI_RET mobi_get_filepos_array(MOBIArray *links, const MOBIPart *part) {
     size_t size = part->size;
     unsigned char *data = part->data;
     while (true) {
-        char val[MOBI_ATTRVALUE_MAXSIZE];
+        char val[MOBI_ATTRVALUE_MAXSIZE + 1];
         size -= offset;
         data += offset;
         offset = mobi_get_attribute_value(val, data, size, "filepos", false);
@@ -982,7 +999,7 @@ MOBI_RET mobi_get_ncx_filepos_array(MOBIArray *links, const MOBIPart *part) {
             size_t size = part->size;
             unsigned char *data = part->data;
             while (true) {
-                char val[MOBI_ATTRVALUE_MAXSIZE];
+                char val[MOBI_ATTRVALUE_MAXSIZE + 1];
                 size -= offset;
                 data += offset;
                 offset = mobi_get_attribute_value(val, data, size, "src", false);
@@ -1048,9 +1065,9 @@ MOBI_RET mobi_posfid_to_link(char *link, const MOBIRawml *rawml, const char *val
     }
     /* FIXME: pos_off == 0 means top of file? */
     if (pos_off) {
-        snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "\"part%05u.html#%s\"", part_id, id);
+        snprintf(link, MOBI_ATTRVALUE_MAXSIZE + 1, "\"part%05u.html#%s\"", part_id, id);
     } else {
-        snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "\"part%05u.html\"", part_id);
+        snprintf(link, MOBI_ATTRVALUE_MAXSIZE + 1, "\"part%05u.html\"", part_id);
     }
     return MOBI_SUCCESS;
 }
@@ -1087,7 +1104,7 @@ MOBI_RET mobi_flow_to_link(char *link, const MOBIRawml *rawml, const char *value
     }
     MOBIFileMeta meta = mobi_get_filemeta_by_type(flow->type);
     char *extension = meta.extension;
-    snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "\"flow%05zu.%s\"", flow->uid, extension);
+    snprintf(link, MOBI_ATTRVALUE_MAXSIZE + 1, "\"flow%05zu.%s\"", flow->uid, extension);
     return MOBI_SUCCESS;
 }
 
@@ -1129,7 +1146,7 @@ MOBI_RET mobi_embed_to_link(char *link, const MOBIRawml *rawml, const char *valu
     }
     MOBIFileMeta meta = mobi_get_filemeta_by_type(resource->type);
     char *extension = meta.extension;
-    snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "\"resource%05u.%s\"", part_id, extension);
+    snprintf(link, MOBI_ATTRVALUE_MAXSIZE + 1, "\"resource%05u.%s\"", part_id, extension);
     return MOBI_SUCCESS;
 }
 
@@ -1512,6 +1529,10 @@ MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBI
         debug_print("Entry label too long (%s)\n", label);
         return MOBI_DATA_CORRUPT;
     }
+    if (infl->cncx_record == NULL) {
+        debug_print("%s\n", "Missing cncx record");
+        return MOBI_DATA_CORRUPT;
+    }
     for (size_t i = 0; i < infl_count; i++) {
         size_t offset = infl_groups[i];
         uint32_t *groups;
@@ -1782,7 +1803,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         char *attribute = (char *) result.value;
         unsigned char *data_cur = result.start;
         result.start = result.end;
-        char link[MOBI_ATTRVALUE_MAXSIZE];
+        char link[MOBI_ATTRVALUE_MAXSIZE + 1];
         const char *numbers = "0123456789";
         char *value = strpbrk(attribute, numbers);
         if (value == NULL) {
@@ -1795,7 +1816,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                 /* filepos=0000000000 */
                 /* replace link with href="#0000000000" */
                 target = strtoul(value, NULL, 10);
-                snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "href=\"#%010u\"", (uint32_t)target);
+                snprintf(link, MOBI_ATTRVALUE_MAXSIZE + 1, "href=\"#%010u\"", (uint32_t)target);
                 break;
             case 'h':
             case 'l':
@@ -1810,7 +1831,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                 }
                 MOBIFiletype filetype = mobi_get_resourcetype_by_uid(rawml, target);
                 MOBIFileMeta filemeta = mobi_get_filemeta_by_type(filetype);
-                snprintf(link, MOBI_ATTRVALUE_MAXSIZE, "src=\"resource%05u.%s\"", (uint32_t) target, filemeta.extension);
+                snprintf(link, MOBI_ATTRVALUE_MAXSIZE + 1, "src=\"resource%05u.%s\"", (uint32_t) target, filemeta.extension);
                 break;
             default:
                 debug_print("Unknown link target: %s\n", attribute);
@@ -1879,8 +1900,8 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
     size_t i = 0;
     while (i < links->size) {
         const uint32_t offset = links->data[i];
-        char anchor[MOBI_ATTRVALUE_MAXSIZE];
-        snprintf(anchor, MOBI_ATTRVALUE_MAXSIZE, "<a id=\"%010u\"></a>", offset);
+        char anchor[MOBI_ATTRVALUE_MAXSIZE + 1];
+        snprintf(anchor, MOBI_ATTRVALUE_MAXSIZE + 1, "<a id=\"%010u\"></a>", offset);
         curr = mobi_list_insert(curr, SIZE_MAX,
                                (unsigned char *) strdup(anchor),
                                 strlen(anchor), true, offset);
@@ -1999,7 +2020,7 @@ MOBI_RET mobi_markup_to_utf8(MOBIPart *part) {
         debug_print("%s", "conversion from cp1252 to utf8 failed\n");
         free(out_text);
         part->data = NULL;
-        return ret;
+        return MOBI_DATA_CORRUPT;
     }
     text = malloc(out_length);
     if (text == NULL) {

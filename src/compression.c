@@ -60,7 +60,7 @@ MOBI_RET mobi_decompress_lz77(unsigned char *out, const unsigned char *in, size_
             uint16_t distance = ((((byte << 8) | ((uint8_t)next)) >> 3) & 0x7ff);
             uint8_t length = (next & 0x7) + 3;
             while (length--) {
-                buffer_add8(buf_out, *(buf_out->data + buf_out->offset - distance));
+                buffer_move(buf_out, -distance, 1);
             }
         }
         /* single char, not modified */
@@ -158,6 +158,10 @@ static MOBI_RET mobi_decompress_huffman_internal(MOBIBuffer *buf_out, MOBIBuffer
         uint32_t index = (uint32_t) (maxcode - code) >> (32 - code_length);
         /* check which part of cdic to use */
         uint8_t cdic_index = (uint8_t) ((uint32_t)index >> huffcdic->code_length);
+        if (index >= huffcdic->index_count) {
+            debug_print("Wrong symbol offsets index: %u\n", index);
+            return MOBI_DATA_CORRUPT;
+        }
         /* get offset */
         uint32_t offset = huffcdic->symbol_offsets[index];
         uint32_t symbol_length = (uint32_t) huffcdic->symbols[cdic_index][offset] << 8 | (uint32_t) huffcdic->symbols[cdic_index][offset + 1];

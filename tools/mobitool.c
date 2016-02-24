@@ -69,6 +69,8 @@
 # error "At least one of S_ISDIR or S_IFDIR macros is required"
 #endif
 
+#define FULLNAME_MAX 1024
+
 /* command line options */
 int dump_rawml_opt = 0;
 int print_rec_meta_opt = 0;
@@ -153,6 +155,7 @@ void print_meta(const MOBIData *m) {
     /* Full name stored at offset given in MOBI header */
     if (m->mh && m->mh->full_name_offset && m->mh->full_name_length) {
         size_t len = *m->mh->full_name_length;
+        if (len > FULLNAME_MAX) { len = FULLNAME_MAX; }
         char full_name[len + 1];
         if(mobi_get_fullname(m, full_name, len) == MOBI_SUCCESS) {
             printf("\nFull name: %s\n", full_name);
