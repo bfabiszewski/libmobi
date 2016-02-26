@@ -15,7 +15,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef _WIN32
+#include "getopt.h"
+#else
 #include <unistd.h>
+#endif
 #include <ctype.h>
 #include <time.h>
 #include <sys/stat.h>
@@ -58,6 +62,8 @@
 # else
 #  define COMPILER "gcc " __VERSION__
 # endif
+#elif defined(_MSC_VER)
+# define COMPILER "MSVC++ " STR(_MSC_VER)
 #else
 # define COMPILER "unknown"
 #endif

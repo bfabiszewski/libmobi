@@ -2262,7 +2262,9 @@ d->m_huff_count[2][18] = (mz_uint16)(d->m_huff_count[2][18] + 1); packed_code_si
    
 // Ignore strict-aliasing warning on MinGW gcc
 // Added by libmobi author
+#if defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wstrict-aliasing" 
+#endif
 #if MINIZ_USE_UNALIGNED_LOADS_AND_STORES
 #define TDEFL_READ_UNALIGNED_WORD(p) *(const mz_uint16*)(p)
     static MZ_FORCEINLINE void tdefl_find_match(tdefl_compressor *d, mz_uint lookahead_pos, mz_uint max_dist, mz_uint max_match_len, mz_uint *pMatch_dist, mz_uint *pMatch_len)

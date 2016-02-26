@@ -112,8 +112,12 @@
 #define RAWTEXT_SIZEMAX 0xfffffff
 /** @} */
 
+#ifndef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
+#endif
+#ifndef min
 #define min(a, b) ((a) < (b) ? (a) : (b))
+#endif
 
 int mobi_bitcount(const uint8_t byte);
 MOBI_RET mobi_delete_record_by_seqnumber(MOBIData *m, const size_t num);
