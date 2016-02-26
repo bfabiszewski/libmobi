@@ -25,8 +25,8 @@ typedef struct {
 } MOBIArray;
 
 MOBIArray * array_init(const size_t len);
-MOBI_RET array_insert(MOBIArray *arr, uint32_t value);
-void array_sort(MOBIArray *arr, bool unique);
+MOBI_RET array_insert(MOBIArray *arr, const uint32_t value);
+void array_sort(MOBIArray *arr, const bool unique);
 size_t array_size(MOBIArray *arr);
 void array_free(MOBIArray *arr);
 

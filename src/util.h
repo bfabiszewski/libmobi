@@ -114,8 +114,8 @@
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-int mobi_bitcount(uint8_t byte);
-MOBI_RET mobi_delete_record_by_seqnumber(MOBIData *m, size_t num);
+int mobi_bitcount(const uint8_t byte);
+MOBI_RET mobi_delete_record_by_seqnumber(MOBIData *m, const size_t num);
 MOBI_RET mobi_swap_mobidata(MOBIData *m);
 char * mobi_strdup(const char *s);
 bool mobi_is_cp1252(const MOBIData *m);
