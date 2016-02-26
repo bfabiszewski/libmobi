@@ -193,6 +193,11 @@ static size_t mobi_drm_parse(MOBIDrm **drm, const MOBIData *m) {
     buffer_setpos(buf, offset);
     for (size_t i = 0; i < count; i++) {
         drm[i] = calloc(1, sizeof(MOBIDrm));
+		if (drm[i] == NULL) {
+			debug_print("%s\n", "Memory allocation failed");
+			buffer_free_null(buf);
+			return 0;
+		}
         drm[i]->verification = buffer_get32(buf);
         drm[i]->size = buffer_get32(buf);
         drm[i]->type = buffer_get32(buf);

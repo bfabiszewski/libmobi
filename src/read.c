@@ -768,9 +768,29 @@ MOBI_RET mobi_parse_fdst(const MOBIData *m, MOBIRawml *rawml) {
         return MOBI_DATA_CORRUPT;
     }
     rawml->fdst = malloc(sizeof(MOBIFdst));
+    if (rawml->fdst == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
+        buffer_free_null(buf);
+        return MOBI_MALLOC_FAILED;
+    }
     rawml->fdst->fdst_section_count = section_count;
     rawml->fdst->fdst_section_starts = malloc(sizeof(*rawml->fdst->fdst_section_starts) * section_count);
+    if (rawml->fdst->fdst_section_starts == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
+        buffer_free_null(buf);
+        free(rawml->fdst);
+        rawml->fdst = NULL;
+        return MOBI_MALLOC_FAILED;
+    }
     rawml->fdst->fdst_section_ends = malloc(sizeof(*rawml->fdst->fdst_section_ends) * section_count);
+    if (rawml->fdst->fdst_section_ends == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
+        buffer_free_null(buf);
+        free(rawml->fdst->fdst_section_starts);
+        free(rawml->fdst);
+        rawml->fdst = NULL;
+        return MOBI_MALLOC_FAILED;
+    }
     size_t i = 0;
     while (i < section_count) {
         rawml->fdst->fdst_section_starts[i] = buffer_get32(buf);
