@@ -1041,9 +1041,8 @@ MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m, const MOBIRawml *
             return MOBI_MALLOC_FAILED;
         }
         if (m->mh && m->mh->full_name_offset && m->mh->full_name_length) {
-            size_t len = min(*m->mh->full_name_length, RECORD0_TEXT_SIZE_MAX);
-            char full_name[len + 1];
-            mobi_get_fullname(m, full_name, len);
+            char full_name[RECORD0_FULLNAME_SIZE_MAX + 1];
+            mobi_get_fullname(m, full_name, RECORD0_FULLNAME_SIZE_MAX);
             opf->metadata->dc_meta->title[0] = strdup(full_name);
         } else if (m->ph && strlen(m->ph->name) > 0) {
             opf->metadata->dc_meta->title[0] = strdup(m->ph->name);

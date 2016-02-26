@@ -483,28 +483,30 @@ size_t mobi_get_locale_number(const char *locale_string) {
     }
     size_t lang_code = 0;
     while (lang_code < MOBI_LANG_MAX) {
-        if (mobi_locale[lang_code][0] == NULL) {
+        char *p = (char *) mobi_locale[lang_code][0];
+        if (p == NULL) {
             lang_code++;
             continue;
         }
-        char lower_locale[strlen(locale_string) + 1];
-        int i = 0;
-        while (locale_string[i]) {
-            lower_locale[i] = (char) tolower(locale_string[i]);
-            i++;
+        
+        if (tolower(locale_string[0]) != p[0] ||
+            tolower(locale_string[1]) != p[1]) {
+            lang_code++;
+            continue;
         }
-        lower_locale[i] = '\0';
-        if (strncmp(lower_locale, mobi_locale[lang_code][0], 2) == 0) {
-            size_t region_code = 0;
-            while (region_code < MOBI_REGION_MAX) {
-                if (strcmp(lower_locale, mobi_locale[lang_code][region_code]) == 0) {
+        size_t region_code = 0;
+        while (region_code < MOBI_REGION_MAX) {
+            p = (char *) mobi_locale[lang_code][region_code];
+            if (p == NULL) { break; }
+            for (int i = 2;; i++) {
+                if (tolower(locale_string[i]) != p[i]) { break; }
+                if (p[i] == 0) {
                     return (region_code * 4) << 8 | lang_code;
                 }
-                region_code++;
             }
-            return lang_code;
+            region_code++;
         }
-        lang_code++;
+        return lang_code;
     }
     return 0;
 }
@@ -553,7 +555,7 @@ MOBIFileMeta mobi_get_filemeta_by_type(const MOBIFiletype type) {
  
  @param[in] m MOBIData structure with loaded data
  @param[in,out] fullname Memory area to be filled with zero terminated full name string
- @param[in] len Length of memory area allocated for the string
+ @param[in] len Maximum length of the string without null terminator
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_get_fullname(const MOBIData *m, char *fullname, const size_t len) {
@@ -973,18 +975,22 @@ char * mobi_decode_exthstring(const MOBIData *m, const unsigned char *data, cons
     }
     size_t out_length = 3 * size + 1;
     size_t in_length = size;
-    char string[out_length];
+    char *exth_string = malloc(out_length);
+    if (exth_string == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
+        return NULL;
+    }
     if (mobi_is_cp1252(m)) {
-        MOBI_RET ret = mobi_cp1252_to_utf8(string, (const char *) data, &out_length, in_length);
+        MOBI_RET ret = mobi_cp1252_to_utf8(exth_string, (const char *) data, &out_length, in_length);
         if (ret != MOBI_SUCCESS) {
+            free(exth_string);
             return NULL;
         }
     } else {
-        memcpy(string, data, size);
+        memcpy(exth_string, data, size);
         out_length = size;
     }
-    string[out_length] = '\0';
-    char *exth_string = strdup(string);
+    exth_string[out_length] = '\0';
     return exth_string;
 }
 

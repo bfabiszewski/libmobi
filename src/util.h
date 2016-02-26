@@ -90,6 +90,7 @@
 #define RECORD0_PALMDOC_COMPRESSION 2 /**< Text record compression type: palmdoc */
 #define RECORD0_HUFF_COMPRESSION 17480 /**< Text record compression type: huff/cdic */
 #define RECORD0_TEXT_SIZE_MAX 4096 /**< Max size of uncompressed text record */
+#define RECORD0_FULLNAME_SIZE_MAX 1024 /**< Max size to full name string */
 #define RECORD0_NO_ENCRYPTION 0 /**< Text record encryption type: none */
 #define RECORD0_OLD_ENCRYPTION 1 /**< Text record encryption type: old mobipocket */
 #define RECORD0_MOBI_ENCRYPTION 2 /**< Text record encryption type: mobipocket */

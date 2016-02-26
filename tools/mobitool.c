@@ -154,10 +154,8 @@ bool dir_exists(const char *path) {
 void print_meta(const MOBIData *m) {
     /* Full name stored at offset given in MOBI header */
     if (m->mh && m->mh->full_name_offset && m->mh->full_name_length) {
-        size_t len = *m->mh->full_name_length;
-        if (len > FULLNAME_MAX) { len = FULLNAME_MAX; }
-        char full_name[len + 1];
-        if(mobi_get_fullname(m, full_name, len) == MOBI_SUCCESS) {
+        char full_name[FULLNAME_MAX + 1];
+        if(mobi_get_fullname(m, full_name, FULLNAME_MAX) == MOBI_SUCCESS) {
             printf("\nFull name: %s\n", full_name);
         }
     }
@@ -300,7 +298,11 @@ void print_exth(const MOBIData *m) {
         if (tag.tag == 0) {
             /* unknown tag */
             /* try to print the record both as string and numeric value */
-            char str[curr->size + 1];
+            char *str = malloc(curr->size + 1);
+			if (!str) {
+				printf("Memory allocation failed\n");
+				exit(1);
+			}
             unsigned i = 0;
             unsigned char *p = curr->data;
             while (i < curr->size && isprint(*p)) {
@@ -310,11 +312,16 @@ void print_exth(const MOBIData *m) {
             str[i] = '\0';
             val32 = mobi_decode_exthvalue(curr->data, curr->size);
             printf("Unknown (%i): %s (%u)\n", curr->tag, str, val32);
+			free(str);
         } else {
             /* known tag */
             unsigned i = 0;
             size_t size = curr->size;
-            char str[2 * size + 1];
+            char *str = malloc(2 * size + 1);
+			if (!str) {
+				printf("Memory allocation failed\n");
+				exit(1);
+			}
             unsigned char *data = curr->data;
             switch (tag.type) {
                 /* numeric */
@@ -344,7 +351,7 @@ void print_exth(const MOBIData *m) {
                 default:
                     break;
             }
-
+			free(str);
         }
         curr = curr->next;
     }

@@ -212,11 +212,9 @@ MOBI_RET mobi_find_attrname(MOBIResult *result, const unsigned char *data_start,
         debug_print("Data is null%s", "\n");
         return MOBI_PARAM_ERR;
     }
-    size_t needle_length = strlen(attrname);
-    char needle[needle_length + 2];
-    strcpy(needle, attrname);
-    strcat(needle, "=");
-    needle_length++;
+    char needle[MOBI_ATTRNAME_MAXSIZE + 1];
+    snprintf(needle, MOBI_ATTRNAME_MAXSIZE + 1, "%s=", attrname);
+    size_t needle_length = strlen(needle);
     if (data_start + needle_length > data_end) {
         return MOBI_SUCCESS;
     }

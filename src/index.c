@@ -378,7 +378,11 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
             uint32_t value_count;
             uint32_t value_bytes;
         } MOBIPtagx;
-        MOBIPtagx ptagx[tagx->tags_count];
+        MOBIPtagx *ptagx = malloc(tagx->tags_count * sizeof(MOBIPtagx));
+        if (ptagx == NULL) {
+            debug_print("Memory allocation failed (%zu bytes)\n", tagx->tags_count * sizeof(MOBIPtagx));
+            return MOBI_MALLOC_FAILED;
+        }
         uint32_t ptagx_count = 0;
         size_t len;
         size_t i = 0;
@@ -452,6 +456,7 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
                 indx->entries[entry_number].tags[i].tagvalues = malloc(arr_size);
                 if (indx->entries[entry_number].tags[i].tagvalues == NULL) {
                     debug_print("Memory allocation failed (%zu bytes)\n", arr_size);
+                    free(ptagx);
                     return MOBI_MALLOC_FAILED;
                 }
                 memcpy(indx->entries[entry_number].tags[i].tagvalues, tagvalues, arr_size);
@@ -463,6 +468,7 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
             indx->entries[entry_number].tags_count++;
             i++;
         }
+        free(ptagx);
     }
     /* restore buffer maxlen */
     buf->maxlen = buf_maxlen;
@@ -598,12 +604,18 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
     }
     buffer_setpos(buf, idxt_offset);
     MOBIIdxt idxt;
-    uint32_t offsets[entries_count + 1];
+    uint32_t *offsets = malloc((entries_count + 1) * sizeof(uint32_t));
+    if (offsets == NULL) {
+        buffer_free_null(buf);
+        debug_print("%s\n", "Memory allocation failed");
+        return MOBI_MALLOC_FAILED;
+    }
     idxt.offsets = offsets;
     ret = mobi_parse_idxt(buf, &idxt, entries_count);
     if (ret != MOBI_SUCCESS) {
         debug_print("%s", "IDXT parsing failed\n");
         buffer_free_null(buf);
+        free(offsets);
         return ret;
     }
     /* parse entries */
@@ -612,6 +624,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
             indx->entries = malloc(indx->total_entries_count * sizeof(MOBIIndexEntry));
             if (indx->entries == NULL) {
                 buffer_free_null(buf);
+                free(offsets);
                 debug_print("%s\n", "Memory allocation failed");
                 return MOBI_MALLOC_FAILED;
             }
@@ -621,6 +634,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
             ret = mobi_parse_index_entry(indx, idxt, tagx, ordt, buf, i++);
             if (ret != MOBI_SUCCESS) {
                 buffer_free_null(buf);
+                free(offsets);
                 return ret;
             }
         }
@@ -628,6 +642,7 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
 
     }
     buffer_free_null(buf);
+    free(offsets);
     return MOBI_SUCCESS;
 }
 
