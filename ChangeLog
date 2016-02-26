@@ -1,3 +1,17 @@
+2016-02-26: VERSION 0.2: increased stability, lots of bugs fixed
+2016-02-26: Add Xcode project file
+2016-02-26: Preliminary support for MSVC++ compiler
+2016-02-26: Do not use variable length arrays
+2016-02-26: Refactor mobi_reconstruct_parts() to use MOBIFragment list
+2016-02-26: Fix compiler warning about sign conversion
+2016-02-26: Fix compiler warning about type conversion
+2016-02-26: Check the result of malloc/calloc
+2016-02-26: Fix inconsistent use of const between some definitions and declarations
+2016-02-24: Fix inconsistence between function declaration and definition
+2016-02-24: Fix various potential crashes in case of corrupt input (afl-fuzz)
+2016-02-24: Fix dead code warnings in miniz
+2015-11-26: Export mobi_get_first_resource_record() function
+2015-11-26: Fix: double free on corrupt cdic
 2015-11-02: Update docs
 2015-11-02: Feature: add helper functions to find resources by flow id
 2015-11-02: Feature: export MOBI_NOTSET macro

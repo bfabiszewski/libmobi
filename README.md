@@ -40,6 +40,8 @@ It may serve as an example how to use the library.
     [optionally] $ make test
     $ sudo make install
 
+## Optionally provided Xcode and MSVC++ project files
+
 ## Usage
 - single include file: `#include <mobi.h>`
 - linker flag: `-lmobi`
@@ -48,8 +50,8 @@ It may serve as an example how to use the library.
 - compiler supporting C99
 - zlib (optional, configure --with-zlib=no to use included miniz.c instead)
 - libxml2 (optional, enables OPF handling, configure --with-libxml2=no to disable)
-- tested with gcc (>=4.2.4), clang (llvm >=3.4), sun c (>=5.13)
-- builds on Linux, MacOS X, Windows (MinGW), Solaris
+- tested with gcc (>=4.2.4), clang (llvm >=3.4), sun c (>=5.13), MSVC++ (2015)
+- builds on Linux, MacOS X, Windows (MSVC++, MinGW), Solaris
 - tested architectures: x86, x86-64, arm, ppc
 - works cross-compiled on Kindle :)
 
