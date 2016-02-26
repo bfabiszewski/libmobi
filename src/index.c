@@ -261,7 +261,7 @@ size_t mobi_getstring_ordt(const MOBIOrdt *ordt, MOBIBuffer *buf, unsigned char 
             if (codepoint == uni_replacement) {
                 /* rewind buffer to codepoint2 */
                 debug_print("Invalid ligature sequence%s", "\n");
-                buffer_seek(buf, (int) -k);
+                buffer_seek(buf, - (int) k);
             } else {
                 i += k;
             }
@@ -277,7 +277,7 @@ size_t mobi_getstring_ordt(const MOBIOrdt *ordt, MOBIBuffer *buf, unsigned char 
                 /* illegal unpaired high surrogate */
                 /* rewind buffer to codepoint2 */
                 debug_print("Invalid code point: %u\n", codepoint);
-                buffer_seek(buf, (int) -k);
+                buffer_seek(buf, - (int) k);
                 codepoint = uni_replacement;
             }
         }

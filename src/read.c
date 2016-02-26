@@ -475,7 +475,7 @@ size_t mobi_get_record_extrasize(const MOBIPdbRecord *record, const uint16_t fla
             const uint32_t size = buffer_get_varlen_dec(buf, &len);
             /* skip data */
             /* TODO: read and store in record struct */
-            buffer_seek(buf, (int) -(size - len));
+            buffer_seek(buf, - (int)(size - len));
             extra_size += size;
         }
     };
@@ -515,7 +515,7 @@ size_t mobi_get_record_mb_extrasize(const MOBIPdbRecord *record, const uint16_t 
                 const uint32_t size = buffer_get_varlen_dec(buf, &len);
                 /* skip data */
                 /* TODO: read and store in record struct */
-                buffer_seek(buf, (int) -(size - len));
+                buffer_seek(buf, - (int)(size - len));
             }
         };
         /* read multibyte section */
