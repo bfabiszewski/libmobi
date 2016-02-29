@@ -456,7 +456,7 @@ MOBI_RET mobi_get_aid_by_offset(char *aid, const MOBIPart *html, const size_t of
     }
     const unsigned char *data = html->data;
     data += offset;
-    size_t length = html->size - offset + 1;
+    size_t length = html->size - offset;
     
     size_t off = mobi_get_attribute_value(aid, data, length, "aid", true);
     if (off == SIZE_MAX) {
@@ -484,7 +484,7 @@ MOBI_RET mobi_get_id_by_offset(char *id, const MOBIPart *html, const size_t offs
     }
     const unsigned char *data = html->data;
     data += offset;
-    size_t length = html->size - offset + 1;
+    size_t length = html->size - offset;
     
     size_t off = mobi_get_attribute_value(id, data, length, "id", true);
     if (off == SIZE_MAX) {
