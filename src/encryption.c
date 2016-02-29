@@ -396,7 +396,7 @@ MOBI_RET mobi_decrypt(unsigned char *out, const unsigned char *in, const size_t 
  */
 static MOBI_RET mobi_drm_pidverify(const unsigned char *pid) {
     char map[] = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
-    uint8_t map_length = sizeof(map);
+    uint8_t map_length = sizeof(map) - 1;
     uint32_t crc = (uint32_t) ~m_crc32(0xffffffff, pid, PIDSIZE - 2);
     crc ^= (crc >> 16);
     char checksum[2];
