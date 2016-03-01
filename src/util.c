@@ -26,7 +26,7 @@
 #include "encryption.h"
 #endif
 
-#ifdef USE_LIBXML2
+#ifdef USE_XMLWRITER
 #include "opf.h"
 #endif
 
@@ -76,6 +76,44 @@ const char * mobi_version(void) {
 #define PACKAGE_VERSION "0.2"
 #endif
     return PACKAGE_VERSION;
+}
+
+/**
+ @brief Convert unicode codepoint to utf-8 sequence
+ 
+ @param[in,out] output Output string
+ @param[in] codepoint Unicode codepoint
+ @return Length of utf-8 sequence (maximum 4 bytes), zero on failure
+ */
+uint8_t mobi_unicode_to_utf8(char *output, const size_t codepoint) {
+    if (!output) {
+        return 0;
+    }
+    unsigned char *bytes = (unsigned char *) output;
+    
+    if (codepoint < 0x80) {
+        bytes[0] = (unsigned char) codepoint;
+        return 1;
+    }
+    if (codepoint < 0x800) {
+        bytes[1] = (unsigned char) ((2 << 6) | (codepoint & 0x3f));
+        bytes[0] = (unsigned char) ((6 << 5) | (codepoint >> 6));
+        return 2;
+    }
+    if (codepoint < 0x10000) {
+        bytes[2] = (unsigned char) ((2 << 6) | ( codepoint & 0x3f));
+        bytes[1] = (unsigned char) ((2 << 6) | ((codepoint >> 6) & 0x3f));
+        bytes[0] = (unsigned char) ((14 << 4) |  (codepoint >> 12));
+        return 3;
+    }
+    if (codepoint < 0x11000) {
+        bytes[3] = (unsigned char) ((2 << 6) | (codepoint & 0x3f));
+        bytes[2] = (unsigned char) ((2 << 6) | ((codepoint >> 6) & 0x3f));
+        bytes[1] = (unsigned char) ((2 << 6) | ((codepoint >> 12) & 0x3f));
+        bytes[0] = (unsigned char) ((30 << 3) | (codepoint >> 18));
+        return 4;
+    }
+    return 0;
 }
 
 /**
@@ -959,6 +997,117 @@ uint32_t mobi_decode_exthvalue(const unsigned char *data, const size_t size) {
     return val;
 }
 
+#define MOBI_UTF8_MAXBYTES 4
+/**
+ @brief Html entity mapping to utf-8 sequence
+ */
+typedef struct {
+    const char *name; /**< Html entity name */
+    const char utf8_bytes[MOBI_UTF8_MAXBYTES + 1]; /**< Utf-8 sequence */
+} HTMLEntity;
+
+/**
+ @brief Basic named html entities mapping to utf-8 sequences
+ */
+const HTMLEntity entities[] = {
+    { "&quot;", "\"" },
+    { "&amp;", "&" },
+    { "&lt;", "<" },
+    { "&gt;", ">" },
+    { "&apos;", "'" },
+    { "&nbsp;", "\xc2\xa0" },
+    { "&copy;", "\xc2\a9" },
+    { "&reg;", "\xc2\xae" },
+    { "&cent;", "\xc2\xa2" },
+    { "&pound;", "\xc2\xa3" },
+    { "&sect;", "\xc2\xa7" },
+    { "&laquo;", "\xc2\xab" },
+    { "&raquo;", "\xc2\xbb" },
+    { "&deg;", "\xc2\xb0" },
+    { "&plusmn;", "\xc2\xb1" },
+    { "&middot;", "\xc2\xb7" },
+    { "&frac12;", "\xc2\xbd" },
+    { "&ndash;", "\xe2\x80\x93" },
+    { "&mdash;", "\xe2\x80\x94" },
+    { "&lsquo;", "\xe2\x80\x98" },
+    { "&sbquo;", "\xe2\x80\x9a" },
+    { "&ldquo;", "\xe2\x80\x9c" },
+    { "&rdquo;", "\xe2\x80\x9d" },
+    { "&bdquo;", "\xe2\x80\x9e" },
+    { "&dagger;", "\xe2\x80\xa0" },
+    { "&Dagger;", "\xe2\x80\xa1" },
+    { "&bull;", "\xe2\x80\xa2" },
+    { "&hellip;", "\xe2\x80\xa6" },
+    { "&prime;", "\xe2\x80\xb2" },
+    { "&Prime;", "\xe2\x80\xb3" },
+    { "&euro;", "\xe2\x82\xac" },
+    { "&trade;", "\xe2\x84\xa2" }
+};
+
+/**
+ @brief Convert html entities in string to utf-8 characters
+ 
+ @param[in] input Input string
+ @return Converted string
+ */
+char * mobi_decode_htmlentities(const char *input) {
+    if (!input) {
+        return NULL;
+    }
+    const size_t codepoint_max = 0x10ffff;
+    size_t output_length = strlen(input) + 1;
+    char *in = (char *) input;
+    /* output size will be less or equal to input */
+    char *output = malloc(output_length);
+    char *out = output;
+    if (output == NULL) {
+        debug_print("Memory allocation failed (%zu bytes)\n", output_length);
+        return NULL;
+    }
+    char *offset = in;
+    while ((in = strchr(in, '&'))) {
+        size_t decoded_length = 0;
+        char *end = NULL;
+        char decoded[MOBI_UTF8_MAXBYTES + 1] = { 0 };
+        if (in[1] == '#' && (in[2] == 'x' || in[2] == 'X')) {
+            // hex entity
+            size_t codepoint = strtoul(in + 3, &end, 16);
+            if (*end++ == ';' && codepoint <= codepoint_max) {
+                decoded_length = mobi_unicode_to_utf8(decoded, codepoint);
+            }
+        } else if (in[1] == '#') {
+            // dec entity
+            size_t codepoint = strtoul(in + 2, &end, 10);
+            if (*end++ == ';' && codepoint <= codepoint_max) {
+                decoded_length = mobi_unicode_to_utf8(decoded, codepoint);
+            }
+        } else {
+            // named entity
+            for (size_t i = 0; i < (sizeof(entities)/sizeof(entities[0])); i++) {
+                if (strncmp(in, entities[i].name, strlen(entities[i].name)) == 0) {
+                    int ret = snprintf(decoded, MOBI_UTF8_MAXBYTES + 1, "%s", entities[i].utf8_bytes);
+                    if (ret > 0) {
+                        decoded_length = (size_t) ret;
+                        end = in + strlen(entities[i].name);
+                        break;
+                    }
+                }
+            }
+        }
+        if (decoded_length) {
+            size_t len = (size_t) (in - offset);
+            memcpy(out, offset, len);
+            offset = end;
+            out += len;
+            memcpy(out, decoded, decoded_length);
+            out += decoded_length;
+        }
+        in += decoded_length + 1;
+    }
+    strcpy(out, offset);
+    return output;
+}
+
 /**
  @brief Decode string stored in EXTH record
  
@@ -991,7 +1140,13 @@ char * mobi_decode_exthstring(const MOBIData *m, const unsigned char *data, cons
         out_length = size;
     }
     exth_string[out_length] = '\0';
-    return exth_string;
+    char *exth_decoded = mobi_decode_htmlentities(exth_string);
+    if (exth_decoded != NULL) {
+        free(exth_string);
+        return exth_decoded;
+    } else {
+        return exth_string;
+    }
 }
 
 /**
