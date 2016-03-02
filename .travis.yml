@@ -21,6 +21,8 @@ before_install:
 script:
 - ./autogen.sh
 - ./configure --enable-debug && make && make test
+- make clean
+- ./configure --with-zlib=no --with-libxml2=no && make && make test
 
 env:
   global:
