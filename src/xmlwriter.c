@@ -11,6 +11,11 @@
  * Implements a simplified subset of libxml2 functions used in libmobi.
  */
 
+#define _GNU_SOURCE 1
+#ifndef __USE_BSD
+#define __USE_BSD /* for strdup on linux/glibc */
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include "xmlwriter.h"
