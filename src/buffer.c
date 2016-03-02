@@ -66,6 +66,30 @@ MOBIBuffer * buffer_init_null(const size_t len) {
 }
 
 /**
+ @brief Resize buffer
+ 
+ Smaller size than offset will cause data truncation.
+ 
+ @param[in,out] buf MOBIBuffer structure to be filled with data
+ @param[in] newlen New buffer size
+ */
+void buffer_resize(MOBIBuffer *buf, const size_t newlen) {
+    unsigned char *tmp = realloc(buf->data, newlen);
+    if (tmp == NULL) {
+        debug_print("%s", "Buffer allocation failed\n");
+        buf->error = MOBI_MALLOC_FAILED;
+        return;
+    }
+    buf->data = tmp;
+    buf->maxlen = newlen;
+    if (buf->offset >= newlen) {
+        buf->offset = newlen - 1;
+    }
+    debug_print("Buffer successfully resized to %zu\n", newlen);
+    buf->error = MOBI_SUCCESS;
+}
+
+/**
  @brief Adds 8-bit value to MOBIBuffer
  
  @param[in,out] buf MOBIBuffer structure to be filled with data
@@ -77,7 +101,7 @@ void buffer_add8(MOBIBuffer *buf, const uint8_t data) {
         buf->error = MOBI_BUFFER_END;
         return;
     }
-	buf->data[buf->offset++] = data;
+    buf->data[buf->offset++] = data;
 }
 
 /**

@@ -59,7 +59,7 @@ extern "C"
         MOBI_MALLOC_FAILED = 7, /**< Memory allocation error */
         MOBI_INIT_FAILED = 8, /**< Initialization error */
         MOBI_BUFFER_END = 9, /**< Out of buffer error */
-        MOBI_XML_ERR = 10, /**< LibXML2 error */
+        MOBI_XML_ERR = 10, /**< XMLwriter error */
         MOBI_DRM_PIDINV = 11,  /**< Invalid DRM PID */
         MOBI_DRM_KEYNOTFOUND = 12,  /**< Key not found */
         MOBI_DRM_UNSUPPORTED = 13, /**< DRM support not included */

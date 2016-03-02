@@ -2066,7 +2066,7 @@ MOBI_RET mobi_parse_rawml_opt(MOBIRawml *rawml, const MOBIData *m, bool parse_to
         return ret;
     }
     if (reconstruct) {
-#ifdef USE_LIBXML2
+#ifdef USE_XMLWRITER
         ret = mobi_build_opf(rawml, m);
         if (ret != MOBI_SUCCESS) {
             return ret;

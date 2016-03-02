@@ -49,7 +49,7 @@ It may serve as an example how to use the library.
 ## Requirements
 - compiler supporting C99
 - zlib (optional, configure --with-zlib=no to use included miniz.c instead)
-- libxml2 (optional, enables OPF handling, configure --with-libxml2=no to disable)
+- libxml2 (optional, configure --with-libxml2=no to use internal xmlwriter)
 - tested with gcc (>=4.2.4), clang (llvm >=3.4), sun c (>=5.13), MSVC++ (2015)
 - builds on Linux, MacOS X, Windows (MSVC++, MinGW), Solaris
 - tested architectures: x86, x86-64, arm, ppc

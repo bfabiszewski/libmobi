@@ -162,7 +162,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_ENCRYPTION;MOBI_DEBUG=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;MOBI_DEBUG=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -180,7 +180,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_ENCRYPTION;MOBI_DEBUG=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;MOBI_DEBUG=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -195,7 +195,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_ENCRYPTION;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -214,7 +214,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_ENCRYPTION;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -229,7 +229,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_ENCRYPTION;MOBI_DEBUG=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;MOBI_DEBUG=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\opt\include\libxml2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -242,7 +242,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_ENCRYPTION;MOBI_DEBUG=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;MOBI_DEBUG=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -254,7 +254,7 @@
       <AdditionalDependencies>libmobi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <PreprocessorDefinitions>USE_ENCRYPTION</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">
@@ -263,12 +263,12 @@
       <AdditionalDependencies>libmobi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <PreprocessorDefinitions>USE_ENCRYPTION</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_ENCRYPTION;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\opt\include\libxml2</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
@@ -278,7 +278,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_ENCRYPTION;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -312,15 +312,15 @@
     </ClCompile>
     <ClCompile Include="src\opf.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|x64'">false</ExcludedFromBuild>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -345,6 +345,14 @@
     <ClCompile Include="src\write.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\xmlwriter.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="tools\getopt.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>
@@ -441,6 +449,14 @@
     <ClInclude Include="src\write.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="src\xmlwriter.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="tools\getopt.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>

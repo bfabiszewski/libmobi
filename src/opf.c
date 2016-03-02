@@ -21,8 +21,12 @@
 /* suppress clang documentation warning for libxml headers */
 #pragma clang diagnostic ignored "-Wdocumentation"
 #endif
+#ifdef USE_LIBXML2
 #include <libxml/encoding.h>
 #include <libxml/xmlwriter.h>
+#else
+#include "xmlwriter.h"
+#endif
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
