@@ -391,9 +391,9 @@ int dump_records(const MOBIData *m, const char *fullpath) {
     split_fullpath(fullpath, dirname, basename);
     char newdir[FILENAME_MAX];
     if (outdir_opt) {
-        sprintf(newdir, "%s%s_records", outdir, basename);
+        snprintf(newdir, sizeof(newdir), "%s%s_records", outdir, basename);
     } else {
-        sprintf(newdir, "%s%s_records", dirname, basename);
+        snprintf(newdir, sizeof(newdir), "%s%s_records", dirname, basename);
     }
     printf("Saving records to %s\n", newdir);
     errno = 0;
@@ -407,7 +407,7 @@ int dump_records(const MOBIData *m, const char *fullpath) {
     int i = 0;
     while (currec != NULL) {
         char name[FILENAME_MAX];
-        sprintf(name, "%s%crecord_%i_uid_%i", newdir, separator, i++, currec->uid);
+        snprintf(name, sizeof(name), "%s%crecord_%i_uid_%i", newdir, separator, i++, currec->uid);
         errno = 0;
         FILE *file = fopen(name, "wb");
         if (file == NULL) {
@@ -433,9 +433,9 @@ int dump_rawml(const MOBIData *m, const char *fullpath) {
     split_fullpath(fullpath, dirname, basename);
     char newdir[FILENAME_MAX];
     if (outdir_opt) {
-        sprintf(newdir, "%s%s.rawml", outdir, basename);
+        snprintf(newdir, sizeof(newdir), "%s%s.rawml", outdir, basename);
     } else {
-        sprintf(newdir, "%s%s.rawml", dirname, basename);
+        snprintf(newdir, sizeof(newdir), "%s%s.rawml", dirname, basename);
     }
     printf("Saving rawml to %s\n", newdir);
     errno = 0;
@@ -469,9 +469,9 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
     split_fullpath(fullpath, dirname, basename);
     char newdir[FILENAME_MAX];
     if (outdir_opt) {
-        sprintf(newdir, "%s%s_markup", outdir, basename);
+        snprintf(newdir, sizeof(newdir), "%s%s_markup", outdir, basename);
     } else {
-        sprintf(newdir, "%s%s_markup", dirname, basename);
+        snprintf(newdir, sizeof(newdir), "%s%s_markup", dirname, basename);
     }
     printf("Saving markup to %s\n", newdir);
     errno = 0;
@@ -486,7 +486,7 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
         MOBIPart *curr = rawml->markup;
         while (curr != NULL) {
             MOBIFileMeta file_meta = mobi_get_filemeta_by_type(curr->type);
-            sprintf(partname, "%s%cpart%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
+            snprintf(partname, sizeof(partname), "%s%cpart%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
             errno = 0;
             FILE *file = fopen(partname, "wb");
             if (file == NULL) {
@@ -514,7 +514,7 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
         curr = curr->next;
         while (curr != NULL) {
             MOBIFileMeta file_meta = mobi_get_filemeta_by_type(curr->type);
-            sprintf(partname, "%s%cflow%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
+            snprintf(partname, sizeof(partname), "%s%cflow%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
             errno = 0;
             FILE *file = fopen(partname, "wb");
             if (file == NULL) {
@@ -542,7 +542,7 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
         while (curr != NULL) {
             MOBIFileMeta file_meta = mobi_get_filemeta_by_type(curr->type);
             if (curr->size > 0) {
-                sprintf(partname, "%s%cresource%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
+                snprintf(partname, sizeof(partname), "%s%cresource%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
                 errno = 0;
                 FILE *file = fopen(partname, "wb");
                 if (file == NULL) {

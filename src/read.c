@@ -707,6 +707,10 @@ MOBI_RET mobi_parse_huffdic(const MOBIData *m, MOBIHuffCdic *huffcdic) {
     curr = curr->next;
     /* allocate memory for symbols data in each CDIC record */
     huffcdic->symbols = malloc((huff_rec_count - 1) * sizeof(*huffcdic->symbols));
+    if (huffcdic->symbols == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
+        return MOBI_MALLOC_FAILED;
+    }
     /* get following CDIC records */
     size_t i = 0;
     while (i < huff_rec_count - 1) {

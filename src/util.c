@@ -1553,8 +1553,8 @@ MOBIFiletype mobi_determine_flowpart_type(const MOBIRawml *rawml, const size_t p
     if (part_number == 0 || mobi_is_rawml_kf8(rawml) == false) {
         return T_HTML;
     }
-    char target[24];
-    sprintf(target, "\"kindle:flow:%04zu?mime=", part_number);
+    char target[30];
+    snprintf(target, 30, "\"kindle:flow:%04zu?mime=", part_number);
     unsigned char *data_start = rawml->flow->data;
     unsigned char *data_end = data_start + rawml->flow->size - 1;
     MOBIResult result;
@@ -1771,6 +1771,11 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
     buffer_setpos(buf, h.data_offset);
     *decoded_size = h.decoded_size;
     *decoded_font = malloc(h.decoded_size);
+    if (*decoded_font == NULL) {
+        buffer_free(buf);
+        debug_print("%s", "Memory allocation failed\n");
+        return MOBI_MALLOC_FAILED;
+    }
     const unsigned char *encoded_font = buf->data + buf->offset;
     const unsigned long encoded_size = buf->maxlen - buf->offset;
     if (h.flags & zlib_flag) {

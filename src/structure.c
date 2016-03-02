@@ -335,6 +335,10 @@ MOBI_RET mobi_btree_insert(MOBIBtree **node, char *key, char *value) {
         (*node)->key = key;
         (*node)->value_count = 1;
         (*node)->array = malloc(sizeof(*(*node)->array));
+        if ((*node)->array == NULL) {
+            free(*node);
+            return MOBI_MALLOC_FAILED;
+        }
         (*node)->array[0] = value;
         (*node)->left = NULL;
         (*node)->right = NULL;

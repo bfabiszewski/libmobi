@@ -577,6 +577,11 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
             if (index_name_length <= header_length - index_name_offset && index_name_length < INDX_NAME_SIZEMAX) {
                 buffer_setpos(buf, index_name_offset);
                 char *name = malloc(index_name_length + 1);
+                if (name == NULL) {
+                    debug_print("%s", "Memory allocation failed\n");
+                    buffer_free_null(buf);
+                    return MOBI_MALLOC_FAILED;
+                }
                 buffer_getstring(name, buf, index_name_length);
                 indx->orth_index_name = name;
                 debug_print("Orth index name: %s\n", name);

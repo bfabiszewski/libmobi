@@ -731,6 +731,10 @@ MOBI_RET mobi_reconstruct_flow(MOBIRawml *rawml, const char *text, const size_t 
             debug_print("%s", "Print Replica book\n");
             /* print replica */
             unsigned char *pdf = malloc(length);
+            if (pdf == NULL) {
+                debug_print("%s", "Memory allocation for flow part failed\n");
+                return MOBI_MALLOC_FAILED;
+            }
             section_length = length;
             section_type = T_PDF;
             const MOBI_RET ret = mobi_process_replica(pdf, text, &section_length);
@@ -1286,9 +1290,14 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
         MOBIPart *part = parts[i];
         while (part) {
             if (partdata && part->uid == partdata->part_uid && i == partdata->part_group) {
-                unsigned char *new_data = malloc(partdata->size);
-                unsigned char *data_out = new_data;
                 MOBIFragment *fragdata = partdata->list;
+                unsigned char *new_data = malloc(partdata->size);
+                if (new_data == NULL) {
+                    mobi_list_del_all(fragdata);
+                    debug_print("%s\n", "Memory allocation failed");
+                    return MOBI_MALLOC_FAILED;
+                }
+                unsigned char *data_out = new_data;
                 while (fragdata) {
                     memcpy(data_out, fragdata->fragment, fragdata->size);
                     data_out += fragdata->size;
@@ -1530,11 +1539,22 @@ MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size
             entry_length += strlen(infl_tag);
             
             entry_text = malloc(entry_length + 1);
-            sprintf(entry_text, start_tag, label, infl_tag);
+            if (entry_text == NULL) {
+                debug_print("%s\n", "Memory allocation failed");
+                mobi_trie_free(infl_trie);
+                free(infl_tag);
+                return MOBI_MALLOC_FAILED;
+            }
+            snprintf(entry_text, entry_length + 1, start_tag, label, infl_tag);
             free(infl_tag);
         } else {
             entry_text = malloc(entry_length + 1);
-            sprintf(entry_text, start_tag, label, "");
+            if (entry_text == NULL) {
+                debug_print("%s\n", "Memory allocation failed");
+                mobi_trie_free(infl_trie);
+                return MOBI_MALLOC_FAILED;
+            }
+            snprintf(entry_text, entry_length + 1, start_tag, label, "");
         }
         
         if (entry_startpos < prev_startpos) {
@@ -1734,6 +1754,11 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         /* save */
         debug_print("Inserting links%s", "\n");
         unsigned char *new_data = malloc(new_size);
+        if (new_data == NULL) {
+            mobi_list_del_all(first);
+            debug_print("%s\n", "Memory allocation failed");
+            return MOBI_MALLOC_FAILED;
+        }
         unsigned char *data_out = new_data;
         MOBIFragment *fragdata = first;
         while (fragdata) {
