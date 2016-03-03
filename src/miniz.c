@@ -945,6 +945,7 @@ typedef unsigned char mz_validate_uint32[sizeof(mz_uint32)==4 ? 1 : -1];
 typedef unsigned char mz_validate_uint64[sizeof(mz_uint64)==8 ? 1 : -1];
 
 #include <string.h>
+#define NDEBUG
 #include <assert.h>
 
 #define MZ_ASSERT(x) assert(x)
@@ -2411,7 +2412,8 @@ if ((d->m_dict[probe_pos + match_len] == c0) && (d->m_dict[probe_pos + match_len
                         s1 = s_tdefl_large_dist_sym[cur_match_dist >> 8];
                         d->m_huff_count[1][(cur_match_dist < 512) ? s0 : s1]++;
                         
-                        d->m_huff_count[0][s_tdefl_len_sym[cur_match_len - TDEFL_MIN_MATCH_LEN]]++;
+                        if ((cur_match_len - TDEFL_MIN_MATCH_LEN) < sizeof(s_tdefl_len_sym)/sizeof(s_tdefl_len_sym[0]))
+                            d->m_huff_count[0][s_tdefl_len_sym[cur_match_len - TDEFL_MIN_MATCH_LEN]]++;
                     }
                 }
                 else
