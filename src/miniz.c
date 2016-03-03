@@ -929,6 +929,17 @@ extern "C" {
 
 #ifndef MINIZ_HEADER_FILE_ONLY
 
+// Ignore strict-aliasing warning on MinGW gcc
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+// Ignore conversion warnings on clang
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+#endif
+
 typedef unsigned char mz_validate_uint16[sizeof(mz_uint16)==2 ? 1 : -1];
 typedef unsigned char mz_validate_uint32[sizeof(mz_uint32)==4 ? 1 : -1];
 typedef unsigned char mz_validate_uint64[sizeof(mz_uint64)==8 ? 1 : -1];
@@ -2259,12 +2270,7 @@ d->m_huff_count[2][18] = (mz_uint16)(d->m_huff_count[2][18] + 1); packed_code_si
         
         return d->m_output_flush_remaining;
     }
-   
-// Ignore strict-aliasing warning on MinGW gcc
-// Added by libmobi author
-#if defined(__GNUC__)
-#pragma GCC diagnostic ignored "-Wstrict-aliasing" 
-#endif
+
 #if MINIZ_USE_UNALIGNED_LOADS_AND_STORES
 #define TDEFL_READ_UNALIGNED_WORD(p) *(const mz_uint16*)(p)
     static MZ_FORCEINLINE void tdefl_find_match(tdefl_compressor *d, mz_uint lookahead_pos, mz_uint max_dist, mz_uint max_match_len, mz_uint *pMatch_dist, mz_uint *pMatch_len)
@@ -4889,6 +4895,16 @@ if ((d->m_dict[probe_pos + match_len] == c0) && (d->m_dict[probe_pos + match_len
     
 #ifdef __cplusplus
 }
+#endif
+
+
+// Ignore strict-aliasing warning on MinGW gcc
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+// Ignore conversion warnings on clang
+#if defined(__clang__)
+#pragma clang diagnostic pop
 #endif
 
 #endif // MINIZ_HEADER_FILE_ONLY

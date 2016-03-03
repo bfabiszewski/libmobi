@@ -29,6 +29,10 @@
 #ifdef HAVE_CONFIG_H
 # include "../config.h"
 #endif
+/* miniz file is needed for EPUB creation */
+#ifdef USE_XMLWRITER
+# include "../src/miniz.c"
+#endif
 
 #ifdef HAVE_SYS_RESOURCE_H
 /* rusage */
@@ -44,6 +48,12 @@
 #else
 # define PRINT_ENC_USG ""
 # define PRINT_ENC_ARG ""
+#endif
+/* xmlwriter */
+#ifdef USE_XMLWRITER
+# define PRINT_EPUB_ARG "e"
+#else
+# define PRINT_EPUB_ARG ""
 #endif
 /* return codes */
 #define ERROR 1
@@ -77,8 +87,17 @@
 
 #define FULLNAME_MAX 1024
 
+#define EPUB_CONTAINER "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n\
+  <rootfiles>\n\
+    <rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/>\n\
+  </rootfiles>\n\
+</container>"
+#define EPUB_MIMETYPE "application/epub+zip"
+
 /* command line options */
 int dump_rawml_opt = 0;
+int create_epub_opt = 0;
 int print_rec_meta_opt = 0;
 int dump_rec_opt = 0;
 int parse_kf7_opt = 0;
@@ -480,6 +499,62 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
         printf("Creating directory failed (%s)\n", strerror(errsv));
         return ERROR;
     }
+    if (create_epub_opt) {
+        /* create META_INF directory */
+        char opfdir[FILENAME_MAX];
+        snprintf(opfdir, sizeof(newdir), "%s%c%s", newdir, separator, "META-INF");
+        errno = 0;
+        if (mt_mkdir(opfdir) != 0 && errno != EEXIST) {
+            int errsv = errno;
+            printf("Creating META-INF directory failed (%s)\n", strerror(errsv));
+            return ERROR;
+        }
+        /* create container.xml */
+        char container[FILENAME_MAX];
+        snprintf(container, sizeof(container), "%s%c%s", opfdir, separator, "container.xml");
+        FILE *file = fopen(container, "wb");
+        if (file == NULL) {
+            int errsv = errno;
+            printf("Could not open file for writing: %s (%s)\n", container, strerror(errsv));
+            return ERROR;
+        }
+        errno = 0;
+        fwrite(EPUB_CONTAINER, 1, sizeof(EPUB_CONTAINER) - 1, file);
+        if (ferror(file)) {
+            int errsv = errno;
+            printf("Error writing: %s (%s)\n", container, strerror(errsv));
+            fclose(file);
+            return ERROR;
+        }
+        fclose(file);
+        /* create mimetype file */
+        snprintf(container, sizeof(container), "%s%c%s", newdir, separator, "mimetype");
+        file = fopen(container, "wb");
+        if (file == NULL) {
+            int errsv = errno;
+            printf("Could not open file for writing: %s (%s)\n", container, strerror(errsv));
+            return ERROR;
+        }
+        errno = 0;
+        fwrite(EPUB_MIMETYPE, 1, sizeof(EPUB_MIMETYPE) - 1, file);
+        if (ferror(file)) {
+            int errsv = errno;
+            printf("Error writing: %s (%s)\n", container, strerror(errsv));
+            fclose(file);
+            return ERROR;
+        }
+        fclose(file);
+        /* create OEBPS directory */
+        snprintf(opfdir, sizeof(opfdir), "%s%c%s", newdir, separator, "OEBPS");
+        errno = 0;
+        if (mt_mkdir(opfdir) != 0 && errno != EEXIST) {
+            int errsv = errno;
+            printf("Creating OEBPS directory failed (%s)\n", strerror(errsv));
+            return ERROR;
+        }
+        /* output everything else to OEBPS dir */
+        strcpy(newdir, opfdir);
+    }
     char partname[FILENAME_MAX];
     if (rawml->markup != NULL) {
         /* Linked list of MOBIPart structures in rawml->markup holds main text files */
@@ -536,13 +611,17 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
         }
     }
     if (rawml->resources != NULL) {
-        /* Linked list of MOBIPart structures in rawml->resources holds binary files */
+        /* Linked list of MOBIPart structures in rawml->resources holds binary files, also opf files */
         MOBIPart *curr = rawml->resources;
-        /* jpg, gif, png, bmp, font, audio, video */
+        /* jpg, gif, png, bmp, font, audio, video also opf, ncx */
         while (curr != NULL) {
             MOBIFileMeta file_meta = mobi_get_filemeta_by_type(curr->type);
             if (curr->size > 0) {
-                snprintf(partname, sizeof(partname), "%s%cresource%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
+                if (create_epub_opt && file_meta.type == T_OPF) {
+                    snprintf(partname, sizeof(partname), "%s%ccontent.opf", newdir, separator);
+                } else {
+                    snprintf(partname, sizeof(partname), "%s%cresource%05zu.%s", newdir, separator, curr->uid, file_meta.extension);
+                }
                 errno = 0;
                 FILE *file = fopen(partname, "wb");
                 if (file == NULL) {
@@ -550,7 +629,11 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
                     printf("Could not open file for writing: %s (%s)\n", partname, strerror(errsv));
                     return ERROR;
                 }
-                printf("resource%05zu.%s\n", curr->uid, file_meta.extension);
+                if (create_epub_opt && file_meta.type == T_OPF) {
+                    printf("content.opf\n");
+                } else {
+                    printf("resource%05zu.%s\n", curr->uid, file_meta.extension);
+                }
                 errno = 0;
                 fwrite(curr->data, 1, curr->size, file);
                 if (ferror(file)) {
@@ -567,6 +650,124 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
     return SUCCESS;
 }
 
+#ifdef USE_XMLWRITER
+/**
+ @brief Bundle recreated source files into EPUB container
+ 
+ This function is a simple example.
+ In real world implementation one should validate and correct all input
+ markup to check if it conforms to OPF and HTML specifications and 
+ correct all the issues.
+ 
+ @param[in] rawml MOBIRawml structure holding parsed records
+ @param[in] fullpath File path will be parsed to build basenames of dumped records
+ */
+int create_epub(const MOBIRawml *rawml, const char *fullpath) {
+    if (rawml == NULL) {
+        printf("Rawml structure not initialized\n");
+        return ERROR;
+    }
+    char dirname[FILENAME_MAX];
+    char basename[FILENAME_MAX];
+    split_fullpath(fullpath, dirname, basename);
+    char zipfile[FILENAME_MAX];
+    if (outdir_opt) {
+        snprintf(zipfile, sizeof(zipfile), "%s%s.epub", outdir, basename);
+    } else {
+        snprintf(zipfile, sizeof(zipfile), "%s%s.epub", dirname, basename);
+    }
+    printf("Saving EPUB to %s\n", zipfile);
+    /* create zip (epub) archive */
+    mz_zip_archive zip;
+    memset(&zip, 0, sizeof(mz_zip_archive));
+    mz_bool mz_ret = mz_zip_writer_init_file(&zip, zipfile, 0);
+    if (!mz_ret) {
+        printf("Could not initialize zip archive\n");
+        return ERROR;
+    }
+    /* start adding files to archive */
+    mz_ret = mz_zip_writer_add_mem(&zip, "mimetype", EPUB_MIMETYPE, sizeof(EPUB_MIMETYPE) - 1, MZ_NO_COMPRESSION);
+    if (!mz_ret) {
+        printf("Could not add mimetype\n");
+        mz_zip_writer_end(&zip);
+        return ERROR;
+    }
+    mz_ret = mz_zip_writer_add_mem(&zip, "META-INF/container.xml", EPUB_CONTAINER, sizeof(EPUB_CONTAINER) - 1, (mz_uint)MZ_DEFAULT_COMPRESSION);
+    if (!mz_ret) {
+        printf("Could not add container.xml\n");
+        mz_zip_writer_end(&zip);
+        return ERROR;
+    }
+    char partname[FILENAME_MAX];
+    if (rawml->markup != NULL) {
+        /* Linked list of MOBIPart structures in rawml->markup holds main text files */
+        MOBIPart *curr = rawml->markup;
+        while (curr != NULL) {
+            MOBIFileMeta file_meta = mobi_get_filemeta_by_type(curr->type);
+            snprintf(partname, sizeof(partname), "OEBPS/part%05zu.%s", curr->uid, file_meta.extension);
+            mz_ret = mz_zip_writer_add_mem(&zip, partname, curr->data, curr->size, (mz_uint) MZ_DEFAULT_COMPRESSION);
+            if (!mz_ret) {
+                printf("Could not add file to archive: %s\n", partname);
+                mz_zip_writer_end(&zip);
+                return ERROR;
+            }
+            curr = curr->next;
+        }
+    }
+    if (rawml->flow != NULL) {
+        /* Linked list of MOBIPart structures in rawml->flow holds supplementary text files */
+        MOBIPart *curr = rawml->flow;
+        /* skip raw html file */
+        curr = curr->next;
+        while (curr != NULL) {
+            MOBIFileMeta file_meta = mobi_get_filemeta_by_type(curr->type);
+            snprintf(partname, sizeof(partname), "OEBPS/flow%05zu.%s", curr->uid, file_meta.extension);
+            mz_ret = mz_zip_writer_add_mem(&zip, partname, curr->data, curr->size, (mz_uint) MZ_DEFAULT_COMPRESSION);
+            if (!mz_ret) {
+                printf("Could not add file to archive: %s\n", partname);
+                mz_zip_writer_end(&zip);
+                return ERROR;
+            }
+            curr = curr->next;
+        }
+    }
+    if (rawml->resources != NULL) {
+        /* Linked list of MOBIPart structures in rawml->resources holds binary files, also opf files */
+        MOBIPart *curr = rawml->resources;
+        /* jpg, gif, png, bmp, font, audio, video, also opf, ncx */
+        while (curr != NULL) {
+            MOBIFileMeta file_meta = mobi_get_filemeta_by_type(curr->type);
+            if (curr->size > 0) {
+                if (file_meta.type == T_OPF) {
+                    snprintf(partname, sizeof(partname), "OEBPS/content.opf");
+                } else {
+                    snprintf(partname, sizeof(partname), "OEBPS/resource%05zu.%s", curr->uid, file_meta.extension);
+                }
+                mz_ret = mz_zip_writer_add_mem(&zip, partname, curr->data, curr->size, (mz_uint) MZ_DEFAULT_COMPRESSION);
+                if (!mz_ret) {
+                    printf("Could not add file to archive: %s\n", partname);
+                    mz_zip_writer_end(&zip);
+                    return ERROR;
+                }
+            }
+            curr = curr->next;
+        }
+    }
+    /* Finalize epub archive */
+    mz_ret = mz_zip_writer_finalize_archive(&zip);
+    if (!mz_ret) {
+        printf("Could not finalize zip archive\n");
+        mz_zip_writer_end(&zip);
+        return ERROR;
+    }
+    mz_ret = mz_zip_writer_end(&zip);
+    if (!mz_ret) {
+        printf("Could not finalize zip writer\n");
+        return ERROR;
+    }
+    return SUCCESS;
+}
+#endif
 
 /**
  @brief Main routine that calls optional subroutines
@@ -639,7 +840,7 @@ int loadfilename(const char *fullpath) {
     if (dump_rawml_opt) {
         printf("\nDumping rawml...\n");
         ret = dump_rawml(m, fullpath);
-    } else if (dump_parts_opt) {
+    } else if (dump_parts_opt || create_epub_opt) {
         printf("\nReconstructing source resources...\n");
         /* Initialize MOBIRawml structure */
         /* This structure will be filled with parsed records data */
@@ -658,11 +859,22 @@ int loadfilename(const char *fullpath) {
             mobi_free_rawml(rawml);
             return ERROR;
         }
-        printf("\ndumping resources...\n");
-        /* Save parts to files */
-        ret = dump_rawml_parts(rawml, fullpath);
-        if (ret != SUCCESS) {
-            printf("Dumping parts failed\n");
+        if (create_epub_opt && !dump_parts_opt) {
+#ifdef USE_XMLWRITER
+            printf("\nCreating EPUB...\n");
+            /* Create epub file */
+            ret = create_epub(rawml, fullpath);
+            if (ret != SUCCESS) {
+                printf("Creating EPUB failed\n");
+            }
+#endif
+        } else {
+            printf("\nDumping resources...\n");
+            /* Save parts to files */
+            ret = dump_rawml_parts(rawml, fullpath);
+            if (ret != SUCCESS) {
+                printf("Dumping parts failed\n");
+            }
         }
         /* Free MOBIRawml structure */
         mobi_free_rawml(rawml);
@@ -677,9 +889,12 @@ int loadfilename(const char *fullpath) {
  @param[in] progname Executed program name
  */
 void usage(const char *progname) {
-    printf("usage: %s [-dmrs" PRINT_RUSAGE_ARG "v7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
+    printf("usage: %s [-d" PRINT_EPUB_ARG "mrs" PRINT_RUSAGE_ARG "v7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
     printf("       without arguments prints document metadata and exits\n");
     printf("       -d      dump rawml text record\n");
+#ifdef USE_XMLWRITER
+    printf("       -e      create EPUB file (with -s will dump EPUB source)\n");
+#endif
     printf("       -m      print records metadata\n");
     printf("       -o dir  save output to dir folder\n");
 #ifdef USE_ENCRYPTION
@@ -703,11 +918,16 @@ int main(int argc, char *argv[]) {
     }
     opterr = 0;
     int c;
-    while((c = getopt(argc, argv, "dmo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "v7")) != -1)
+    while((c = getopt(argc, argv, "d" PRINT_EPUB_ARG "mo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "v7")) != -1)
         switch(c) {
             case 'd':
                 dump_rawml_opt = 1;
                 break;
+#ifdef USE_XMLWRITER
+            case 'e':
+                create_epub_opt = 1;
+                break;
+#endif
             case 'm':
                 print_rec_meta_opt = 1;
                 break;

@@ -3,7 +3,7 @@
 .\"man mdoc.samples for a complete listing of options
 .\"man mdoc for the short list of editing options
 .\"/usr/share/misc/mdoc.template
-.Dd November 22, 2014              \" DATE
+.Dd March 3, 2016              \" DATE
 .Dt mobitool 1 URM     \" Program name and manual section number
 .Os Unix
 .Sh NAME                 \" Section Header - required - don't modify 
@@ -14,7 +14,13 @@
 .Nd Utility for handling MOBI format ebook files.
 .Sh SYNOPSIS             \" Section Header - required - don't modify
 .Nm
-.Op Fl dmrsu7            \" [-dmrsu7]
+.if '@XMLWRITER_OPT@'yes' .ig
+.Op Fl dmrsuv7            \" [-dmrsuv7]
+..
+.if !'@XMLWRITER_OPT@'yes' .ig
+.Op Fl demrsuv7            \" [-demrsuv7]
+..
+.Op Fl o Ar dir          \" [-o dir]
 .if !'@ENCRYPTION_OPT@'yes' .ig
 .Op Fl p Ar pid          \" [-p pid]
 ..
@@ -30,8 +36,14 @@ A list of flags and their descriptions:
 .Bl -tag -width -indent
 .It Fl d
 dump rawml text record
+.if !'@XMLWRITER_OPT@'yes' .ig
+.It Fl e
+convert mobi to epub
+..
 .It Fl m
 print records metadata
+.It Fl o Ar dir
+save output to dir folder
 .if !'@ENCRYPTION_OPT@'yes' .ig
 .It Fl p Ar pid
 set pid for decryption
@@ -41,17 +53,21 @@ dump raw records
 .It Fl s
 dump recreated source files
 .It Fl u
-show version
-.It Fl u
+show rusage (diagnostics)
+.It Fl v
 show version and exit
 .It Fl 7
 parse KF7 part of hybrid file (by default KF8 part is parsed)
 .El                      \" Ends the list
 .Pp
 .Sh EXAMPLES
-The following command decompiles given mobi document.
+The following command decompiles given mobi document. The output folder will be created in /tmp.
 .Pp
-.Dl "mobitool -s example.mobi"
+.Dl "mobitool -s -o /tmp example.mobi"
+.Pp
+The following command converts mobi document to epub format.
+.Pp
+.Dl "mobitool -e example.mobi"
 .Sh RETURN VALUES
 The
 .Nm mobitool
@@ -63,7 +79,7 @@ utility returns 0 on success, 1 on error.
 .\"library
 .\".El                      \" Ends the list
 .Sh COPYRIGHT
-Copyright (C) 2014 Bartek Fabiszewski.
+Copyright (C) 2014-2016 Bartek Fabiszewski.
 .Pp
 Released under LGPL version 3 or any later (same as libmobi).
 .Sh WEB SITE

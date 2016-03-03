@@ -21,7 +21,6 @@ It may serve as an example how to use the library.
 ## Todo:
 - writing MOBI documents
 - process RESC records
-- exporting to EPUB documents
 
 ## Doxygen documentation:
 - [functions](http://www.fabiszewski.net/libmobi/group__mobi__export.html),
@@ -45,6 +44,64 @@ It may serve as an example how to use the library.
 ## Usage
 - single include file: `#include <mobi.h>`
 - linker flag: `-lmobi`
+- basic usage:
+```c
+#include <mobi.h>
+
+/* Initialize main MOBIData structure */
+/* Must be deallocated with mobi_free() when not needed */
+MOBIData *m = mobi_init();
+if (m == NULL) { 
+  return ERROR; 
+}
+
+/* Open file for reading */
+FILE *file = fopen(fullpath, "rb");
+if (file == NULL) {
+  mobi_free(m);
+  return ERROR;
+}
+
+/* Load file into MOBIData structure */
+/* This structure will hold raw data/metadata from mobi document */
+MOBI_RET mobi_ret = mobi_load_file(m, file);
+fclose(file);
+if (mobi_ret != MOBI_SUCCESS) { 
+  mobi_free(m);
+  return ERROR;
+}
+
+/* Initialize MOBIRawml structure */
+/* Must be deallocated with mobi_free_rawml() when not needed */
+/* In the next step this structure will be filled with parsed data */
+MOBIRawml *rawml = mobi_init_rawml(m);
+if (rawml == NULL) {
+  mobi_free(m);
+  return ERROR;
+}
+/* Raw data from MOBIData will be converted to html, css, fonts, media resources */
+/* Parsed data will be available in MOBIRawml structure */
+mobi_ret = mobi_parse_rawml(rawml, m);
+if (mobi_ret != MOBI_SUCCESS) {
+  mobi_free(m);
+  mobi_free_rawml(rawml);
+  return ERROR;
+}
+
+/* Do something useful here */
+/* ... */
+/* For examples how to access data in MOBIRawml structure see mobitool.c */
+
+/* Free MOBIRawml structure */
+mobi_free_rawml(rawml);
+
+/* Free MOBIData structure */
+mobi_free(m);
+
+return SUCCESS;
+```
+- for examples of usage, see [mobitool.c](https://github.com/bfabiszewski/libmobi/tree/public/tools)
+
 
 ## Requirements
 - compiler supporting C99

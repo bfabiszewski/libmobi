@@ -141,6 +141,7 @@ AC_DEFINE_UNQUOTED([MOBI_INLINE], [$def_inline],
 
 
 # Check --enable-xmlwriter
+XMLWRITER_OPT=""
 AC_MSG_CHECKING([whether enable xmlwriter (for opf support)])
 AC_ARG_ENABLE([xmlwriter],
 AS_HELP_STRING([--enable-xmlwriter],
@@ -185,8 +186,10 @@ if test x$xmlwriter = xyes; then
     fi
     AC_SUBST(LIBXML2_LDFLAGS)
     AC_SUBST(LIBXML2_CFLAGS)
+    XMLWRITER_OPT="yes"
 fi
 AM_CONDITIONAL(USE_LIBXML2,[test x$use_libxml2 = xyes])
+AC_SUBST(XMLWRITER_OPT)
 
 # Check --enable-encryption
 ENCRYPTION_OPT=""
