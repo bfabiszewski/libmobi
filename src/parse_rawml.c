@@ -23,7 +23,9 @@
 #include "structure.h"
 #include "index.h"
 #include "debug.h"
-
+#if defined(__BIONIC__) && !defined(SIZE_MAX)
+#include <limits.h> /* for SIZE_MAX */
+#endif
 
 /**
  @brief Convert kindle:pos:fid:x:off:y to offset in rawml raw text file

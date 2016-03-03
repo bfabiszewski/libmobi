@@ -13,6 +13,9 @@
 #include <string.h>
 #include "structure.h"
 #include "debug.h"
+#if defined(__BIONIC__) && !defined(SIZE_MAX)
+#include <limits.h> /* for SIZE_MAX */
+#endif
 
 /**
  @brief Initializer for MOBIArray structure
