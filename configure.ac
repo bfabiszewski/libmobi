@@ -42,8 +42,6 @@ AC_TYPE_UINT8_T
 
 # Checks for library functions.
 AC_FUNC_MKTIME
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memmove memset mkdir strdup strpbrk strrchr strstr strtoul utime])
 
 # Check for oracle solaris studio c compiler
