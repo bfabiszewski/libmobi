@@ -4271,6 +4271,8 @@ if ((d->m_dict[probe_pos + match_len] == c0) && (d->m_dict[probe_pos + match_len
     
     mz_bool mz_zip_writer_add_mem_ex(mz_zip_archive *pZip, const char *pArchive_name, const void *pBuf, size_t buf_size, const void *pComment, mz_uint16 comment_size, mz_uint level_and_flags, mz_uint64 uncomp_size, mz_uint32 uncomp_crc32)
     {
+        if (!pZip)
+            return MZ_FALSE;
         mz_uint16 method = 0, dos_time = 0, dos_date = 0;
         mz_uint level, ext_attributes = 0, num_alignment_padding_bytes;
         mz_uint64 local_dir_header_ofs = pZip->m_archive_size, cur_archive_file_ofs = pZip->m_archive_size, comp_size = 0;
@@ -4285,7 +4287,7 @@ if ((d->m_dict[probe_pos + match_len] == c0) && (d->m_dict[probe_pos + match_len
         level = level_and_flags & 0xF;
         store_data_uncompressed = ((!level) || (level_and_flags & MZ_ZIP_FLAG_COMPRESSED_DATA));
         
-        if ((!pZip) || (!pZip->m_pState) || (pZip->m_zip_mode != MZ_ZIP_MODE_WRITING) || ((buf_size) && (!pBuf)) || (!pArchive_name) || ((comment_size) && (!pComment)) || (pZip->m_total_files == 0xFFFF) || (level > MZ_UBER_COMPRESSION))
+        if ((!pZip->m_pState) || (pZip->m_zip_mode != MZ_ZIP_MODE_WRITING) || ((buf_size) && (!pBuf)) || (!pArchive_name) || ((comment_size) && (!pComment)) || (pZip->m_total_files == 0xFFFF) || (level > MZ_UBER_COMPRESSION))
             return MZ_FALSE;
         
         pState = pZip->m_pState;
@@ -4422,6 +4424,8 @@ if ((d->m_dict[probe_pos + match_len] == c0) && (d->m_dict[probe_pos + match_len
 #ifndef MINIZ_NO_STDIO
     mz_bool mz_zip_writer_add_file(mz_zip_archive *pZip, const char *pArchive_name, const char *pSrc_filename, const void *pComment, mz_uint16 comment_size, mz_uint level_and_flags)
     {
+        if (!pZip)
+            return MZ_FALSE;
         mz_uint uncomp_crc32 = MZ_CRC32_INIT, level, num_alignment_padding_bytes;
         mz_uint16 method = 0, dos_time = 0, dos_date = 0, ext_attributes = 0;
         mz_uint64 local_dir_header_ofs = pZip->m_archive_size, cur_archive_file_ofs = pZip->m_archive_size, uncomp_size = 0, comp_size = 0;
@@ -4433,7 +4437,7 @@ if ((d->m_dict[probe_pos + match_len] == c0) && (d->m_dict[probe_pos + match_len
             level_and_flags = MZ_DEFAULT_LEVEL;
         level = level_and_flags & 0xF;
         
-        if ((!pZip) || (!pZip->m_pState) || (pZip->m_zip_mode != MZ_ZIP_MODE_WRITING) || (!pArchive_name) || ((comment_size) && (!pComment)) || (level > MZ_UBER_COMPRESSION))
+        if ((!pZip->m_pState) || (pZip->m_zip_mode != MZ_ZIP_MODE_WRITING) || (!pArchive_name) || ((comment_size) && (!pComment)) || (level > MZ_UBER_COMPRESSION))
             return MZ_FALSE;
         if (level_and_flags & MZ_ZIP_FLAG_COMPRESSED_DATA)
             return MZ_FALSE;
