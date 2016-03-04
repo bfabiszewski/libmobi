@@ -1161,7 +1161,7 @@ struct tm * mobi_pdbtime_to_time(const long pdb_time) {
     time_t time = pdb_time;
     const uint32_t mactime_flag = (uint32_t) (1U << 31);
     if (time & mactime_flag) {
-        printf("MAC TIME\n");
+        debug_print("%s\n", "mac time");
         time += EPOCH_MAC_DIFF;
     }
     return localtime(&time);

@@ -14,6 +14,7 @@
 
 #include "write.h"
 #include "util.h"
+#include "debug.h"
 
 
 /* 
@@ -76,7 +77,7 @@ MOBIBuffer * serialize_record0_header(void) {
 void buffer_output(FILE *file, MOBIBuffer *buf) {
     if (file) {
         fwrite(buf->data, 1, buf->offset, file);
-        printf("Buffer length %zu bytes\n", buf->offset);
+        debug_print("Buffer length %zu bytes\n", buf->offset);
     }
     buffer_free(buf);
 }
@@ -132,29 +133,29 @@ MOBIBuffer * serialize_file_end(void) {
 void write_mobi(void) {
     FILE *file = fopen("test.mobi","wb");
     if (file == NULL) {
-        printf("Could not open file for writing\n");
+        debug_print("%s\n", "Could not open file for writing");
         return;
     }
     MOBIBuffer *buf = serialize_palmdb_header();
-    printf("Writing palmdb header\n");
+    debug_print("%s\n", "Writing palmdb header");
     buffer_output(file, buf);
     MOBIPdbRecord *rec = build_pdbrecord(PALMDB_HEADER_LEN + PALMDB_RECORD_INFO_SIZE + 2);
     buf = serialize_record_info(rec);
     buf->maxlen += 2;
     buffer_addzeros(buf, 2);
-    printf("Writing record info + 2 zeros\n");
+    debug_print("%s\n", "Writing record info + 2 zeros");
     buffer_output(file, buf);
     buf = serialize_record0_header();
-    printf("Writing record0 header\n");
+    debug_print("%s\n", "Writing record0 header");
     buffer_output(file, buf);
     buf = serialize_pdbrecord(rec);
     /* TODO: improve freeing of rec buffer, see buffer_free */
     free(rec->data);
     free(rec);
-    printf("Writing pdb record\n");
+    debug_print("%s\n", "Writing pdb record");
     buffer_output(file, buf);
     buf = serialize_file_end();
-    printf("Writing 4 end chars\n");
+    debug_print("%s\n", "Writing 4 end chars");
     buffer_output(file, buf);
     
     fclose(file);

@@ -589,7 +589,7 @@ MOBI_RET mobi_reconstruct_resources(const MOBIData *m, MOBIRawml *rawml) {
         if (parts_count > 0) {
             curr_part->next = calloc(1, sizeof(MOBIPart));
             if (curr_part->next == NULL) {
-                debug_print("%s", "Memory allocation for flow part failed\n");
+                debug_print("%s\n", "Memory allocation for flow part failed");
                 return MOBI_MALLOC_FAILED;
             }
             curr_part = curr_part->next;
@@ -602,19 +602,19 @@ MOBI_RET mobi_reconstruct_resources(const MOBIData *m, MOBIRawml *rawml) {
         if (filetype == T_FONT) {
             ret = mobi_add_font_resource(curr_part);
             if (ret != MOBI_SUCCESS) {
-                printf("Decoding font resource failed\n");
+                debug_print("%s\n", "Decoding font resource failed");
                 return ret;
             }
         } else if (filetype == T_AUDIO) {
             ret = mobi_add_audio_resource(curr_part);
             if (ret != MOBI_SUCCESS) {
-                printf("Decoding audio resource failed\n");
+                debug_print("%s\n", "Decoding audio resource failed");
                 return ret;
             }
         } else if (filetype == T_VIDEO) {
             ret = mobi_add_video_resource(curr_part);
             if (ret != MOBI_SUCCESS) {
-                printf("Decoding video resource failed\n");
+                debug_print("%s\n", "Decoding video resource failed");
                 return ret;
             }
         } else {
