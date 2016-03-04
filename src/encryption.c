@@ -329,6 +329,10 @@ MOBI_RET mobi_drm_getkey_v1(unsigned char key[KEYSIZE], const MOBIData *m) {
     /* First record */
     MOBIPdbRecord *rec = m->rec;
     MOBIBuffer *buf = buffer_init_null(rec->size);
+    if (buf == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
+        return MOBI_MALLOC_FAILED;
+    }
     buf->data = rec->data;
     if (strcmp(m->ph->type, "TEXt") == 0 && strcmp(m->ph->creator, "REAd") == 0) {
         /* offset 14 */

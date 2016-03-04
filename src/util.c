@@ -1625,6 +1625,10 @@ MOBI_RET mobi_decode_audio_resource(unsigned char **decoded_resource, size_t *de
         return MOBI_DATA_CORRUPT;
     }
     MOBIBuffer *buf = buffer_init_null(part->size);
+    if (buf == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
+        return MOBI_MALLOC_FAILED;
+    }
     buf->data = part->data;
     char magic[5];
     buffer_getstring(magic, buf, 4);
@@ -1675,6 +1679,10 @@ MOBI_RET mobi_decode_video_resource(unsigned char **decoded_resource, size_t *de
         return MOBI_DATA_CORRUPT;
     }
     MOBIBuffer *buf = buffer_init_null(part->size);
+    if (buf == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
+        return MOBI_MALLOC_FAILED;
+    }
     buf->data = part->data;
     char magic[5];
     buffer_getstring(magic, buf, 4);

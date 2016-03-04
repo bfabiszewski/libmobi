@@ -785,6 +785,10 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
     }
     /* take first part, xhtml */
     MOBIBuffer *buf = buffer_init_null(rawml->flow->size);
+    if (buf == NULL) {
+        debug_print("%s\n", "Memory allocation failed");
+        return MOBI_MALLOC_FAILED;
+    }
     buf->data = rawml->flow->data;
     rawml->markup = calloc(1, sizeof(MOBIPart));
     if (rawml->markup == NULL) {
