@@ -51,6 +51,8 @@
 #define FONT_MAGIC "FONT"
 #define AUDI_MAGIC "AUDI"
 #define VIDE_MAGIC "VIDE"
+#define SRCS_MAGIC "SRCS"
+#define CMET_MAGIC "CMET"
 #define BOUNDARY_MAGIC "BOUNDARY"
 #define EOF_MAGIC "\xe9\x8e\r\n"
 #define REPLICA_MAGIC "%MOP"

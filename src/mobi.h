@@ -488,6 +488,8 @@ extern "C"
     MOBI_EXPORT MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded_size, MOBIPart *part);
     MOBI_EXPORT MOBI_RET mobi_decode_audio_resource(unsigned char **decoded_resource, size_t *decoded_size, MOBIPart *part);
     MOBI_EXPORT MOBI_RET mobi_decode_video_resource(unsigned char **decoded_resource, size_t *decoded_size, MOBIPart *part);
+    MOBI_EXPORT MOBI_RET mobi_get_embedded_source(unsigned char **data, size_t *size, const MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_get_embedded_log(unsigned char **data, size_t *size, const MOBIData *m);
     
     MOBI_EXPORT MOBIPdbRecord * mobi_get_record_by_uid(const MOBIData *m, const size_t uid);
     MOBI_EXPORT MOBIPdbRecord * mobi_get_record_by_seqnumber(const MOBIData *m, const size_t uid);

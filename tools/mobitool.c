@@ -104,6 +104,7 @@ int parse_kf7_opt = 0;
 int dump_parts_opt = 0;
 int print_rusage_opt = 0;
 int outdir_opt = 0;
+int extract_source_opt = 0;
 #ifdef USE_ENCRYPTION
 int setpid_opt = 0;
 #endif
@@ -769,6 +770,88 @@ int create_epub(const MOBIRawml *rawml, const char *fullpath) {
 }
 #endif
 
+int dump_embedded_source(MOBIData *m, const char *fullpath) {
+    /* Try to get embedded source */
+    unsigned char *data = NULL;
+    size_t size = 0;
+    MOBI_RET ret = mobi_get_embedded_source(&data, &size, m);
+    if (ret != MOBI_SUCCESS) {
+        printf("Extracting source from mobi failed\n");
+        return ERROR;
+    }
+    if (data == NULL || size == 0 ) {
+        printf("Source archive not found\n");
+        return SUCCESS;
+    }
+    char dirname[FILENAME_MAX];
+    char basename[FILENAME_MAX];
+    split_fullpath(fullpath, dirname, basename);
+    char newdir[FILENAME_MAX];
+    if (outdir_opt) {
+        snprintf(newdir, sizeof(newdir), "%s%s_source", outdir, basename);
+    } else {
+        snprintf(newdir, sizeof(newdir), "%s%s_source", dirname, basename);
+    }
+    errno = 0;
+    if (mt_mkdir(newdir) != 0 && errno != EEXIST) {
+        int errsv = errno;
+        printf("Creating directory failed (%s)\n", strerror(errsv));
+        return ERROR;
+    }
+    char srcsname[FILENAME_MAX];
+    snprintf(srcsname, sizeof(srcsname), "%s%c%s_source.zip", newdir, separator, basename);
+
+    printf("Saving source archive to %s\n", srcsname);
+    errno = 0;
+    FILE *file = fopen(srcsname, "wb");
+    if (file == NULL) {
+        int errsv = errno;
+        printf("Could not open file for writing: %s (%s)\n", srcsname, strerror(errsv));
+        return ERROR;
+    }
+    errno = 0;
+    fwrite(data, 1, size, file);
+    if (ferror(file)) {
+        int errsv = errno;
+        printf("Error writing: %s (%s)\n", srcsname, strerror(errsv));
+        fclose(file);
+        return ERROR;
+    }
+    fclose(file);
+    /* Try to get embedded conversion log */
+    data = NULL;
+    size = 0;
+    ret = mobi_get_embedded_log(&data, &size, m);
+    if (ret != MOBI_SUCCESS) {
+        printf("Extracting conversion log from mobi failed\n");
+        return ERROR;
+    }
+    if (data == NULL || size == 0 ) {
+        printf("Conversion log not found\n");
+        return SUCCESS;
+    }
+    snprintf(srcsname, sizeof(srcsname), "%s%c%s_source.txt", newdir, separator, basename);
+    
+    printf("Saving conversion log to %s\n", srcsname);
+    errno = 0;
+    file = fopen(srcsname, "wb");
+    if (file == NULL) {
+        int errsv = errno;
+        printf("Could not open file for writing: %s (%s)\n", srcsname, strerror(errsv));
+        return ERROR;
+    }
+    errno = 0;
+    fwrite(data, 1, size, file);
+    if (ferror(file)) {
+        int errsv = errno;
+        printf("Error writing: %s (%s)\n", srcsname, strerror(errsv));
+        fclose(file);
+        return ERROR;
+    }
+    fclose(file);
+    return SUCCESS;
+}
+
 /**
  @brief Main routine that calls optional subroutines
  @param[in] fullpath Full file path
@@ -798,6 +881,7 @@ int loadfilename(const char *fullpath) {
     /* MOBIData structure will be filled with loaded document data and metadata */
     mobi_ret = mobi_load_file(m, file);
     fclose(file);
+    
     /* Try to print basic metadata, even if further loading failed */
     /* In case of some unsupported formats it may still print some useful info */
     print_meta(m);
@@ -879,6 +963,9 @@ int loadfilename(const char *fullpath) {
         /* Free MOBIRawml structure */
         mobi_free_rawml(rawml);
     }
+    if (extract_source_opt) {
+        ret = dump_embedded_source(m, fullpath);
+    }
     /* Free MOBIData structure */
     mobi_free(m);
     return ret;
@@ -889,7 +976,7 @@ int loadfilename(const char *fullpath) {
  @param[in] progname Executed program name
  */
 void usage(const char *progname) {
-    printf("usage: %s [-d" PRINT_EPUB_ARG "mrs" PRINT_RUSAGE_ARG "v7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
+    printf("usage: %s [-d" PRINT_EPUB_ARG "mrs" PRINT_RUSAGE_ARG "vx7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
     printf("       without arguments prints document metadata and exits\n");
     printf("       -d      dump rawml text record\n");
 #ifdef USE_XMLWRITER
@@ -906,6 +993,7 @@ void usage(const char *progname) {
     printf("       -u      show rusage\n");
 #endif
     printf("       -v      show version and exit\n");
+    printf("       -x      extract conversion source and log (if present)\n");
     printf("       -7      parse KF7 part of hybrid file (by default KF8 part is parsed)\n");
     exit(0);
 }
@@ -918,7 +1006,7 @@ int main(int argc, char *argv[]) {
     }
     opterr = 0;
     int c;
-    while((c = getopt(argc, argv, "d" PRINT_EPUB_ARG "mo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "v7")) != -1)
+    while((c = getopt(argc, argv, "d" PRINT_EPUB_ARG "mo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "vx7")) != -1)
         switch(c) {
             case 'd':
                 dump_rawml_opt = 1;
@@ -974,6 +1062,9 @@ int main(int argc, char *argv[]) {
                 printf("mobitool build: " __DATE__ " " __TIME__ " (" COMPILER ")\n");
                 printf("libmobi: %s\n", mobi_version());
                 return 0;
+            case 'x':
+                extract_source_opt = 1;
+                break;
             case '7':
                 parse_kf7_opt = 1;
                 break;

@@ -1693,6 +1693,117 @@ MOBI_RET mobi_decode_video_resource(unsigned char **decoded_resource, size_t *de
 }
 
 /**
+ @brief Get embedded source archive
+ 
+ Some mobi creator software store original conversion source as a zip archive.
+ The function may return MOBI_SUCCESS even if the data was not found,
+ so it is neccessary to check whether returned data pointer is not NULL.
+ 
+ @param[in,out] data Pointer to data offset in pdb record.
+ @param[in,out] size Pointer to data size
+ @param[in] m MOBIData structure
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_get_embedded_source(unsigned char **data, size_t *size, const MOBIData *m) {
+    *data = NULL;
+    *size = 0;
+    if (m == NULL) {
+        return MOBI_INIT_FAILED;
+    }
+    MOBIMobiHeader *header = m->mh;
+    if (mobi_is_hybrid(m) && m->use_kf8 && m->next) {
+        /* SRCS index is in KF7 header */
+        header = m->next->mh;
+    }
+    if (header == NULL || header->srcs_index == NULL || header->srcs_count == NULL ||
+        *header->srcs_index == MOBI_NOTSET || *header->srcs_count == 0) {
+        return MOBI_SUCCESS;
+    }
+    uint32_t index = *header->srcs_index;
+    
+    const MOBIPdbRecord *srcs_record = mobi_get_record_by_seqnumber(m, index);
+    if (srcs_record == NULL) {
+        return MOBI_SUCCESS;
+    }
+    const size_t archive_offset = 16;
+    
+    if (srcs_record->size <= archive_offset) {
+        debug_print("Wrong size of SRCS resource: %zu\n", srcs_record->size);
+        return MOBI_DATA_CORRUPT;
+    }
+
+    if (memcmp(srcs_record->data, SRCS_MAGIC, 4) != 0) {
+        debug_print("Wrong magic for SRCS resource: %c%c%c%c\n",
+                    srcs_record->data[0], srcs_record->data[1], srcs_record->data[2], srcs_record->data[3]);
+        return MOBI_DATA_CORRUPT;
+    }
+    
+    *data = srcs_record->data + archive_offset;
+    *size = srcs_record->size - archive_offset;
+
+    return MOBI_SUCCESS;
+}
+
+/**
+ @brief Get embedded conversion log
+ 
+ Some mobi creator software store original conversion log together with source archive.
+ The function may return MOBI_SUCCESS even if the data was not found,
+ so it is neccessary to check whether returned data pointer is not NULL.
+ 
+ @param[in,out] data Pointer to data offset in pdb record.
+ @param[in,out] size Pointer to data size
+ @param[in] m MOBIData structure
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_get_embedded_log(unsigned char **data, size_t *size, const MOBIData *m) {
+    *data = NULL;
+    *size = 0;
+    if (m == NULL) {
+        return MOBI_INIT_FAILED;
+    }
+    MOBIMobiHeader *header = m->mh;
+    if (mobi_is_hybrid(m) && m->use_kf8 && m->next) {
+        /* SRCS index is in KF7 header */
+        header = m->next->mh;
+    }
+    if (header == NULL || header->srcs_index == NULL || header->srcs_count == NULL ||
+        *header->srcs_index == MOBI_NOTSET || *header->srcs_count < 2) {
+        return MOBI_SUCCESS;
+    }
+    uint32_t index = *header->srcs_index + 1;
+    
+    const MOBIPdbRecord *srcs_record = mobi_get_record_by_seqnumber(m, index);
+    if (srcs_record == NULL) {
+        return MOBI_SUCCESS;
+    }
+    MOBIBuffer *buf = buffer_init_null(srcs_record->size);
+    if (buf == NULL) {
+        return MOBI_MALLOC_FAILED;
+    }
+    buf->data = srcs_record->data;
+    if (buffer_match_magic(buf, CMET_MAGIC) == false) {
+        debug_print("%s\n", "Wrong magic for CMET resource");
+        buffer_free_null(buf);
+        return MOBI_DATA_CORRUPT;
+    }
+    buffer_setpos(buf, 8);
+    uint32_t log_length = buffer_get32(buf);
+    unsigned char *log_data = buffer_getpointer(buf, log_length);
+    if (buf->error != MOBI_SUCCESS) {
+        debug_print("CMET resource too short: %zu (log size: %u)\n", srcs_record->size, log_length);
+        buffer_free_null(buf);
+        return MOBI_DATA_CORRUPT;
+    }
+    
+    *data = log_data;
+    *size = log_length;
+    
+    buffer_free_null(buf);
+    return MOBI_SUCCESS;
+}
+
+/**
  @brief Replace part data with decoded font data
  
  @param[in,out] part MOBIPart structure containing font resource, decoded part type will be set in the structure
