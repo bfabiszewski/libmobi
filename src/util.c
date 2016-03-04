@@ -1785,6 +1785,11 @@ MOBI_RET mobi_get_embedded_log(unsigned char **data, size_t *size, const MOBIDat
     if (srcs_record == NULL) {
         return MOBI_SUCCESS;
     }
+    const size_t log_offset = 12;
+    if (srcs_record->size <= log_offset) {
+        debug_print("Wrong size of CMET resource: %zu\n", srcs_record->size);
+        return MOBI_DATA_CORRUPT;
+    }
     MOBIBuffer *buf = buffer_init_null(srcs_record->size);
     if (buf == NULL) {
         return MOBI_MALLOC_FAILED;
