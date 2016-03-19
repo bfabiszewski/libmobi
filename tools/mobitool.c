@@ -132,6 +132,42 @@ static int mt_mkdir (const char *filename) {
 }
 
 /**
+ @brief Messages for libmobi return codes
+        For reference see enum MOBI_RET in mobi.h
+ */
+const char *libmobi_messages[] = {
+    "Success",
+    "Generic error",
+    "Wrong function parameter",
+    "Corrupted data",
+    "File not found",
+    "Document is encrypted",
+    "Unsupported document format",
+    "Memory allocation error",
+    "Initialization error",
+    "Buffer error",
+    "XML error",
+    "Invalid DRM pid",
+    "DRM key not found",
+    "DRM support not included",
+};
+
+#define LIBMOBI_MSG_COUNT sizeof(libmobi_messages)/sizeof(libmobi_messages[0])
+
+/**
+ @brief Return message for given libmobi return code
+ @param[in] ret Libmobi return code
+ */
+const char * libmobi_msg(const MOBI_RET ret) {
+    size_t index = ret;
+    if (index < LIBMOBI_MSG_COUNT) {
+        return libmobi_messages[index];
+    } else {
+        return "Unknown error";
+    }
+}
+
+/**
  @brief Parse file name into file path and base name
  @param[in] fullpath Full file path
  @param[in,out] dirname Will be set to full dirname
@@ -468,7 +504,7 @@ int dump_rawml(const MOBIData *m, const char *fullpath) {
     const MOBI_RET mobi_ret = mobi_dump_rawml(m, file);
     fclose(file);
     if (mobi_ret != MOBI_SUCCESS) {
-        printf("Dumping rawml file failed (%i)", mobi_ret);
+        printf("Dumping rawml file failed (%s)\n", libmobi_msg(mobi_ret));
         return ERROR;
     }
     return SUCCESS;
@@ -774,9 +810,9 @@ int dump_embedded_source(MOBIData *m, const char *fullpath) {
     /* Try to get embedded source */
     unsigned char *data = NULL;
     size_t size = 0;
-    MOBI_RET ret = mobi_get_embedded_source(&data, &size, m);
-    if (ret != MOBI_SUCCESS) {
-        printf("Extracting source from mobi failed\n");
+    MOBI_RET mobi_ret = mobi_get_embedded_source(&data, &size, m);
+    if (mobi_ret != MOBI_SUCCESS) {
+        printf("Extracting source from mobi failed (%s)\n", libmobi_msg(mobi_ret));
         return ERROR;
     }
     if (data == NULL || size == 0 ) {
@@ -821,9 +857,9 @@ int dump_embedded_source(MOBIData *m, const char *fullpath) {
     /* Try to get embedded conversion log */
     data = NULL;
     size = 0;
-    ret = mobi_get_embedded_log(&data, &size, m);
-    if (ret != MOBI_SUCCESS) {
-        printf("Extracting conversion log from mobi failed\n");
+    mobi_ret = mobi_get_embedded_log(&data, &size, m);
+    if (mobi_ret != MOBI_SUCCESS) {
+        printf("Extracting conversion log from mobi failed (%s)\n", libmobi_msg(mobi_ret));
         return ERROR;
     }
     if (data == NULL || size == 0 ) {
@@ -886,7 +922,7 @@ int loadfilename(const char *fullpath) {
     /* In case of some unsupported formats it may still print some useful info */
     print_meta(m);
     if (mobi_ret != MOBI_SUCCESS) {
-        printf("Error while loading document (%i)\n", mobi_ret);
+        printf("Error while loading document (%s)\n", libmobi_msg(mobi_ret));
         mobi_free(m);
         return ERROR;
     }
@@ -905,7 +941,7 @@ int loadfilename(const char *fullpath) {
             printf("\nVerifying PID... ");
             mobi_ret = mobi_drm_setkey(m, pid);
             if (mobi_ret != MOBI_SUCCESS) {
-                printf("failed (%i)\n", mobi_ret);
+                printf("failed (%s)\n", libmobi_msg(mobi_ret));
                 mobi_free(m);
                 return ERROR;
             }
@@ -938,7 +974,7 @@ int loadfilename(const char *fullpath) {
         /* Parse rawml text and other data held in MOBIData structure into MOBIRawml structure */
         mobi_ret = mobi_parse_rawml(rawml, m);
         if (mobi_ret != MOBI_SUCCESS) {
-            printf("Parsing rawml failed (%i)\n", mobi_ret);
+            printf("Parsing rawml failed (%s)\n", libmobi_msg(mobi_ret));
             mobi_free(m);
             mobi_free_rawml(rawml);
             return ERROR;
