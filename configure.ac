@@ -47,6 +47,12 @@ AC_CHECK_FUNCS([memmove memset mkdir strdup strpbrk strrchr strstr strtoul utime
 # Check for oracle solaris studio c compiler
 AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
 
+# Get rid of extended attributes in release archive on OS X
+case "$host" in
+  *-*-darwin*)
+    am__tar="COPY_EXTENDED_ATTRIBUTES_DISABLE=1 COPYFILE_DISABLE=1 ${am__tar}"
+esac
+
 # Check for -fvisibility=hidden to determine if we can do GNU-style
 # visibility attributes for symbol export control
 AC_MSG_CHECKING([for visibility hidden compiler flag])
