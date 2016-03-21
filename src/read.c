@@ -849,8 +849,8 @@ MOBI_RET mobi_load_file(MOBIData *m, FILE *file) {
         debug_print("Trying to set key for encryption type 1%s", "\n")
         mobi_drm_setkey(m, NULL);
     }
-    /* if EXTH is loaded and use_kf8 flag is set parse KF8 record0 for hybrid KF7/KF8 file */
-    if (m->eh && m->use_kf8) {
+    /* if EXTH is loaded parse KF8 record0 for hybrid KF7/KF8 file */
+    if (m->eh) {
         const size_t boundary_rec_number = mobi_get_kf8boundary_seqnumber(m);
         if (boundary_rec_number != MOBI_NOTSET && boundary_rec_number < UINT32_MAX) {
             /* it is a hybrid KF7/KF8 file */
@@ -866,7 +866,10 @@ MOBI_RET mobi_load_file(MOBIData *m, FILE *file) {
             if (ret != MOBI_SUCCESS) {
                 return ret;
             }
-            mobi_swap_mobidata(m);
+            /* swap to kf8 part if use_kf8 flag is set */
+            if (m->use_kf8) {
+                mobi_swap_mobidata(m);
+            }
         }
     }
     return MOBI_SUCCESS;
