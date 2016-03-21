@@ -203,17 +203,18 @@ MOBI_RET mobi_parse_extheader(MOBIData *m, MOBIBuffer *buf) {
         return MOBI_INIT_FAILED;
     }
     char exth_magic[5];
+    const size_t header_length = 12;
     buffer_getstring(exth_magic, buf, 4);
-    const size_t exth_length = buffer_get32(buf);
+    const size_t exth_length = buffer_get32(buf) - header_length;
     const size_t rec_count = buffer_get32(buf);
     if (strncmp(exth_magic, EXTH_MAGIC, 4) != 0 ||
-        exth_length + buf->offset + 12 > buf->maxlen ||
+        exth_length + buf->offset > buf->maxlen ||
         rec_count == 0 || rec_count > MOBI_EXTH_MAXCNT) {
         debug_print("%s", "Sanity checks for EXTH header failed\n");
         return MOBI_DATA_CORRUPT;
     }
     const size_t saved_maxlen = buf->maxlen;
-    buf->maxlen = exth_length + buf->offset - 12;
+    buf->maxlen = exth_length + buf->offset;
     m->eh = calloc(1, sizeof(MOBIExthHeader));
     if (m->eh == NULL) {
         debug_print("%s", "Memory allocation for EXTH header failed\n");
