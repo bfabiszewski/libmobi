@@ -1,3 +1,26 @@
+2016-03-21: VERSION 03: internal xmlwriter, metadata handling functions, bug fixes
+2016-03-21: Feature: add helper functions for metadata extraction
+2016-03-21: Load also kf8 data when only kf7 version is requested
+2016-03-21: Fix: wrong exth header length check could discard some valid headers
+2016-03-20: Get rid of extended attributes in release archive on OS X
+2016-03-19: Mobitool: add descriptive error messages based on libmobi return codes
+2016-03-04: Add extra length check for CMET record extraction
+2016-03-04: Always check buffer allocation result
+2016-03-04: Add functions to extract conversion source and log, also add this feature to mobitool
+2016-03-04: Remove some stray printfs
+2016-03-03: Remove not used AC_FUNC_MALLOC/REALLOC macros that break cross-compilation
+2016-03-03: Fix potential illegal memory access in miniz.c
+2016-03-03: Fix potential dereference of null pointer in miniz.c
+2016-03-03: Fix for Android bionic libc bug (SIZE_MAX missing in stdint.h)
+2016-03-03: Fix mobitool compilation on MSVC++
+2016-03-03: Add EPUB creation feature to mobitool
+2016-03-02: Fix potential buffer overflow, null pointer dereference
+2016-03-02: Add travis test for no-external-dependency build
+2016-03-02: Fix missing strdup on linux
+2016-03-02: Add internal xmlwriter (as an alternative to libxml2)
+2016-03-01: Feature: decode html entities in exth header strings
+2016-02-29: Fix: potential buffer overflow
+2016-02-29: Fix: wrong pid calculation (regression introduced in 0.2)
 2016-02-26: VERSION 0.2: increased stability, lots of bugs fixed
 2016-02-26: Add Xcode project file
 2016-02-26: Preliminary support for MSVC++ compiler
