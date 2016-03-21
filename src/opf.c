@@ -1064,15 +1064,11 @@ MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m, const MOBIRawml *
             debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
         }
-        if (m->mh && m->mh->full_name_offset && m->mh->full_name_length) {
-            char full_name[RECORD0_FULLNAME_SIZE_MAX + 1];
-            mobi_get_fullname(m, full_name, RECORD0_FULLNAME_SIZE_MAX);
-            opf->metadata->dc_meta->title[0] = strdup(full_name);
-        } else if (m->ph && strlen(m->ph->name) > 0) {
-            opf->metadata->dc_meta->title[0] = strdup(m->ph->name);
-        } else {
-            opf->metadata->dc_meta->title[0] = strdup("Unknown");
+        char *title = mobi_meta_get_title(m);
+        if (title == NULL) {
+            title = strdup("Unknown");
         }
+        opf->metadata->dc_meta->title[0] = title;
     }
     if (opf->metadata->dc_meta->language == NULL) {
         opf->metadata->dc_meta->language = calloc(OPF_META_MAX_TAGS, sizeof(char*));

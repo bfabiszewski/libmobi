@@ -509,6 +509,7 @@ extern "C"
     MOBI_EXPORT size_t mobi_get_fileversion(const MOBIData *m);
     MOBI_EXPORT size_t mobi_get_fdst_record_number(const MOBIData *m);
     MOBI_EXPORT MOBIExthHeader * mobi_get_exthrecord_by_tag(const MOBIData *m, const MOBIExthTag tag);
+    MOBI_EXPORT MOBIExthHeader * mobi_next_exthrecord_by_tag(const MOBIData *m, const MOBIExthTag tag, MOBIExthHeader **start);
     MOBI_EXPORT MOBIExthMeta mobi_get_exthtagmeta_by_tag(const MOBIExthTag tag);
     MOBI_EXPORT MOBIFileMeta mobi_get_filemeta_by_type(const MOBIFiletype type);
     MOBI_EXPORT uint32_t mobi_decode_exthvalue(const unsigned char *data, const size_t size);
@@ -533,6 +534,20 @@ extern "C"
     MOBI_EXPORT bool mobi_is_rawml_kf8(const MOBIRawml *rawml);
     MOBI_EXPORT MOBIRawml * mobi_init_rawml(const MOBIData *m);
     MOBI_EXPORT void mobi_free_rawml(MOBIRawml *rawml);
+    
+    MOBI_EXPORT char * mobi_meta_get_title(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_author(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_publisher(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_imprint(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_description(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_isbn(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_subject(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_publishdate(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_review(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_contributor(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_copyright(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_asin(const MOBIData *m);
+    MOBI_EXPORT char * mobi_meta_get_language(const MOBIData *m);
     
     MOBI_EXPORT MOBI_RET mobi_drm_setkey(MOBIData *m, const char *pid);
     MOBI_EXPORT MOBI_RET mobi_drm_delkey(MOBIData *m);

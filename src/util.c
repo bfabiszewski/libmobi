@@ -620,7 +620,244 @@ MOBI_RET mobi_get_fullname(const MOBIData *m, char *fullname, const size_t len) 
     }
     memcpy(fullname, record0->data + name_offset, size);
     fullname[size] = '\0';
+    if (mobi_is_cp1252(m)) {
+        char *name1252 = strdup(fullname);
+        if (name1252 == NULL) {
+            return MOBI_MALLOC_FAILED;
+        }
+        size_t out_len = len;
+        MOBI_RET ret = mobi_cp1252_to_utf8(fullname, name1252, &out_len, size);
+        if (ret == MOBI_SUCCESS) {
+            memcpy(fullname, name1252, out_len);
+            fullname[out_len] = '\0';
+        }
+        free(name1252);
+    }
     return MOBI_SUCCESS;
+}
+
+/**
+ @brief Get document metadata from exth string
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @param[in] exth_tag MOBIExthTag
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_exthstring(const MOBIData *m, const MOBIExthTag exth_tag) {
+    char *string = NULL;
+    
+    MOBIExthHeader *exth;
+    MOBIExthHeader *start = NULL;
+    while ((exth = mobi_next_exthrecord_by_tag(m, exth_tag, &start))) {
+        char *exth_string = mobi_decode_exthstring(m, exth->data, exth->size);
+        if (string == NULL) {
+            string = exth_string;
+        } else if (exth_string) {
+            const char *separator = "; ";
+            size_t new_length = strlen(string) + strlen(exth_string) + strlen(separator) + 1;
+            char *new = malloc(new_length);
+            if (new == NULL) {
+                free(string);
+                free(exth_string);
+                return NULL;
+            }
+            strcpy(new, string);
+            strcat(new, separator);
+            strcat(new, exth_string);
+            free(string);
+            free(exth_string);
+            string = new;
+        }
+        if (start == NULL) {
+            break;
+        }
+    }
+    return string;
+}
+
+/**
+ @brief Get document title metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_title(const MOBIData *m) {
+    if (m == NULL) {
+        return NULL;
+    }
+    char *title = mobi_meta_get_exthstring(m, EXTH_UPDATEDTITLE);
+    if (title) {
+        return title;
+    }
+    char fullname[MOBI_TITLE_SIZEMAX + 1];
+    MOBI_RET ret = mobi_get_fullname(m, fullname, MOBI_TITLE_SIZEMAX);
+    if (ret == MOBI_SUCCESS) {
+        title = strdup(fullname);
+    } else if (m->ph) {
+        title = strdup(m->ph->name);
+    }
+    return title;
+}
+
+/**
+ @brief Get document author metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_author(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_AUTHOR);
+}
+
+/**
+ @brief Get document subject metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_subject(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_SUBJECT);
+}
+
+/**
+ @brief Get document publisher metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_publisher(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_PUBLISHER);
+}
+
+/**
+ @brief Get document publishing date metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_publishdate(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_PUBLISHINGDATE);
+}
+
+/**
+ @brief Get document description metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_description(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_DESCRIPTION);
+}
+
+/**
+ @brief Get document imprint metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_imprint(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_IMPRINT);
+}
+
+/**
+ @brief Get document contributor metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_contributor(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_CONTRIBUTOR);
+}
+
+/**
+ @brief Get document review metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_review(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_REVIEW);
+}
+
+/**
+ @brief Get document copyright metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_copyright(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_RIGHTS);
+}
+
+/**
+ @brief Get document ISBN metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_isbn(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_ISBN);
+}
+
+/**
+ @brief Get document ASIN metadata
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_asin(const MOBIData *m) {
+    return mobi_meta_get_exthstring(m, EXTH_ASIN);
+}
+
+/**
+ @brief Get document language code metadata
+ 
+ Locale strings are based on IANA language-subtag registry with some custom Mobipocket modifications.
+ See mobi_locale array.
+ 
+ Returned string must be deallocated by caller
+ 
+ @param[in] m MOBIData structure with loaded data
+ @return Pointer to null terminated string, NULL on failure
+ */
+char * mobi_meta_get_language(const MOBIData *m) {
+    if (m == NULL) {
+        return NULL;
+    }
+    char *lang = mobi_meta_get_exthstring(m, EXTH_LANGUAGE);
+    if(lang == NULL && m->mh && m->mh->locale && *m->mh->locale) {
+        const char *locale_string = mobi_get_locale_string(*m->mh->locale);
+        if (locale_string) {
+            lang = strdup(locale_string);
+        }
+    }
+    return lang;
 }
 
 /**
@@ -868,6 +1105,42 @@ MOBIExthHeader * mobi_get_exthrecord_by_tag(const MOBIData *m, const MOBIExthTag
     MOBIExthHeader *curr = m->eh;
     while (curr != NULL) {
         if (curr->tag == tag) {
+            return curr;
+        }
+        curr = curr->next;
+    }
+    return NULL;
+}
+
+/**
+ @brief Get EXTH record with given MOBIExthTag tag. Start list search at given record.
+ 
+ If start_tag is NULL search will start from the root of the linked list.
+ After successfull search start will be set to next record in the list.
+ 
+ @param[in] m MOBIData structure with loaded data
+ @param[in] tag MOBIExthTag EXTH record tag
+ @param[in,out] start MOBIExthHeader EXTH record to begin search with
+ @return Pointer to MOBIExthHeader record structure
+ */
+MOBIExthHeader * mobi_next_exthrecord_by_tag(const MOBIData *m, const MOBIExthTag tag, MOBIExthHeader **start) {
+    if (m == NULL) {
+        debug_print("%s", "Mobi structure not initialized\n");
+        return NULL;
+    }
+    if (m->eh == NULL) {
+        return NULL;
+    }
+    MOBIExthHeader *curr;
+    if (*start) {
+        curr = *start;
+        *start = NULL;
+    } else {
+        curr = m->eh;
+    }
+    while (curr != NULL) {
+        if (curr->tag == tag) {
+            *start = curr->next;
             return curr;
         }
         curr = curr->next;

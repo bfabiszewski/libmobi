@@ -121,6 +121,8 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
+#define MOBI_TITLE_SIZEMAX 1024
+
 int mobi_bitcount(const uint8_t byte);
 MOBI_RET mobi_delete_record_by_seqnumber(MOBIData *m, const size_t num);
 MOBI_RET mobi_swap_mobidata(MOBIData *m);
