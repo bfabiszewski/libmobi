@@ -42,8 +42,7 @@ MOBI_RET mobi_decompress_lz77(unsigned char *out, const unsigned char *in, size_
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    /* FIXME: is it ok to cast const to non-const here */
-    /* or is there a better way? */
+
     buf_in->data = (unsigned char *) in;
     buf_out->data = out;
     while (ret == MOBI_SUCCESS && buf_in->offset < buf_in->maxlen) {
@@ -73,7 +72,7 @@ MOBI_RET mobi_decompress_lz77(unsigned char *out, const unsigned char *in, size_
         }
         /* char '\0', not modified */
         else {
-            buffer_copy8(buf_out, buf_in);
+            buffer_add8(buf_out, byte);
         }
         if (buf_in->error || buf_out->error) {
             ret = MOBI_BUFFER_END;
