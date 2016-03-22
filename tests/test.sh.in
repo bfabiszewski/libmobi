@@ -25,6 +25,11 @@ tmp_dir="tmp"
 rawml_file="${basefile%.*}.rawml"
 md5prog="@MD5PROG@"
 mobitool="../tools/mobitool"
+if [[ "x@WIN32@" == "xyes" ]]; then
+    runfile=${testfile//\//\\}
+else
+    runfile=${testfile}
+fi
 pid=
 do_md5=1
 skip=77
@@ -69,8 +74,8 @@ mkdir -p "${tmp_dir}"
 
 # recreate source files
 rm -rf "${tmp_dir}/${markup_dir}"
-log "Running ${mobitool} -o \"${tmp_dir}\" -s ${options} \"${testfile}\""
-${mobitool} -o "${tmp_dir}" -s ${options} "${testfile}" || die "Recreating source failed, mobitool error ($?)" $?
+log "Running ${mobitool} -o \"${tmp_dir}\" -s ${options} \"${runfile}\""
+${mobitool} -o "${tmp_dir}" -s ${options} "${runfile}" || die "Recreating source failed, mobitool error ($?)" $?
 [[ -d "${tmp_dir}/${markup_dir}" ]] || die "Recreating source failed" 1
 
 # verify checksums
@@ -79,8 +84,8 @@ if [[ ${do_md5} ]]; then
         (
             cd "${tmp_dir}/${markup_dir}" || die "Could not change directory to ${tmp_dir}/${markup_dir}" $?
             rm -f "../${testfile_md5}.md5"
-            ${md5prog} * | tr -s ' ' > "../${testfile_md5}.md5"
-            diff "../${testfile_md5}.md5" "../../${md5file_markup}" || die "Wrong md5 checksum in ${markup_dir}" $?
+            ${md5prog} * > "../${testfile_md5}.md5"
+            diff -w "../${testfile_md5}.md5" "../../${md5file_markup}" || die "Wrong md5 checksum in ${markup_dir}" $?
             rm -f "../${testfile_md5}.md5"
         ) || exit $?
         log "Checksum correct"
@@ -92,8 +97,8 @@ rm -rf "${tmp_dir}/${markup_dir}"
 
 # dump rawml
 rm -f "${tmp_dir}/${rawml_file}"
-log "Running ${mobitool} -o \"${tmp_dir}\" -d ${options} \"${testfile}\""
-${mobitool} -o "${tmp_dir}" -d ${options} "${testfile}" || die "Dumping rawml failed, mobitool error ($?)" $?
+log "Running ${mobitool} -o \"${tmp_dir}\" -d ${options} \"${runfile}\""
+${mobitool} -o "${tmp_dir}" -d ${options} "${runfile}" || die "Dumping rawml failed, mobitool error ($?)" $?
 [[ -f "${tmp_dir}/${rawml_file}" ]] || die "Dumping rawml failed" 1
 
 # verify checksum
