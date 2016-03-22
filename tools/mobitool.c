@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdlib.h>
 #ifdef _WIN32
+#include <direct.h>
 #include "getopt.h"
 #else
 #include <unistd.h>
