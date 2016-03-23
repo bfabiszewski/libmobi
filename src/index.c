@@ -890,7 +890,7 @@ MOBI_RET mobi_decode_infl(unsigned char *decoded, int *decoded_size, const unsig
                     debug_print("Out of buffer in %s at pos: %i\n", decoded, pos);
                     return MOBI_DATA_CORRUPT;
                 }
-                memmove(d, s, l);
+                memmove(d, s, (size_t) l);
                 decoded[pos] = c;
                 (*decoded_size)++;
                 if (dir == '>') { pos++; }
@@ -907,7 +907,7 @@ MOBI_RET mobi_decode_infl(unsigned char *decoded, int *decoded_size, const unsig
                     debug_print("Character mismatch in %s at pos: %i (%c != %c)\n", decoded, pos, decoded[pos], c);
                     return MOBI_DATA_CORRUPT;
                 }
-                memmove(d, s, l);
+                memmove(d, s, (size_t) l);
                 (*decoded_size)--;
             }
         }
