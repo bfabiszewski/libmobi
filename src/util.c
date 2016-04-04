@@ -1631,6 +1631,10 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_get_rawml(const MOBIData *m, char *text, size_t *len) {
+    if (text == NULL || len == NULL) {
+        debug_print("%s", "Parameter error: text or len is NULL\n");
+        return MOBI_PARAM_ERR;
+    }
     if (m->rh->text_length > *len) {
         debug_print("%s", "Text buffer smaller then text size declared in record0 header\n");
         return MOBI_PARAM_ERR;
