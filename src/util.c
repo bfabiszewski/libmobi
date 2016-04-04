@@ -1601,7 +1601,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         if (dump) {
             fwrite(decompressed, 1, decompressed_size, file);
         } else {
-            if (text_length > *len) {
+            if (text_length + decompressed_size > *len) {
                 debug_print("%s", "Text buffer too small\n");
                 /* free huff/cdic tables */
                 mobi_free_huffcdic(huffcdic);
