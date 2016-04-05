@@ -5,7 +5,7 @@
  * @example mobitool.c
  * Program for testing libmobi library
  *
- * Copyright (c) 2014 Bartek Fabiszewski
+ * Copyright (c) 2016 Bartek Fabiszewski
  * http://www.fabiszewski.net
  *
  * Licensed under LGPL, either version 3, or any later.
@@ -538,10 +538,10 @@ void print_exth(const MOBIData *m) {
             /* unknown tag */
             /* try to print the record both as string and numeric value */
             char *str = malloc(curr->size + 1);
-			if (!str) {
-				printf("Memory allocation failed\n");
-				exit(1);
-			}
+            if (!str) {
+                printf("Memory allocation failed\n");
+                exit(1);
+            }
             unsigned i = 0;
             unsigned char *p = curr->data;
             while (i < curr->size && isprint(*p)) {
@@ -551,16 +551,16 @@ void print_exth(const MOBIData *m) {
             str[i] = '\0';
             val32 = mobi_decode_exthvalue(curr->data, curr->size);
             printf("Unknown (%i): %s (%u)\n", curr->tag, str, val32);
-			free(str);
+            free(str);
         } else {
             /* known tag */
             unsigned i = 0;
             size_t size = curr->size;
             char *str = malloc(2 * size + 1);
-			if (!str) {
-				printf("Memory allocation failed\n");
-				exit(1);
-			}
+            if (!str) {
+                printf("Memory allocation failed\n");
+                exit(1);
+            }
             unsigned char *data = curr->data;
             switch (tag.type) {
                 /* numeric */
@@ -590,7 +590,7 @@ void print_exth(const MOBIData *m) {
                 default:
                     break;
             }
-			free(str);
+            free(str);
         }
         curr = curr->next;
     }
@@ -870,7 +870,7 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
  
  This function is a simple example.
  In real world implementation one should validate and correct all input
- markup to check if it conforms to OPF and HTML specifications and 
+ markup to check if it conforms to OPF and HTML specifications and
  correct all the issues.
  
  @param[in] rawml MOBIRawml structure holding parsed records
