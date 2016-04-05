@@ -179,7 +179,7 @@ void split_fullpath(const char *fullpath, char *dirname, char *basename) {
     char *p = strrchr(fullpath, separator);
     if (p) {
         p += 1;
-        strncpy(dirname, fullpath, (p - fullpath));
+        strncpy(dirname, fullpath, (unsigned long)(p - fullpath));
         dirname[p - fullpath] = '\0';
         strncpy(basename, p, strlen(p) + 1);
     }
