@@ -1630,7 +1630,7 @@ MOBI_RET mobi_xml_write_dcmeta_date(xmlTextWriterPtr writer, const OPFdate **dat
                 return MOBI_XML_ERR;
             }
             if (date[i]->event) {
-                xml_ret = xmlTextWriterWriteAttribute(writer, BAD_CAST "event", BAD_CAST date[i]->event);
+                xml_ret = xmlTextWriterWriteAttributeNS(writer, BAD_CAST "opf", BAD_CAST "event", NULL, BAD_CAST date[i]->event);
                 if (xml_ret < 0) {
                     debug_print("XML error: %i (date event: %s)\n", xml_ret, date[i]->event);
                     return MOBI_XML_ERR;
