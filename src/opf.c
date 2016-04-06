@@ -230,11 +230,46 @@ MOBI_RET mobi_write_ncx_level(xmlTextWriterPtr writer, const NCX *ncx, const siz
         /* start <navPoint> */
         char playorder[10 + 1];
         snprintf(playorder, 11, "%u", (uint32_t) (*seq)++);
-        char id[20 + 5 + 1];
-        snprintf(id, 26, "toc-%u-%u", (uint32_t) (level + 1), (uint32_t) (i - from + 1));
+
+        /* id string (max 10 digits and dash) for each level + "toc" + terminator */
+        size_t id_size = 11 * (level + 1) + 3 + 1;
+        char *id = malloc(id_size);
+        if (id == NULL) {
+            debug_print("%s\n", "Memory allocation failed");
+            return MOBI_MALLOC_FAILED;
+        }
+        strcpy(id, "toc");
+        size_t curr_id = i;
+        while (curr_id != MOBI_NOTSET) {
+            size_t parent_id = ncx[curr_id].parent;
+            if (parent_id == curr_id) {
+                debug_print("%s\n", "Skip id of corrupt ncx entry");
+                break;
+            }
+            size_t curr_from = 0;
+            if (parent_id != MOBI_NOTSET && ncx[parent_id].first_child != MOBI_NOTSET) {
+                curr_from = ncx[parent_id].first_child;
+            }
+            char level_id[10 + 1];
+            snprintf(level_id, 11, "%u", (uint32_t) (curr_id - curr_from + 1));
+            char *id_copy = strdup(id + 3);
+            if (id_copy == NULL) {
+                debug_print("%s\n", "Memory allocation failed");
+                free(id);
+                return MOBI_MALLOC_FAILED;
+            }
+            snprintf(id, id_size, "toc-%s%s", level_id, id_copy);
+            free(id_copy);
+            curr_id = parent_id;
+        }
+        
         int xml_ret = xmlTextWriterStartElement(writer, BAD_CAST "navPoint");
-        if (xml_ret < 0) { return MOBI_XML_ERR; }
+        if (xml_ret < 0) {
+            free(id);
+            return MOBI_XML_ERR;
+        }
         xml_ret = xmlTextWriterWriteAttribute(writer, BAD_CAST "id", BAD_CAST id);
+        free(id);
         if (xml_ret < 0) { return MOBI_XML_ERR; }
         xml_ret = xmlTextWriterWriteAttribute(writer, BAD_CAST "playOrder", BAD_CAST playorder);
         if (xml_ret < 0) { return MOBI_XML_ERR; }
@@ -258,7 +293,10 @@ MOBI_RET mobi_write_ncx_level(xmlTextWriterPtr writer, const NCX *ncx, const siz
         if (xml_ret < 0) { return MOBI_XML_ERR; }
         debug_print("%s - %s\n", ncx[i].text, ncx[i].target);
         if (ncx[i].first_child != MOBI_NOTSET && ncx[i].last_child != MOBI_NOTSET) {
-            mobi_write_ncx_level(writer, ncx, level + 1, ncx[i].first_child, ncx[i].last_child, seq);
+            MOBI_RET ret = mobi_write_ncx_level(writer, ncx, level + 1, ncx[i].first_child, ncx[i].last_child, seq);
+            if (ret != MOBI_SUCCESS) {
+                return ret;
+            }
         }
         /* end <navPoint> */
         xml_ret = xmlTextWriterEndElement(writer);
@@ -614,7 +652,8 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
                 return ret;
             }
             if ((first_child != MOBI_NOTSET && first_child > rawml->ncx->entries_count) ||
-                (last_child != MOBI_NOTSET && last_child > rawml->ncx->entries_count)) {
+                (last_child != MOBI_NOTSET && last_child > rawml->ncx->entries_count) ||
+                (parent != MOBI_NOTSET && parent > rawml->ncx->entries_count)) {
                 free(text);
                 free(target);
                 mobi_free_ncx(ncx, i);
