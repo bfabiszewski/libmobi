@@ -120,10 +120,11 @@ uint8_t mobi_unicode_to_utf8(char *output, const size_t codepoint) {
  @brief Convert cp1252 encoded string to utf-8
  
  Maximum length of output string is 3 * (input string length) + 1
+ Output string will be null terminated (even if truncated)
  
  @param[in,out] output Output string
  @param[in,out] input Input string
- @param[in,out] outsize Size of the allocated output buffer, will be set to output string length on return
+ @param[in,out] outsize Size of the allocated output buffer, will be set to output string length (without null terminator) on return
  @param[in] insize Length of the input string.
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
@@ -133,7 +134,7 @@ MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, c
     }
     const unsigned char *in = (unsigned char *) input;
     unsigned char *out = (unsigned char *) output;
-    const unsigned char *outend = out + *outsize;
+    const unsigned char *outend = out + *outsize - 1; /* leave space for null terminator */
     const unsigned char *inend = in + insize;
     while (in < inend && out < outend && *in) {
         if (*in < 0x80) {
@@ -142,7 +143,7 @@ MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, c
         else if (*in < 0xa0) {
             /* table lookup */
             size_t i = 0;
-            while (i < 3) {
+            while (i < 3 && out < outend) {
                 unsigned char c = cp1252_to_utf8[*in - 0x80][i];
                 if (c == 0) {
                     break;
@@ -153,6 +154,7 @@ MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, c
             if (i == 0) {
                 /* unmappable character in input */
                 /* substitute with utf-8 replacement character */
+                if (out >= outend - 1) { break; }
                 *out++ = 0xff;
                 *out++ = 0xfd;
                 debug_print("Invalid character found: %c\n", *in);
@@ -160,10 +162,12 @@ MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, c
             in++;
         }
         else if (*in < 0xc0) {
+            if (out >= outend - 1) { break; }
             *out++ = 0xc2;
             *out++ = *in++;
         }
         else {
+            if (out >= outend - 1) { break; }
             *out++ = 0xc3;
             *out++ = (*in++ & 0x3f) + 0x80;
         }
@@ -605,33 +609,15 @@ MOBI_RET mobi_get_fullname(const MOBIData *m, char *fullname, const size_t len) 
         debug_print("%s", "Mobi structure not initialized\n");
         return MOBI_INIT_FAILED;
     }
-    const size_t offset = mobi_get_kf8offset(m);
-    MOBIPdbRecord *record0 = mobi_get_record_by_seqnumber(m, offset);
-    if (m->mh == NULL ||
-        m->mh->full_name_offset == NULL ||
-        m->mh->full_name_length == NULL ||
-        record0 == NULL) {
+    if (m->mh == NULL || m->mh->full_name == NULL) {
         return MOBI_INIT_FAILED;
     }
-    size_t size = min(len, *m->mh->full_name_length);
-    size_t name_offset = *m->mh->full_name_offset;
-    if (name_offset + size > record0->size) {
-        return MOBI_DATA_CORRUPT;
-    }
-    memcpy(fullname, record0->data + name_offset, size);
-    fullname[size] = '\0';
     if (mobi_is_cp1252(m)) {
-        char *name1252 = strdup(fullname);
-        if (name1252 == NULL) {
-            return MOBI_MALLOC_FAILED;
-        }
-        size_t out_len = len;
-        MOBI_RET ret = mobi_cp1252_to_utf8(fullname, name1252, &out_len, size);
-        if (ret == MOBI_SUCCESS) {
-            memcpy(fullname, name1252, out_len);
-            fullname[out_len] = '\0';
-        }
-        free(name1252);
+        size_t out_len = len + 1;
+        mobi_cp1252_to_utf8(fullname, m->mh->full_name, &out_len, strlen(m->mh->full_name));
+    } else {
+        strncpy(fullname, m->mh->full_name, len);
+        fullname[len] = '\0';
     }
     return MOBI_SUCCESS;
 }

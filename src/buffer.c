@@ -160,7 +160,7 @@ void buffer_addraw(MOBIBuffer *buf, const unsigned char* data, const size_t len)
 }
 
 /**
- @brief Adds zero padded string to MOBIBuffer
+ @brief Adds string to MOBIBuffer without null terminator
  
  @param[in,out] buf MOBIBuffer structure to be filled with data
  @param[in] str Pointer to string

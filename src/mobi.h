@@ -359,6 +359,7 @@ extern "C"
         uint32_t *unknown18; /**< 268: */
         uint32_t *unknown19; /**< 272: */
         uint32_t *unknown20; /**< 276: */
+        char *full_name; /**< variable offset (full_name_offset): full name */
     } MOBIMobiHeader;
 
     /**

@@ -108,6 +108,7 @@ void mobi_free_mh(MOBIMobiHeader *mh) {
     free(mh->unknown18);
     free(mh->unknown19);
     free(mh->unknown20);
+    free(mh->full_name);
     free(mh);
     mh = NULL;
 }

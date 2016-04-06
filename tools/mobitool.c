@@ -392,9 +392,9 @@ void print_summary(const MOBIData *m) {
  */
 void print_meta(const MOBIData *m) {
     /* Full name stored at offset given in MOBI header */
-    if (m->mh && m->mh->full_name_offset && m->mh->full_name_length) {
+    if (m->mh && m->mh->full_name) {
         char full_name[FULLNAME_MAX + 1];
-        if(mobi_get_fullname(m, full_name, FULLNAME_MAX) == MOBI_SUCCESS) {
+        if (mobi_get_fullname(m, full_name, FULLNAME_MAX) == MOBI_SUCCESS) {
             printf("\nFull name: %s\n", full_name);
         }
     }

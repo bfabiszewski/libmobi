@@ -382,6 +382,23 @@ MOBI_RET mobi_parse_mobiheader(MOBIData *m, MOBIBuffer *buf) {
         buffer_setpos(buf, buf->maxlen);
     }
     buf->maxlen = saved_maxlen;
+    /* get full name stored at m->mh->full_name_offset */
+    if (m->mh->full_name_offset && m->mh->full_name_length && *m->mh->full_name_length > 0) {
+        const size_t saved_offset = buf->offset;
+        const uint32_t full_name_length = min(*m->mh->full_name_length, MOBI_TITLE_SIZEMAX);
+        buffer_setpos(buf, *m->mh->full_name_offset);
+        m->mh->full_name = malloc(full_name_length + 1);
+        if (m->mh->full_name == NULL) {
+            debug_print("%s", "Memory allocation for full name failed\n");
+            return MOBI_MALLOC_FAILED;
+        }
+        buffer_getstring(m->mh->full_name, buf, full_name_length);
+        if (strlen(m->mh->full_name) == 0) {
+            free(m->mh->full_name);
+            m->mh->full_name = NULL;
+        }
+        buffer_setpos(buf, saved_offset);
+    }
     return MOBI_SUCCESS;
 }
 
