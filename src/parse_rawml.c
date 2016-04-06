@@ -449,7 +449,7 @@ MOBI_RET mobi_get_offset_by_posoff(uint32_t *file_number, size_t *offset, const 
  */
 MOBI_RET mobi_get_aid_by_offset(char *aid, const MOBIPart *html, const size_t offset) {
     if (!aid || !html) {
-        debug_print("Parameter error (aid (%p), html (%p)\n", aid, (void *) html);
+        debug_print("Parameter error (aid (%p), html (%p)\n", (void *) aid, (void *) html);
         return MOBI_PARAM_ERR;
     }
     if (offset > html->size) {
@@ -477,7 +477,7 @@ MOBI_RET mobi_get_aid_by_offset(char *aid, const MOBIPart *html, const size_t of
  */
 MOBI_RET mobi_get_id_by_offset(char *id, const MOBIPart *html, const size_t offset) {
     if (!id || !html) {
-        debug_print("Parameter error (id (%p), html (%p)\n", id, (void *) html);
+        debug_print("Parameter error (id (%p), html (%p)\n", (void *) id, (void *) html);
         return MOBI_PARAM_ERR;
     }
     if (offset > html->size) {
