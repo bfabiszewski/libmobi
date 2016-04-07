@@ -18,7 +18,7 @@
 .Op Fl dimrsuvx7            \" [-dimrsuvx7]
 ..
 .if !'@XMLWRITER_OPT@'yes' .ig
-.Op Fl diemrsuvx7            \" [-diemrsuvx7]
+.Op Fl deimrsuvx7            \" [-deimrsuvx7]
 ..
 .Op Fl o Ar dir          \" [-o dir]
 .if !'@ENCRYPTION_OPT@'yes' .ig

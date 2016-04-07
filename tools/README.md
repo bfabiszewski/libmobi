@@ -1,4 +1,4 @@
-    usage: mobitool [-diemrsuvx7] [-o dir] [-p pid] filename
+    usage: mobitool [-deimrsuvx7] [-o dir] [-p pid] filename
         without arguments prints document metadata and exits
         -d      dump rawml text record
         -e      create EPUB file (with -s will dump EPUB source)
