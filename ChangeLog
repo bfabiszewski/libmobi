@@ -1,3 +1,17 @@
+2016-04-06: Fix format warning
+2016-04-06: Update test checksums
+2016-04-06: Fix: <dc:date> "event" attribute needs "opf" namespace
+2016-04-06: Fix: id attributes in ncx file should be unique
+2016-04-06: Store full name in MOBIMobiHeader structure
+2016-04-05: Fix formatting
+2016-04-05: Fix signedness warning
+2016-04-04: Fix potential buffer overflow, closes #2
+2016-04-04: Fix potential null pointer dereference
+2016-03-23: Fix signedness warnings
+2016-03-22: Merge branch 'public'
+2016-03-22: Fix: _mkdir needs direct.h on MinGW
+2016-03-22: Fix tests on Windows
+2016-03-22: Fix: palmdoc decompression may fail with zero byte in input buffer
 2016-03-21: VERSION 03: internal xmlwriter, metadata handling functions, bug fixes
 2016-03-21: Feature: add helper functions for metadata extraction
 2016-03-21: Load also kf8 data when only kf7 version is requested
