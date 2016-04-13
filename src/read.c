@@ -283,8 +283,10 @@ MOBI_RET mobi_parse_mobiheader(MOBIData *m, MOBIBuffer *buf) {
         return MOBI_DATA_CORRUPT;
     }
     const size_t saved_maxlen = buf->maxlen;
+    /* some old files declare zero length mobi header, try to read first 24 bytes anyway */
+    uint32_t header_length = (*m->mh->header_length > 0) ? *m->mh->header_length : 24;
     /* read only declared MOBI header length (curr offset minus 8 already read bytes) */
-    buf->maxlen = *m->mh->header_length + buf->offset - 8;
+    buf->maxlen = header_length + buf->offset - 8;
     buffer_dup32(&m->mh->mobi_type, buf);
     uint32_t encoding = buffer_get32(buf);
     if (encoding == 1252) {

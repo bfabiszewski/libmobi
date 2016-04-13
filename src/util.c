@@ -1578,6 +1578,10 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                 }
                 memcpy(decompressed, curr->data, record_size);
                 decompressed_size = record_size;
+                if (mobi_exists_mobiheader(m) && mobi_get_fileversion(m) <= 3) {
+                    /* workaround for some old files with null characters inside record */
+                    mobi_remove_zeros(decompressed, &decompressed_size);
+                }
                 break;
             case RECORD0_PALMDOC_COMPRESSION:
                 /* palmdoc lz77 compression */
@@ -2385,6 +2389,12 @@ uint16_t mobi_get_textrecord_maxsize(const MOBIData *m) {
             max_record_size = m->rh->text_record_size;
         }
     }
+    if (mobi_exists_mobiheader(m) && mobi_get_fileversion(m) <= 3) {
+        /* workaround for some old files with records larger than declared record size */
+        if (m->rh->text_length > max_record_size * m->rh->text_record_count) {
+            max_record_size *= 2;
+        }
+    }
     return max_record_size;
 }
 
@@ -2400,6 +2410,12 @@ size_t mobi_get_text_maxsize(const MOBIData *m) {
         if (m->rh->text_record_count > 0) {
             uint16_t max_record_size = mobi_get_textrecord_maxsize(m);
             size_t maxsize = (size_t) m->rh->text_record_count * (size_t) max_record_size;
+            if (mobi_exists_mobiheader(m) && mobi_get_fileversion(m) <= 3) {
+                /* workaround for some old files with records larger than declared record size */
+                if (m->rh->text_length > maxsize) {
+                    maxsize = m->rh->text_length;
+                }
+            }
             if (maxsize > RAWTEXT_SIZEMAX) {
                 debug_print("Raw text too large (%zu)\n", maxsize);
                 return MOBI_NOTSET;
@@ -2539,6 +2555,32 @@ size_t mobi_get_kf8boundary_seqnumber(const MOBIData *m) {
         }
     }
     return MOBI_NOTSET;
+}
+
+/**
+ @brief Remove null characters from char buffer
+ 
+ @param[in,out] buffer Character buffer
+ @param[in,out] len Size of buffer, will be updated with new length
+ */
+void mobi_remove_zeros(unsigned char *buffer, size_t *len) {
+    size_t length = *len;
+    unsigned char *end = buffer + length;
+    unsigned char *buf = memchr(buffer, 0, length);
+    if (buf == NULL) {
+        return;
+    }
+    buf++;
+    size_t distance = 1;
+    while (buf < end) {
+        if (*buf) {
+            *(buf - distance) = *buf;
+        } else {
+            distance++;
+        }
+        buf++;
+    }
+    *len -= distance;
 }
 
 /**
