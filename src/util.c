@@ -1409,6 +1409,20 @@ char * mobi_decode_exthstring(const MOBIData *m, const unsigned char *data, cons
 }
 
 /**
+ @brief Swap endianness of 32-bit value
+ 
+ @param[in] val 4-byte unsigned integer
+ @return Integer with swapped endianness
+ */
+uint32_t mobi_swap32(const uint32_t val) {
+    return ((((val) >> 24) & 0x000000ff) |
+            (((val) >>  8) & 0x0000ff00) |
+            (((val) <<  8) & 0x00ff0000) |
+            (((val) << 24) & 0xff000000));
+
+}
+
+/**
  @brief Convert time values from palmdoc header to time tm struct
  
  Older files set time in mac format. Newer ones in unix time.
@@ -1418,10 +1432,15 @@ char * mobi_decode_exthstring(const MOBIData *m, const unsigned char *data, cons
  */
 struct tm * mobi_pdbtime_to_time(const long pdb_time) {
     time_t time = pdb_time;
+    const int unix1996 = 820454400;
+    if (time < unix1996 && time > 0) {
+        /* sometimes dates are stored as little endian */
+        time = mobi_swap32((uint32_t) time);
+    }
     const uint32_t mactime_flag = (uint32_t) (1U << 31);
     if (time & mactime_flag) {
         debug_print("%s\n", "mac time");
-        time += EPOCH_MAC_DIFF;
+        time -= EPOCH_MAC_DIFF;
     }
     return localtime(&time);
 }
