@@ -39,7 +39,8 @@ MOBIArray * array_init(const size_t len) {
         debug_print("%s", "Array data allocation failed\n");
         return NULL;
     }
-    arr->maxsize = arr->step = len;
+    arr->maxsize = len;
+    arr->step = len ? len : 1;
     arr->size = 0;
     return arr;
 }
