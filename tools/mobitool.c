@@ -12,21 +12,20 @@
  * See <http://www.gnu.org/licenses/>
  */
 
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #ifdef _WIN32
 #include <direct.h>
-#include "getopt.h"
+#include "win32/getopt.h"
 #else
 #include <unistd.h>
 #endif
 #include <ctype.h>
 #include <time.h>
-#include <sys/stat.h>
 #include <errno.h>
 /* include libmobi header */
 #include <mobi.h>
+#include "common.h"
 #ifdef HAVE_CONFIG_H
 # include "../config.h"
 #endif
@@ -56,37 +55,7 @@
 #else
 # define PRINT_EPUB_ARG ""
 #endif
-/* return codes */
-#define ERROR 1
-#define SUCCESS 0
 
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
-
-#if defined(__clang__)
-# define COMPILER "clang " __VERSION__
-#elif defined(__SUNPRO_C)
-# define COMPILER "suncc " STR(__SUNPRO_C)
-#elif defined(__GNUC__)
-# if (defined(__MINGW32__) || defined(__MINGW64__))
-#  define COMPILER "gcc (MinGW) " __VERSION__
-# else
-#  define COMPILER "gcc " __VERSION__
-# endif
-#elif defined(_MSC_VER)
-# define COMPILER "MSVC++ " STR(_MSC_VER)
-#else
-# define COMPILER "unknown"
-#endif
-
-#if !defined S_ISDIR && defined S_IFDIR
-# define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-#endif
-#ifndef S_ISDIR
-# error "At least one of S_ISDIR or S_IFDIR macros is required"
-#endif
-
-#define FULLNAME_MAX 1024
 
 #define EPUB_CONTAINER "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n\
@@ -116,275 +85,6 @@ char outdir[FILENAME_MAX];
 #ifdef USE_ENCRYPTION
 char *pid;
 #endif
-
-#ifdef _WIN32
-const int separator = '\\';
-#else
-const int separator = '/';
-#endif
-
-static int mt_mkdir (const char *filename) {
-    int ret;
-#ifdef _WIN32
-    ret = _mkdir(filename);
-#else
-    ret = mkdir(filename, S_IRWXU);
-#endif
-    return ret;
-}
-
-/**
- @brief Messages for libmobi return codes
-        For reference see enum MOBI_RET in mobi.h
- */
-const char *libmobi_messages[] = {
-    "Success",
-    "Generic error",
-    "Wrong function parameter",
-    "Corrupted data",
-    "File not found",
-    "Document is encrypted",
-    "Unsupported document format",
-    "Memory allocation error",
-    "Initialization error",
-    "Buffer error",
-    "XML error",
-    "Invalid DRM pid",
-    "DRM key not found",
-    "DRM support not included",
-};
-
-#define LIBMOBI_MSG_COUNT sizeof(libmobi_messages)/sizeof(libmobi_messages[0])
-
-/**
- @brief Return message for given libmobi return code
- @param[in] ret Libmobi return code
- */
-const char * libmobi_msg(const MOBI_RET ret) {
-    size_t index = ret;
-    if (index < LIBMOBI_MSG_COUNT) {
-        return libmobi_messages[index];
-    } else {
-        return "Unknown error";
-    }
-}
-
-/**
- @brief Parse file name into file path and base name
- @param[in] fullpath Full file path
- @param[in,out] dirname Will be set to full dirname
- @param[in,out] basename Will be set to file basename
- */
-void split_fullpath(const char *fullpath, char *dirname, char *basename) {
-    char *p = strrchr(fullpath, separator);
-    if (p) {
-        p += 1;
-        strncpy(dirname, fullpath, (unsigned long)(p - fullpath));
-        dirname[p - fullpath] = '\0';
-        strncpy(basename, p, strlen(p) + 1);
-    }
-    else {
-        dirname[0] = '\0';
-        strncpy(basename, fullpath, strlen(fullpath) + 1);
-    }
-    p = strrchr(basename, '.');
-    if (p) {
-        *p = '\0';
-    }
-}
-
-/**
- @brief Check whether given path exists and is a directory
- @param[in] path Path to be tested
- */
-bool dir_exists(const char *path) {
-    struct stat sb;
-    if (stat(path, &sb) != 0) {
-        int errsv = errno;
-        printf("Path \"%s\" is not accessible (%s)\n", path, strerror(errsv));
-        return false;
-    }
-    else if (!S_ISDIR(sb.st_mode)) {
-        printf("Path \"%s\" is not a directory\n", path);
-        return false;
-    }
-    return true;
-}
-
-/**
- @brief Print summary meta information
- @param[in] m MOBIData structure
- */
-void print_summary(const MOBIData *m) {
-    char *title = mobi_meta_get_title(m);
-    if (title) {
-        printf("Title: %s\n", title);
-        free(title);
-    }
-    char *author = mobi_meta_get_author(m);
-    if (author) {
-        printf("Author: %s\n", author);
-        free(author);
-    }
-    char *contributor = mobi_meta_get_contributor(m);
-    uint32_t major = 0, minor = 0, build = 0;
-    bool is_calibre = false;
-    if (contributor) {
-        const char *calibre_contributor = "calibre (";
-        if (strncmp(contributor, calibre_contributor, strlen(calibre_contributor)) == 0) {
-            is_calibre = true;
-            sscanf(contributor, "calibre (%u.%u.%u)", &major, &minor, &build);
-        } else {
-            printf("Contributor: %s\n", contributor);
-        }
-        free(contributor);
-    }
-    char *subject = mobi_meta_get_subject(m);
-    if (subject) {
-        printf("Subject: %s\n", subject);
-        free(subject);
-    }
-    char *publisher = mobi_meta_get_publisher(m);
-    if (publisher) {
-        printf("Publisher: %s\n", publisher);
-        free(publisher);
-    }
-    char *date = mobi_meta_get_publishdate(m);
-    if (date) {
-        printf("Publishing date: %s\n", date);
-        free(date);
-    }
-    char *description = mobi_meta_get_description(m);
-    if (description) {
-        printf("Description: %s\n", description);
-        free(description);
-    }
-    char *review = mobi_meta_get_review(m);
-    if (review) {
-        printf("Review: %s\n", review);
-        free(review);
-    }
-    char *imprint = mobi_meta_get_imprint(m);
-    if (imprint) {
-        printf("Imprint: %s\n", imprint);
-        free(imprint);
-    }
-    char *copyright = mobi_meta_get_copyright(m);
-    if (copyright) {
-        printf("Copyright: %s\n", copyright);
-        free(copyright);
-    }
-    char *isbn = mobi_meta_get_isbn(m);
-    if (isbn) {
-        printf("ISBN: %s\n", isbn);
-        free(isbn);
-    }
-    char *asin = mobi_meta_get_asin(m);
-    if (asin) {
-        printf("ASIN: %s\n", asin);
-        free(asin);
-    }
-    char *language = mobi_meta_get_language(m);
-    if (language) {
-        printf("Language: %s", language);
-        free(language);
-        if (m->mh && m->mh->text_encoding) {
-            uint32_t encoding = *m->mh->text_encoding;
-            if (encoding == MOBI_CP1252) {
-                printf(" (cp1252)");
-            } else if (encoding == MOBI_UTF8) {
-                printf(" (utf8)");
-            }
-        }
-        printf("\n");
-    }
-    if (mobi_is_dictionary(m)) {
-        printf("Dictionary");
-        if (m->mh && m->mh->dict_input_lang && m->mh->dict_output_lang &&
-            *m->mh->dict_input_lang && *m->mh->dict_output_lang) {
-            const char *locale_in = mobi_get_locale_string(*m->mh->dict_input_lang);
-            const char *locale_out = mobi_get_locale_string(*m->mh->dict_output_lang);
-            printf(": %s => %s", locale_in, locale_out);
-        }
-        printf("\n");
-    }
-    printf("__\n");
-    printf("Mobi version: %zu", mobi_get_fileversion(m));
-    if (mobi_is_hybrid(m)) {
-        if (m && m->next && m->next->mh && m->next->mh->version) {
-            uint32_t version = *m->next->mh->version;
-            printf(" (hybrid with version %u)", version);
-        }
-    }
-    printf("\n");
-    if (mobi_is_encrypted(m)) {
-        printf("Document is encrypted\n");
-    }
-    if (is_calibre) {
-        printf("Creator software: calibre %u.%u.%u\n", major, minor, build);
-    } else {
-        MOBIExthHeader *exth = mobi_get_exthrecord_by_tag(m, EXTH_CREATORSOFT);
-        if (exth) {
-            printf("Creator software: ");
-            uint32_t creator = mobi_decode_exthvalue(exth->data, exth->size);
-            exth = mobi_get_exthrecord_by_tag(m, EXTH_CREATORMAJOR);
-            if (exth) {
-                major = mobi_decode_exthvalue(exth->data, exth->size);
-            }
-            exth = mobi_get_exthrecord_by_tag(m, EXTH_CREATORMINOR);
-            if (exth) {
-                minor = mobi_decode_exthvalue(exth->data, exth->size);
-            }
-            exth = mobi_get_exthrecord_by_tag(m, EXTH_CREATORBUILD);
-            if (exth) {
-                build = mobi_decode_exthvalue(exth->data, exth->size);
-            }
-            exth = mobi_get_exthrecord_by_tag(m, EXTH_CREATORBUILDREV);
-            if (major == 2 && minor == 9 && build == 0 && exth) {
-                char *rev = mobi_decode_exthstring(m, exth->data, exth->size);
-                if (strcmp(rev, "0730-890adc2") == 0) {
-                    is_calibre = true;
-                }
-            }
-            switch (creator) {
-                case 0:
-                    printf("mobipocket reader %u.%u.%u", major, minor, build);
-                    break;
-                case 1:
-                case 101:
-                    printf("mobigen %u.%u.%u", major, minor, build);
-                    break;
-                case 2:
-                    printf("mobipocket creator %u.%u.%u", major, minor, build);
-                    break;
-                case 200:
-                    printf("kindlegen %u.%u.%u (windows)", major, minor, build);
-                    if (is_calibre) {
-                        printf(" or calibre");
-                    }
-                    break;
-                case 201:
-                    printf("kindlegen %u.%u.%u (linux)", major, minor, build);
-                    if ((major == 1 && minor == 2 && build == 33307) ||
-                        (major == 2 && minor == 0 && build == 101) ||
-                        is_calibre) {
-                        printf(" or calibre");
-                    }
-                    break;
-                case 202:
-                    printf("kindlegen %u.%u.%u (mac)", major, minor, build);
-                    if (is_calibre) {
-                        printf(" or calibre");
-                    }
-                    break;
-                default:
-                    printf("unknown");
-                    break;
-            }
-            printf("\n");
-        }
-    }
-}
 
 /**
  @brief Print all loaded headers meta information
@@ -514,85 +214,6 @@ void print_meta(const MOBIData *m) {
         if(m->mh->unknown18) { printf("unknown: %u\n", *m->mh->unknown18); }
         if(m->mh->unknown19) { printf("unknown: %u\n", *m->mh->unknown19); }
         if(m->mh->unknown20) { printf("unknown: %u\n", *m->mh->unknown20); }
-    }
-}
-
-/**
- @brief Print all loaded EXTH record tags
- @param[in] m MOBIData structure
- */
-void print_exth(const MOBIData *m) {
-    if (m->eh == NULL) {
-        return;
-    }
-    /* Linked list of MOBIExthHeader structures holds EXTH records */
-    const MOBIExthHeader *curr = m->eh;
-    if (curr != NULL) {
-        printf("\nEXTH records:\n");
-    }
-    uint32_t val32;
-    while (curr != NULL) {
-        /* check if it is a known tag and get some more info if it is */
-        MOBIExthMeta tag = mobi_get_exthtagmeta_by_tag(curr->tag);
-        if (tag.tag == 0) {
-            /* unknown tag */
-            /* try to print the record both as string and numeric value */
-            char *str = malloc(curr->size + 1);
-            if (!str) {
-                printf("Memory allocation failed\n");
-                exit(1);
-            }
-            unsigned i = 0;
-            unsigned char *p = curr->data;
-            while (i < curr->size && isprint(*p)) {
-                str[i] = (char)*p++;
-                i++;
-            }
-            str[i] = '\0';
-            val32 = mobi_decode_exthvalue(curr->data, curr->size);
-            printf("Unknown (%i): %s (%u)\n", curr->tag, str, val32);
-            free(str);
-        } else {
-            /* known tag */
-            unsigned i = 0;
-            size_t size = curr->size;
-            char *str = malloc(2 * size + 1);
-            if (!str) {
-                printf("Memory allocation failed\n");
-                exit(1);
-            }
-            unsigned char *data = curr->data;
-            switch (tag.type) {
-                /* numeric */
-                case EXTH_NUMERIC:
-                    val32 = mobi_decode_exthvalue(data, size);
-                    printf("%s: %u\n", tag.name, val32);
-                    break;
-                /* string */
-                case EXTH_STRING:
-                {
-                    char *exth_string = mobi_decode_exthstring(m, data, size);
-                    if (exth_string) {
-                        printf("%s: %s\n", tag.name, exth_string);
-                        free(exth_string);
-                    }
-                    break;
-                }
-                /* binary */
-                case EXTH_BINARY:
-                    while (size--) {
-                        uint8_t val8 = *data++;
-                        sprintf(&str[i], "%02x", val8);
-                        i += 2;
-                    }
-                    printf("%s: 0x%s\n", tag.name, str);
-                    break;
-                default:
-                    break;
-            }
-            free(str);
-        }
-        curr = curr->next;
     }
 }
 
@@ -1117,7 +738,7 @@ int loadfilename(const char *fullpath) {
 #ifdef USE_ENCRYPTION
     if (setpid_opt) {
         /* Try to set key for decompression */
-        if (m->rh && m->rh->encryption_type == 0) {
+        if (!mobi_is_encrypted(m)) {
             printf("\nDocument is not encrypted, ignoring PID\n");
         }
         else if (m->rh && m->rh->encryption_type == 1) {
@@ -1197,7 +818,7 @@ int loadfilename(const char *fullpath) {
  @brief Print usage info
  @param[in] progname Executed program name
  */
-void usage(const char *progname) {
+void exit_with_usage(const char *progname) {
     printf("usage: %s [-d" PRINT_EPUB_ARG "imrs" PRINT_RUSAGE_ARG "vx7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
     printf("       without arguments prints document metadata and exits\n");
     printf("       -d      dump rawml text record\n");
@@ -1218,14 +839,14 @@ void usage(const char *progname) {
     printf("       -v      show version and exit\n");
     printf("       -x      extract conversion source and log (if present)\n");
     printf("       -7      parse KF7 part of hybrid file (by default KF8 part is parsed)\n");
-    exit(0);
+    exit(SUCCESS);
 }
 /**
  @brief Main
  */
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        usage(argv[0]);
+        exit_with_usage(argv[0]);
     }
     opterr = 0;
     int c;
@@ -1307,17 +928,18 @@ int main(int argc, char *argv[]) {
                 else {
                     fprintf(stderr, "Unknown option character `\\x%x'\n", optopt);
                 }
-                usage(argv[0]);
+                exit_with_usage(argv[0]);
             default:
-                usage(argv[0]);
+                exit_with_usage(argv[0]);
         }
     if (argc <= optind) {
         printf("Missing filename\n");
-        usage(argv[0]);
+        exit_with_usage(argv[0]);
     }
     int ret = 0;
     char filename[FILENAME_MAX];
     strncpy(filename, argv[optind], FILENAME_MAX - 1);
+    filename[FILENAME_MAX - 1] = '\0';
     ret = loadfilename(filename);
 #ifdef HAVE_SYS_RESOURCE_H
     if (print_rusage_opt) {

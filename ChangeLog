@@ -1,3 +1,10 @@
+2016-04-19: Add initial write and metadata editing support. Add mobimeta tool.
+2016-04-19: Always check whether memory allocation succeeded
+2016-04-18: Fix: guarantee array resize step is at least 1
+2016-04-13: Workaround to read some old mobipocket files
+2016-04-13: Improve pdb dates resolving
+2016-04-07: Minor documentation edit
+2016-04-07: Update changelog
 2016-04-06: Fix format warning
 2016-04-06: Update test checksums
 2016-04-06: Fix: <dc:date> "event" attribute needs "opf" namespace

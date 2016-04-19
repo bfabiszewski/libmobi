@@ -63,6 +63,7 @@ extern "C"
         MOBI_DRM_PIDINV = 11,  /**< Invalid DRM PID */
         MOBI_DRM_KEYNOTFOUND = 12,  /**< Key not found */
         MOBI_DRM_UNSUPPORTED = 13, /**< DRM support not included */
+        MOBI_WRITE_FAILED = 14, /**< Writing to file failed */
     } MOBI_RET;
     
     /**
@@ -511,6 +512,8 @@ extern "C"
     MOBI_EXPORT size_t mobi_get_fdst_record_number(const MOBIData *m);
     MOBI_EXPORT MOBIExthHeader * mobi_get_exthrecord_by_tag(const MOBIData *m, const MOBIExthTag tag);
     MOBI_EXPORT MOBIExthHeader * mobi_next_exthrecord_by_tag(const MOBIData *m, const MOBIExthTag tag, MOBIExthHeader **start);
+    MOBI_EXPORT MOBI_RET mobi_delete_exthrecord_by_tag(MOBIData *m, const MOBIExthTag tag);
+    MOBI_EXPORT MOBI_RET mobi_add_exthrecord(MOBIData *m, const MOBIExthTag tag, const uint32_t size, const void *value);
     MOBI_EXPORT MOBIExthMeta mobi_get_exthtagmeta_by_tag(const MOBIExthTag tag);
     MOBI_EXPORT MOBIFileMeta mobi_get_filemeta_by_type(const MOBIFiletype type);
     MOBI_EXPORT uint32_t mobi_decode_exthvalue(const unsigned char *data, const size_t size);
@@ -549,9 +552,51 @@ extern "C"
     MOBI_EXPORT char * mobi_meta_get_copyright(const MOBIData *m);
     MOBI_EXPORT char * mobi_meta_get_asin(const MOBIData *m);
     MOBI_EXPORT char * mobi_meta_get_language(const MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_title(MOBIData *m, const char *title);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_title(MOBIData *m, const char *title);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_title(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_author(MOBIData *m, const char *author);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_author(MOBIData *m, const char *author);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_author(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_publisher(MOBIData *m, const char *publisher);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_publisher(MOBIData *m, const char *publisher);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_publisher(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_imprint(MOBIData *m, const char *imprint);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_imprint(MOBIData *m, const char *imprint);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_imprint(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_description(MOBIData *m, const char *description);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_description(MOBIData *m, const char *description);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_description(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_isbn(MOBIData *m, const char *isbn);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_isbn(MOBIData *m, const char *isbn);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_isbn(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_subject(MOBIData *m, const char *subject);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_subject(MOBIData *m, const char *subject);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_subject(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_publishdate(MOBIData *m, const char *publishdate);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_publishdate(MOBIData *m, const char *publishdate);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_publishdate(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_review(MOBIData *m, const char *review);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_review(MOBIData *m, const char *review);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_review(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_contributor(MOBIData *m, const char *contributor);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_contributor(MOBIData *m, const char *contributor);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_contributor(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_copyright(MOBIData *m, const char *copyright);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_copyright(MOBIData *m, const char *copyright);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_copyright(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_asin(MOBIData *m, const char *asin);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_asin(MOBIData *m, const char *asin);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_asin(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_meta_set_language(MOBIData *m, const char *language);
+    MOBI_EXPORT MOBI_RET mobi_meta_add_language(MOBIData *m, const char *language);
+    MOBI_EXPORT MOBI_RET mobi_meta_delete_language(MOBIData *m);
     
     MOBI_EXPORT MOBI_RET mobi_drm_setkey(MOBIData *m, const char *pid);
     MOBI_EXPORT MOBI_RET mobi_drm_delkey(MOBIData *m);
+    MOBI_EXPORT MOBI_RET mobi_drm_decrypt(MOBIData *m);
+    
+    MOBI_EXPORT MOBI_RET mobi_write_file(FILE *file, MOBIData *m);
     /** @} */ // end of mobi_export group
     
 #ifdef __cplusplus

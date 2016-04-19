@@ -258,22 +258,22 @@ if test x$debug_alloc = xyes; then
     AC_DEFINE([MOBI_DEBUG_ALLOC], 1, [Enable alloc debugging])
 fi
 
-# Check --enable-mobitool-static
-AC_MSG_CHECKING([whether link mobitool against static libmobi])
-AC_ARG_ENABLE([mobitool_static],
-AS_HELP_STRING([--enable-mobitool-static],
-               [link mobitool against static libmobi @<:@default=no@:>@]),
+# Check --enable-tools-static
+AC_MSG_CHECKING([whether link tools against static libmobi])
+AC_ARG_ENABLE([tools_static],
+AS_HELP_STRING([--enable-tools-static],
+               [link tools against static libmobi @<:@default=no@:>@]),
                [case "${enableval}" in
-                  yes) mobitool_static=yes ;;
-                  no)  mobitool_static=no ;;
-                  *) AC_MSG_ERROR([bad value ${enableval} for --enable-mobitool-static]) ;;
-                esac],[mobitool_static=no])
-AC_MSG_RESULT($mobitool_static)
-MOBITOOL_STATIC=
-if test x$mobitool_static = xyes; then
-    MOBITOOL_STATIC="-static"
+                  yes) tools_static=yes ;;
+                  no)  tools_static=no ;;
+                  *) AC_MSG_ERROR([bad value ${enableval} for --enable-tools-static]) ;;
+                esac],[tools_static=no])
+AC_MSG_RESULT($tools_static)
+TOOLS_STATIC=
+if test x$tools_static = xyes; then
+    TOOLS_STATIC="-static"
 fi
-AC_SUBST(MOBITOOL_STATIC)
+AC_SUBST(TOOLS_STATIC)
 
 # test for --with-zlib
 AC_MSG_CHECKING([whether compile with zlib])
@@ -324,6 +324,7 @@ AC_CONFIG_FILES([libmobi.pc])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([tools/Makefile])
 AC_CONFIG_FILES([tools/mobitool.1])
+AC_CONFIG_FILES([tools/mobimeta.1])
 AC_CONFIG_FILES([tests/Makefile])
 AC_CONFIG_FILES([tests/test.sh], [chmod +x tests/test.sh])
 

@@ -385,7 +385,7 @@ MOBI_RET mobi_parse_mobiheader(MOBIData *m, MOBIBuffer *buf) {
     }
     buf->maxlen = saved_maxlen;
     /* get full name stored at m->mh->full_name_offset */
-    if (m->mh->full_name_offset && m->mh->full_name_length && *m->mh->full_name_length > 0) {
+    if (m->mh->full_name_offset && m->mh->full_name_length) {
         const size_t saved_offset = buf->offset;
         const uint32_t full_name_length = min(*m->mh->full_name_length, MOBI_TITLE_SIZEMAX);
         buffer_setpos(buf, *m->mh->full_name_offset);
@@ -394,10 +394,10 @@ MOBI_RET mobi_parse_mobiheader(MOBIData *m, MOBIBuffer *buf) {
             debug_print("%s", "Memory allocation for full name failed\n");
             return MOBI_MALLOC_FAILED;
         }
-        buffer_getstring(m->mh->full_name, buf, full_name_length);
-        if (strlen(m->mh->full_name) == 0) {
-            free(m->mh->full_name);
-            m->mh->full_name = NULL;
+        if (full_name_length) {
+            buffer_getstring(m->mh->full_name, buf, full_name_length);
+        } else {
+            m->mh->full_name[0] = '\0';
         }
         buffer_setpos(buf, saved_offset);
     }
@@ -863,7 +863,7 @@ MOBI_RET mobi_load_file(MOBIData *m, FILE *file) {
     if (ret != MOBI_SUCCESS) {
         return ret;
     }
-    if (m->rh && m->rh->encryption_type == 1) {
+    if (m->rh && m->rh->encryption_type == RECORD0_OLD_ENCRYPTION) {
         /* try to set key for encryption type 1 */
         debug_print("Trying to set key for encryption type 1%s", "\n")
         mobi_drm_setkey(m, NULL);

@@ -1,10 +1,8 @@
 # Libmobi
 
 C library for handling Mobipocket/Kindle (MOBI) ebook format documents.
-Current version supports reading and parsing functions.
 
-There is a simple program included in the project: mobitool.c.
-It may serve as an example how to use the library.
+For examples on how to use the library have a look at tools folder.
 
 ## What works:
 - reading and parsing: 
@@ -16,10 +14,13 @@ It may serve as an example how to use the library.
 - reconstructing references (links and embedded) in html files
 - reconstructing source structure that can be fed back to kindlegen
 - reconstructing dictionary markup (orth, infl tags)
+- writing back loaded documents
+- metadata editing
 - handling encrypted documents
 
 ## Todo:
-- writing MOBI documents
+- improve writing
+- serialize rawml into raw records
 - process RESC records
 
 ## Doxygen documentation:
@@ -33,7 +34,7 @@ It may serve as an example how to use the library.
 
 ## Installation:
 
-    $ ./autogen.sh
+    [for git] $ ./autogen.sh
     $ ./configure
     $ make
     [optionally] $ make test

@@ -33,6 +33,14 @@
       <Configuration>libmobi-release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="mobimeta|Win32">
+      <Configuration>mobimeta</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="mobimeta|x64">
+      <Configuration>mobimeta</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="mobitool|Win32">
       <Configuration>mobitool</Configuration>
       <Platform>Win32</Platform>
@@ -91,7 +99,13 @@
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'" Label="Configuration">
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'" Label="Configuration">
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -150,9 +164,17 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">
     <TargetName>mobitool</TargetName>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);src</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">
+    <TargetName>mobimeta</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">
     <TargetName>mobitool</TargetName>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);src</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">
+    <TargetName>mobimeta</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">
     <Linkage-libxml2>static</Linkage-libxml2>
@@ -162,7 +184,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;MOBI_DEBUG=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;MOBI_DEBUG=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -180,7 +202,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;MOBI_DEBUG=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;MOBI_DEBUG=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -195,7 +217,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -214,7 +236,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -229,7 +251,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;MOBI_DEBUG=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;MOBI_DEBUG=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\opt\include\libxml2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -242,7 +264,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;MOBI_DEBUG=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;MOBI_DEBUG=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -250,27 +272,49 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">
     <Link>
-      <AdditionalLibraryDirectories>.\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\libmobi-debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>libmobi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
-      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">
+    <Link>
+      <AdditionalLibraryDirectories>.\libmobi-debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmobi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <ClCompile>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">
     <Link>
-      <AdditionalLibraryDirectories>.\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\libmobi-debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>libmobi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
-      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">
+    <Link>
+      <AdditionalLibraryDirectories>.\libmobi-debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmobi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <ClCompile>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;USE_MINIZ;USE_LIBXML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\opt\include\libxml2</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
@@ -280,43 +324,65 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_XMLWRITER=1;USE_ENCRYPTION=1;_CRT_SECURE_NO_WARNINGS;USE_MINIZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\buffer.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\compression.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\debug.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\encryption.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\index.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\memory.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\meta.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\miniz.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\opf.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">false</ExcludedFromBuild>
@@ -330,43 +396,71 @@
     </ClCompile>
     <ClCompile Include="src\parse_rawml.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\read.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\structure.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\util.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\write.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\xmlwriter.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="tools\getopt.c">
+    <ClCompile Include="tools\common.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="tools\mobimeta.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="tools\mobitool.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>
@@ -374,99 +468,153 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="tools\win32\getopt.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="resource.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\buffer.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\compression.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\config.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\debug.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\encryption.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\index.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\memory.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="src\meta.h" />
     <ClInclude Include="src\miniz.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\mobi.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\opf.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\parse_rawml.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\read.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\structure.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\util.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\write.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="src\xmlwriter.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="tools\common.h" />
     <ClInclude Include="tools\getopt.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>

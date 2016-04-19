@@ -177,6 +177,150 @@ MOBI_RET mobi_cp1252_to_utf8(char *output, const char *input, size_t *outsize, c
     return MOBI_SUCCESS;
 }
 
+/**
+ @brief Convert utf-8 encoded string to cp1252
+ 
+ Characters out of range will be replaced with substitute character
+ 
+ @param[in,out] output Output string
+ @param[in,out] input Input string
+ @param[in,out] outsize Size of the allocated output buffer, will be set to output string length (without null terminator) on return
+ @param[in] insize Length of the input string.
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_utf8_to_cp1252(char *output, const char *input, size_t *outsize, const size_t insize) {
+    if (!output || !input) {
+        return MOBI_PARAM_ERR;
+    }
+    const unsigned char *in = (unsigned char *) input;
+    unsigned char *out = (unsigned char *) output;
+    const unsigned char *outend = out + *outsize - 1; /* leave space for null terminator */
+    const unsigned char *inend = in + insize;
+    while (in < inend && out < outend && *in) {
+        /* one byte */
+        if (*in < 0x80) {
+            *out++ = *in++;
+        }
+        /* two bytes */
+        else if ((*in & 0xe0) == 0xc0) {
+            if (in > inend - 2) { break; }
+            if (in[0] == 0xc2 && (in[1] >= 0xa0 && in[1] <= 0xbf)) {
+                *out++ = in[1];
+            } else if (in[0] == 0xc3 && (in[1] >= 0x80 && in[1] <= 0xbf)) {
+                *out++ = in[1] + 0x40;
+            } else if (in[0] == 0xc5) {
+                switch (in[1]) {
+                    case 0xa0:
+                        *out++ = 0x8a;
+                        break;
+                    case 0x92:
+                        *out++ = 0x8c;
+                        break;
+                    case 0xbd:
+                        *out++ = 0x8e;
+                        break;
+                    case 0xa1:
+                        *out++ = 0x9a;
+                        break;
+                    case 0x93:
+                        *out++ = 0x9c;
+                        break;
+                    case 0xbe:
+                        *out++ = 0x9e;
+                        break;
+                    case 0xb8:
+                        *out++ = 0x9f;
+                        break;
+                    default:
+                        *out++ = '?';
+                        break;
+                }
+            } else if (in[0] == 0xc6 && in[1] == 0x92) {
+                *out++ = 0x83;
+            } else if (in[0] == 0xcb && in[1] == 0x86) {
+                *out++ = 0x88;
+            } else {
+                *out++ = '?';
+            }
+            in += 2;
+        }
+        /* three bytes */
+        else if ((*in & 0xf0) == 0xe0) {
+            if (in > inend - 3) { break; }
+            if (in[0] == 0xe2 && in[1] == 0x80) {
+                switch (in[2]) {
+                    case 0x9a:
+                        *out++ = 0x82;
+                        break;
+                    case 0x9e:
+                        *out++ = 0x84;
+                        break;
+                    case 0xa6:
+                        *out++ = 0x85;
+                        break;
+                    case 0xa0:
+                        *out++ = 0x86;
+                        break;
+                    case 0xb0:
+                        *out++ = 0x89;
+                        break;
+                    case 0xb9:
+                        *out++ = 0x8b;
+                        break;
+                    case 0x98:
+                        *out++ = 0x91;
+                        break;
+                    case 0x99:
+                        *out++ = 0x92;
+                        break;
+                    case 0x9c:
+                        *out++ = 0x93;
+                        break;
+                    case 0x9d:
+                        *out++ = 0x94;
+                        break;
+                    case 0xa2:
+                        *out++ = 0x95;
+                        break;
+                    case 0x93:
+                        *out++ = 0x86;
+                        break;
+                    case 0x94:
+                        *out++ = 0x97;
+                        break;
+                    case 0xba:
+                        *out++ = 0x9b;
+                        break;
+                    default:
+                        *out++ = '?';
+                        break;
+                }
+            } else if (in[0] == 0xe2 && in[1] == 0x82 && in[2] == 0xac) {
+                *out++ = 0x80;
+            } else if (in[0] == 0xe2 && in[1] == 0x84 && in[2] == 0xa2) {
+                *out++ = 0x99;
+            } else {
+                *out++ = '?';
+            }
+            in += 3;
+        }
+        /* four bytes */
+        else if ((*in & 0xf8) == 0xf0) {
+            if (in > inend - 4) { break; }
+            *out++ = '?';
+            in += 4;
+        }
+        /* skip error */
+        else {
+            *out++ = '?';
+            in++;
+        }
+    }
+    *out = '\0';
+    *outsize = (size_t) (out - (unsigned char *) output);
+    return MOBI_SUCCESS;
+}
+
 /** @brief Decode ligature to cp1252
  
  Some latin ligatures are encoded in indices to facilitate search
@@ -623,227 +767,69 @@ MOBI_RET mobi_get_fullname(const MOBIData *m, char *fullname, const size_t len) 
 }
 
 /**
- @brief Get document metadata from exth string
+ @brief Set ebook full name stored in Record 0 at offset given in MOBI header
  
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @param[in] exth_tag MOBIExthTag
- @return Pointer to null terminated string, NULL on failure
+ @param[in,out] m MOBIData structure with loaded data
+ @param[in] fullname Memory area to be filled with zero terminated full name string
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-char * mobi_meta_get_exthstring(const MOBIData *m, const MOBIExthTag exth_tag) {
-    char *string = NULL;
-    
-    MOBIExthHeader *exth;
-    MOBIExthHeader *start = NULL;
-    while ((exth = mobi_next_exthrecord_by_tag(m, exth_tag, &start))) {
-        char *exth_string = mobi_decode_exthstring(m, exth->data, exth->size);
-        if (string == NULL) {
-            string = exth_string;
-        } else if (exth_string) {
-            const char *separator = "; ";
-            size_t new_length = strlen(string) + strlen(exth_string) + strlen(separator) + 1;
-            char *new = malloc(new_length);
-            if (new == NULL) {
-                free(string);
-                free(exth_string);
-                return NULL;
+MOBI_RET mobi_set_fullname(MOBIData *m, const char *fullname) {
+    if (mobi_exists_mobiheader(m) && m->mh->full_name) {
+        size_t title_length = min(strlen(fullname), MOBI_TITLE_SIZEMAX);
+        char *new_title = malloc(title_length + 1);
+        if (new_title == NULL) {
+            return MOBI_MALLOC_FAILED;
+        }
+        if (mobi_is_cp1252(m)) {
+            size_t new_size = title_length + 1;
+            MOBI_RET ret = mobi_utf8_to_cp1252(new_title, fullname, &new_size, title_length);
+            if (ret != MOBI_SUCCESS) {
+                free(new_title);
+                return ret;
             }
-            strcpy(new, string);
-            strcat(new, separator);
-            strcat(new, exth_string);
-            free(string);
-            free(exth_string);
-            string = new;
+        } else {
+            memcpy(new_title, fullname, title_length);
+            new_title[title_length] = '\0';
         }
-        if (start == NULL) {
-            break;
-        }
-    }
-    return string;
-}
-
-/**
- @brief Get document title metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_title(const MOBIData *m) {
-    if (m == NULL) {
-        return NULL;
-    }
-    char *title = mobi_meta_get_exthstring(m, EXTH_UPDATEDTITLE);
-    if (title) {
-        return title;
-    }
-    char fullname[MOBI_TITLE_SIZEMAX + 1];
-    MOBI_RET ret = mobi_get_fullname(m, fullname, MOBI_TITLE_SIZEMAX);
-    if (ret == MOBI_SUCCESS) {
-        title = strdup(fullname);
-    } else if (m->ph) {
-        title = strdup(m->ph->name);
-    }
-    return title;
-}
-
-/**
- @brief Get document author metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_author(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_AUTHOR);
-}
-
-/**
- @brief Get document subject metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_subject(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_SUBJECT);
-}
-
-/**
- @brief Get document publisher metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_publisher(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_PUBLISHER);
-}
-
-/**
- @brief Get document publishing date metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_publishdate(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_PUBLISHINGDATE);
-}
-
-/**
- @brief Get document description metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_description(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_DESCRIPTION);
-}
-
-/**
- @brief Get document imprint metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_imprint(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_IMPRINT);
-}
-
-/**
- @brief Get document contributor metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_contributor(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_CONTRIBUTOR);
-}
-
-/**
- @brief Get document review metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_review(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_REVIEW);
-}
-
-/**
- @brief Get document copyright metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_copyright(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_RIGHTS);
-}
-
-/**
- @brief Get document ISBN metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_isbn(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_ISBN);
-}
-
-/**
- @brief Get document ASIN metadata
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_asin(const MOBIData *m) {
-    return mobi_meta_get_exthstring(m, EXTH_ASIN);
-}
-
-/**
- @brief Get document language code metadata
- 
- Locale strings are based on IANA language-subtag registry with some custom Mobipocket modifications.
- See mobi_locale array.
- 
- Returned string must be deallocated by caller
- 
- @param[in] m MOBIData structure with loaded data
- @return Pointer to null terminated string, NULL on failure
- */
-char * mobi_meta_get_language(const MOBIData *m) {
-    if (m == NULL) {
-        return NULL;
-    }
-    char *lang = mobi_meta_get_exthstring(m, EXTH_LANGUAGE);
-    if(lang == NULL && m->mh && m->mh->locale && *m->mh->locale) {
-        const char *locale_string = mobi_get_locale_string(*m->mh->locale);
-        if (locale_string) {
-            lang = strdup(locale_string);
+        free(m->mh->full_name);
+        m->mh->full_name = new_title;
+        if (mobi_is_hybrid(m) && mobi_exists_mobiheader(m->next) && m->next->mh->full_name) {
+            char *new_title2 = strdup(new_title);
+            if (new_title2 == NULL) {
+                return MOBI_MALLOC_FAILED;
+            }
+            free(m->next->mh->full_name);
+            m->next->mh->full_name = new_title2;
         }
     }
-    return lang;
+    return MOBI_SUCCESS;
+}
+
+MOBI_RET mobi_set_pdbname(MOBIData *m, const char *name) {
+    if (m == NULL || m->ph == NULL) {
+        return MOBI_INIT_FAILED;
+    }
+    char dbname[PALMDB_NAME_SIZE_MAX + 1];
+    if (mobi_is_cp1252(m)) {
+        size_t size = PALMDB_NAME_SIZE_MAX + 1;
+        MOBI_RET ret = mobi_utf8_to_cp1252(dbname, name, &size, strlen(name));
+        if (ret != MOBI_SUCCESS) {
+            return ret;
+        }
+    } else {
+        memcpy(dbname, name, PALMDB_NAME_SIZE_MAX);
+        dbname[PALMDB_NAME_SIZE_MAX] = '\0';
+    }
+    char c;
+    int i = 0;
+    while ((c = dbname[i])) {
+        if (!isalnum(c)) {
+            c = '_';
+        }
+        m->ph->name[i++] = c;
+    }
+    m->ph->name[i] = '\0';
+    return MOBI_SUCCESS;
 }
 
 /**
@@ -1132,6 +1118,149 @@ MOBIExthHeader * mobi_next_exthrecord_by_tag(const MOBIData *m, const MOBIExthTa
         curr = curr->next;
     }
     return NULL;
+}
+
+MOBI_RET mobi_add_exthrecord(MOBIData *m, const MOBIExthTag tag, const uint32_t size, const void *value) {
+    if (size == 0) {
+        debug_print("%s\n", "Record size is zero");
+        return MOBI_PARAM_ERR;
+    }
+    size_t count = 2;
+    while (m && count--) {
+        if (m->mh == NULL) {
+            debug_print("%s\n", "Mobi header must be initialized");
+            return MOBI_INIT_FAILED;
+        }
+        MOBIExthMeta meta = mobi_get_exthtagmeta_by_tag(tag);
+        MOBIExthHeader *record = calloc(1, sizeof(MOBIExthHeader));
+        if (record == NULL) {
+            debug_print("%s\n", "Memory allocation for EXTH record failed");
+            return MOBI_MALLOC_FAILED;
+        }
+        record->tag = tag;
+        record->size = size;
+        record->data = malloc(size);
+        if (record->data == NULL) {
+            debug_print("%s\n", "Memory allocation for EXTH data failed");
+            free(record);
+            return MOBI_MALLOC_FAILED;
+        }
+        if (meta.type == EXTH_STRING && mobi_is_cp1252(m)) {
+            char *data = malloc(size + 1);
+            if (data == NULL) {
+                free(record->data);
+                free(record);
+                return MOBI_MALLOC_FAILED;
+            }
+            size_t data_size = size + 1;
+            MOBI_RET ret = mobi_utf8_to_cp1252(data, value, &data_size, size);
+            if (ret != MOBI_SUCCESS) {
+                free(record->data);
+                free(record);
+                free(data);
+                return ret;
+            }
+            memcpy(record->data, data, data_size);
+            record->size = (uint32_t) data_size;
+            free(data);
+        } else if (meta.name && meta.type == EXTH_NUMERIC) {
+            if (size != 4) {
+                free(record->data);
+                free(record);
+                return MOBI_PARAM_ERR;
+            }
+            MOBIBuffer *buf = buffer_init_null(size);
+            buf->data = record->data;
+            buffer_add32(buf, *(uint32_t *) value);
+            buffer_free_null(buf);
+        } else {
+            memcpy(record->data, value, size);
+        }
+        record->next = NULL;
+        if (m->eh == NULL) {
+            if (m->mh->exth_flags == NULL) {
+                m->mh->exth_flags = malloc(sizeof(uint32_t));
+                if (m->mh->exth_flags == NULL) {
+                    debug_print("%s\n", "Memory allocation failed");
+                    free(record->data);
+                    free(record);
+                    return MOBI_MALLOC_FAILED;
+                }
+            }
+            *m->mh->exth_flags = 0x40;
+            m->eh = record;
+        } else {
+            MOBIExthHeader *curr = m->eh;
+            while(curr->next) {
+                curr = curr->next;
+            }
+            curr->next = record;
+        }
+        m = m->next;
+    }
+    return MOBI_SUCCESS;
+}
+
+MOBIExthHeader * mobi_delete_exthrecord(MOBIData *m, MOBIExthHeader *record) {
+    if (record == NULL || m == NULL || m->eh == NULL) {
+        return NULL;
+    }
+    MOBIExthHeader *next = record->next;
+    if (next) {
+        /* not last */
+        free(record->data);
+        record->data = next->data;
+        record->tag = next->tag;
+        record->size = next->size;
+        record->next = next->next;
+        free(next);
+        next = record;
+    } else if (m->eh == record) {
+        /* last && first */
+        free(m->eh->data);
+        free(m->eh);
+        m->eh = NULL;
+    } else {
+        /* last */
+        MOBIExthHeader *curr = m->eh;
+        while (curr) {
+            if (curr->next == record) {
+                curr->next = NULL;
+                break;
+            }
+            curr = curr->next;
+        }
+        free(record->data);
+        free(record);
+    }
+    return next;
+}
+
+/**
+ @brief Delete all EXTH records with given MOBIExthTag tag
+ 
+ @param[in,out] m MOBIData structure with loaded data
+ @param[in] tag MOBIExthTag EXTH record tag
+ @return Pointer to MOBIExthHeader record structure
+ */
+MOBI_RET mobi_delete_exthrecord_by_tag(MOBIData *m, const MOBIExthTag tag) {
+    size_t count = 2;
+    while (m && count--) {
+        if (m->eh == NULL) {
+            debug_print("%s", "No exth records\n");
+            return MOBI_SUCCESS;
+        }
+        MOBIExthHeader *curr = m->eh;
+        while (curr) {
+            if (curr->tag == tag) {
+                curr = mobi_delete_exthrecord(m, curr);
+            } else {
+                curr = curr->next;
+            }
+        }
+        m = m->next;
+    }
+    return MOBI_SUCCESS;
 }
 
 /**
@@ -1559,7 +1688,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                 size_t mb_size = mobi_get_record_mb_extrasize(curr, extra_flags);
                 decrypt_size += mb_size;
             }
-            ret = mobi_decrypt(decompressed, curr->data, decrypt_size, m);
+            ret = mobi_drm_decrypt_buffer(decompressed, curr->data, decrypt_size, m);
             if (ret != MOBI_SUCCESS) {
                 mobi_free_huffcdic(huffcdic);
                 free(decompressed);
@@ -2388,11 +2517,11 @@ uint16_t mobi_get_textrecord_maxsize(const MOBIData *m) {
         if (m->rh->text_record_size > RECORD0_TEXT_SIZE_MAX) {
             max_record_size = m->rh->text_record_size;
         }
-    }
-    if (mobi_exists_mobiheader(m) && mobi_get_fileversion(m) <= 3) {
-        /* workaround for some old files with records larger than declared record size */
-        if (m->rh->text_length > max_record_size * m->rh->text_record_count) {
-            max_record_size *= 2;
+        if (mobi_exists_mobiheader(m) && mobi_get_fileversion(m) <= 3) {
+            /* workaround for some old files with records larger than declared record size */
+            if (m->rh->text_length > max_record_size * m->rh->text_record_count) {
+                max_record_size *= 2;
+            }
         }
     }
     return max_record_size;
@@ -2555,6 +2684,57 @@ size_t mobi_get_kf8boundary_seqnumber(const MOBIData *m) {
         }
     }
     return MOBI_NOTSET;
+}
+
+/**
+ @brief Get size of serialized exth record including padding
+ 
+ @param[in] m MOBIData structure
+ @return Size of exth record, zero on failure
+ */
+uint32_t mobi_get_exthsize(const MOBIData *m) {
+    if (m == NULL || m->eh == NULL) {
+        return 0;
+    }
+    size_t size = 0;
+    MOBIExthHeader *curr = m->eh;
+    while (curr) {
+        size += curr->size + 8;
+        curr = curr->next;
+    }
+    if (size > 0) {
+        /* add header size */
+        size += 12;
+        /* add padding */
+        size += size % 4;
+    }
+    if (size > UINT32_MAX) {
+        return 0;
+    } else {
+        return (uint32_t) size;
+    }
+}
+
+/**
+ @brief Get count of palm database records
+ 
+ @param[in] m MOBIData structure
+ @return Count of records, zero on failure
+ */
+uint16_t mobi_get_records_count(const MOBIData *m) {
+    size_t count = 0;
+    if (m->rec) {
+        MOBIPdbRecord *curr = m->rec;
+        while (curr) {
+            count++;
+            curr = curr->next;
+        }
+    }
+    if (count > UINT16_MAX) {
+        return 0;
+    } else {
+        return (uint16_t) count;
+    }
 }
 
 /**

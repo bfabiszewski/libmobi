@@ -94,6 +94,9 @@ For diagnostics
 must be configured with
 .Op Fl Fl enable-debug
 option.
+.Sh SEE ALSO
+.Xr mobimeta 1
+
 .\" .Bl -diag
 .\" .It Diagnostic Tag
 .\" Diagnostic informtion here.

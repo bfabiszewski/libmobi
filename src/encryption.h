@@ -15,7 +15,7 @@
 #include "buffer.h"
 #include "mobi.h"
 
-MOBI_RET mobi_decrypt(unsigned char *out, const unsigned char *in, const size_t length, const MOBIData *m);
+MOBI_RET mobi_drm_decrypt_buffer(unsigned char *out, const unsigned char *in, const size_t length, const MOBIData *m);
 MOBI_RET mobi_drm_setkey_internal(MOBIData *m, const char *pid);
 MOBI_RET mobi_drm_delkey_internal(MOBIData *m);
 
