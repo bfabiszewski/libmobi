@@ -361,9 +361,17 @@ MOBI_RET mobi_opf_add_to_rawml(const char *opf_xml, MOBIRawml *rawml) {
         rawml->resources = calloc(1, sizeof(MOBIPart));
         opf_part = rawml->resources;
     }
+    if (opf_part == NULL) {
+        return MOBI_MALLOC_FAILED;
+    }
     opf_part->uid = uid;
     opf_part->next = NULL;
     opf_part->data = (unsigned char *) strdup(opf_xml);
+    if (opf_part->data == NULL) {
+        free(opf_part);
+        opf_part = NULL;
+        return MOBI_MALLOC_FAILED;
+    }
     opf_part->size = strlen(opf_xml);
     opf_part->type = T_OPF;
     return MOBI_SUCCESS;
@@ -392,9 +400,17 @@ MOBI_RET mobi_ncx_add_to_rawml(const char *ncx_xml, MOBIRawml *rawml) {
         rawml->resources = calloc(1, sizeof(MOBIPart));
         ncx_part = rawml->resources;
     }
+    if (ncx_part == NULL) {
+        return MOBI_MALLOC_FAILED;
+    }
     ncx_part->uid = uid;
     ncx_part->next = NULL;
     ncx_part->data = (unsigned char *) strdup(ncx_xml);
+    if (ncx_part->data == NULL) {
+        free(ncx_part);
+        ncx_part = NULL;
+        return MOBI_MALLOC_FAILED;
+    }
     ncx_part->size = strlen(ncx_xml);
     ncx_part->type = T_NCX;
     return MOBI_SUCCESS;
@@ -1152,6 +1168,10 @@ MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m, const MOBIRawml *
         }
         if (rawml->orth->orth_index_name) {
             opf->metadata->x_meta->default_lookup_index = calloc(OPF_META_MAX_TAGS, sizeof(char*));
+			if (opf->metadata->x_meta->default_lookup_index == NULL) {
+				debug_print("%s\n", "Memory allocation failed");
+				return MOBI_MALLOC_FAILED;
+			}
             opf->metadata->x_meta->default_lookup_index[0] = strdup(rawml->orth->orth_index_name);
         }
     }
