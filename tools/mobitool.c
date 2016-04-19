@@ -604,7 +604,12 @@ int create_epub(const MOBIRawml *rawml, const char *fullpath) {
 }
 #endif
 
-int dump_embedded_source(MOBIData *m, const char *fullpath) {
+/**
+ @brief Dump SRCS record
+ @param[in] m MOBIData structure
+ @param[in] fullpath Full file path
+ */
+int dump_embedded_source(const MOBIData *m, const char *fullpath) {
     /* Try to get embedded source */
     unsigned char *data = NULL;
     size_t size = 0;

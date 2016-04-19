@@ -805,6 +805,13 @@ MOBI_RET mobi_set_fullname(MOBIData *m, const char *fullname) {
     return MOBI_SUCCESS;
 }
 
+/**
+ @brief Set palm database name
+ 
+ @param[in,out] m MOBIData structure with loaded data
+ @param[in] name Name
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
 MOBI_RET mobi_set_pdbname(MOBIData *m, const char *name) {
     if (m == NULL || m->ph == NULL) {
         return MOBI_INIT_FAILED;
@@ -1120,6 +1127,15 @@ MOBIExthHeader * mobi_next_exthrecord_by_tag(const MOBIData *m, const MOBIExthTa
     return NULL;
 }
 
+/**
+ @brief Add new EXTH record with given tag and value.
+ 
+ @param[in,out] m MOBIData structure with loaded data
+ @param[in] tag MOBIExthTag EXTH record tag
+ @param[in] size Value size
+ @param[in] value Value
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
 MOBI_RET mobi_add_exthrecord(MOBIData *m, const MOBIExthTag tag, const uint32_t size, const void *value) {
     if (size == 0) {
         debug_print("%s\n", "Record size is zero");
@@ -1201,6 +1217,13 @@ MOBI_RET mobi_add_exthrecord(MOBIData *m, const MOBIExthTag tag, const uint32_t 
     return MOBI_SUCCESS;
 }
 
+/**
+ @brief Delete EXTH record.
+ 
+ @param[in,out] m MOBIData structure with loaded data
+ @param[in] record Record to be deleted
+ @return Pointer to next record in the linked list (NULL if none)
+ */
 MOBIExthHeader * mobi_delete_exthrecord(MOBIData *m, MOBIExthHeader *record) {
     if (record == NULL || m == NULL || m->eh == NULL) {
         return NULL;

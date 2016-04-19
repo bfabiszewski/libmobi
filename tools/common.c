@@ -1,4 +1,4 @@
-/** @file commmon.c
+/** @file common.c
  *
  * @brief common tools functions
  *
