@@ -226,7 +226,7 @@ void print_summary(const MOBIData *m) {
     } else {
         printf("Mobi version: %zu", mobi_get_fileversion(m));
         if (mobi_is_hybrid(m)) {
-            if (m && m->next && m->next->mh && m->next->mh->version) {
+            if (m->next && m->next->mh && m->next->mh->version) {
                 uint32_t version = *m->next->mh->version;
                 printf(" (hybrid with version %u)", version);
             }
