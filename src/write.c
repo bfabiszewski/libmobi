@@ -255,7 +255,6 @@ MOBI_RET mobi_serialize_extheader(MOBIBuffer *buf, const MOBIData *m) {
         buffer_add32(buf, size);
         buffer_addraw(buf, curr->data, curr->size);
         if (buf->error != MOBI_SUCCESS) {
-            buffer_free(buf);
             return MOBI_DATA_CORRUPT;
         }
         curr = curr->next;
@@ -333,19 +332,21 @@ MOBI_RET mobi_update_record0(MOBIData *m, const size_t seqnumber) {
             buffer_addstring(buf, m->mh->full_name);
             if (buf->error != MOBI_SUCCESS) {
                 buffer_free(buf);
-                return buf->error;
+                return MOBI_DATA_CORRUPT;
             }
         }
     }
     
     buffer_addzeros(buf, padding);
     if (buf->error) {
+        buffer_free(buf);
         return MOBI_DATA_CORRUPT;
     }
     
     MOBIPdbRecord *record0 = mobi_get_record_by_seqnumber(m, seqnumber);
     if (record0 == NULL) {
         debug_print("%s", "Record 0 not initialized\n");
+        buffer_free(buf);
         return MOBI_DATA_CORRUPT;
     }
     unsigned char *data = malloc(buf->offset);
