@@ -1,3 +1,10 @@
+2016-04-20: Update changelog
+2016-04-20: Fix potential null pointer dereference
+2016-04-20: Remove useless check
+2016-04-20: Fix text record size calculation
+2016-04-20: Fix buffer checking and freeing
+2016-04-19: Update docs
+2016-04-19: Update ChangeLog
 2016-04-19: Fix comparison between signed and unsigned integer
 2016-04-19: use strdup on linux/glibc
 2016-04-19: Add initial write and metadata editing support. Add mobimeta tool.
