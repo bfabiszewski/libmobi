@@ -2542,9 +2542,9 @@ uint16_t mobi_get_textrecord_maxsize(const MOBIData *m) {
         }
         if (mobi_exists_mobiheader(m) && mobi_get_fileversion(m) <= 3) {
             /* workaround for some old files with records larger than declared record size */
-            size_t text_length = max_record_size * m->rh->text_record_count;
-            if (m->rh->text_length > text_length) {
-                max_record_size *= 2;
+            size_t text_length = (size_t) max_record_size * m->rh->text_record_count;
+            if (text_length <= RAWTEXT_SIZEMAX && m->rh->text_length > text_length) {
+                max_record_size = RECORD0_TEXT_SIZE_MAX * 2;
             }
         }
     }
