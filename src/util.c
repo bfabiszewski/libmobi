@@ -1180,12 +1180,17 @@ MOBI_RET mobi_add_exthrecord(MOBIData *m, const MOBIExthTag tag, const uint32_t 
             record->size = (uint32_t) data_size;
             free(data);
         } else if (meta.name && meta.type == EXTH_NUMERIC) {
-            if (size != 4) {
+            if (size != sizeof(uint32_t)) {
                 free(record->data);
                 free(record);
                 return MOBI_PARAM_ERR;
             }
             MOBIBuffer *buf = buffer_init_null(size);
+            if (buf == NULL) {
+                free(record->data);
+                free(record);
+                return MOBI_MALLOC_FAILED;
+            }
             buf->data = record->data;
             buffer_add32(buf, *(uint32_t *) value);
             buffer_free_null(buf);
