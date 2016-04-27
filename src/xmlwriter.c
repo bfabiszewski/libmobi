@@ -1,4 +1,5 @@
 /** @file xmlwriter.c
+ *  @brief Implements a simplified subset of libxml2 functions used in libmobi.
  *
  * Copyright (c) 2016 Bartek Fabiszewski
  * http://www.fabiszewski.net
@@ -6,9 +7,6 @@
  * This file is part of libmobi.
  * Licensed under LGPL, either version 3, or any later.
  * See <http://www.gnu.org/licenses/>
- *
- *
- * Implements a simplified subset of libxml2 functions used in libmobi.
  */
 
 #define _GNU_SOURCE 1
