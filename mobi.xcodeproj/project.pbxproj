@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1502448F1CD3A18F0075F4EC /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = 1502448D1CD3A18F0075F4EC /* sha1.c */; };
+		150244901CD3A18F0075F4EC /* sha1.h in Headers */ = {isa = PBXBuildFile; fileRef = 1502448E1CD3A18F0075F4EC /* sha1.h */; };
 		1504FD851CBE880B002AA042 /* meta.c in Sources */ = {isa = PBXBuildFile; fileRef = 1504FD831CBE880B002AA042 /* meta.c */; };
 		1504FD861CBE880B002AA042 /* meta.h in Headers */ = {isa = PBXBuildFile; fileRef = 1504FD841CBE880B002AA042 /* meta.h */; };
 		150A318D18E19BF9001A7AD7 /* write.c in Sources */ = {isa = PBXBuildFile; fileRef = 150A318C18E19BF9001A7AD7 /* write.c */; };
@@ -74,6 +76,8 @@
 /* Begin PBXFileReference section */
 		150039BB18E06BC100D33077 /* libmobi.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libmobi.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		150039C218E06C1B00D33077 /* mobi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = mobi.h; path = src/mobi.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		1502448D1CD3A18F0075F4EC /* sha1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sha1.c; path = src/sha1.c; sourceTree = "<group>"; };
+		1502448E1CD3A18F0075F4EC /* sha1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha1.h; path = src/sha1.h; sourceTree = "<group>"; };
 		1504FD831CBE880B002AA042 /* meta.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = meta.c; path = src/meta.c; sourceTree = "<group>"; };
 		1504FD841CBE880B002AA042 /* meta.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = meta.h; path = src/meta.h; sourceTree = "<group>"; };
 		150A318B18E19BD8001A7AD7 /* write.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = write.h; path = src/write.h; sourceTree = "<group>"; };
@@ -186,6 +190,8 @@
 				15AB2CB519572C4400EB7F74 /* parse_rawml.h */,
 				1553330018E359AE00334E23 /* read.c */,
 				1553330218E359B900334E23 /* read.h */,
+				1502448D1CD3A18F0075F4EC /* sha1.c */,
+				1502448E1CD3A18F0075F4EC /* sha1.h */,
 				15EA81DE1A14D5AC00138554 /* structure.c */,
 				15EA81DD1A14D58500138554 /* structure.h */,
 				15F1A1D018F4192D009CFE05 /* util.c */,
@@ -268,6 +274,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				15FB2BB31A1A32970052D5C5 /* encryption.h in Headers */,
+				150244901CD3A18F0075F4EC /* sha1.h in Headers */,
 				156AA65E1C81A3860085335A /* xmlwriter.h in Headers */,
 				1504FD861CBE880B002AA042 /* meta.h in Headers */,
 			);
@@ -371,6 +378,7 @@
 				15EA81DF1A14D5AC00138554 /* structure.c in Sources */,
 				1563314718EC36A200D4B858 /* debug.c in Sources */,
 				15F1A1D118F4192D009CFE05 /* util.c in Sources */,
+				1502448F1CD3A18F0075F4EC /* sha1.c in Sources */,
 				15603889192D2E1A002EDB1A /* opf.c in Sources */,
 				150A318D18E19BF9001A7AD7 /* write.c in Sources */,
 				1550ADC318E427D7006F9257 /* buffer.c in Sources */,
