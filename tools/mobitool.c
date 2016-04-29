@@ -31,6 +31,8 @@
 #endif
 /* miniz file is needed for EPUB creation */
 #ifdef USE_XMLWRITER
+# define MINIZ_HEADER_FILE_ONLY
+# define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 # include "../src/miniz.c"
 #endif
 
