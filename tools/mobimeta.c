@@ -50,8 +50,8 @@ char *pid = NULL;
 char *serial = NULL;
 #endif
 
-#define META_SIZE (sizeof(meta_functions)/sizeof(meta_functions[0]))
-#define ACTIONS_SIZE (sizeof(actions)/sizeof(actions[0]))
+#define META_SIZE ARRAYSIZE(meta_functions)
+#define ACTIONS_SIZE ARRAYSIZE(actions)
 
 /**
  @brief Meta handling functions

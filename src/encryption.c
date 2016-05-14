@@ -498,7 +498,7 @@ EXTHDrm * mobi_exthdrm_get(const MOBIData *m) {
     MOBIExthHeader *submeta[10];
     size_t submeta_count = 0;
     size_t submeta_total = 0;
-    while (buf->offset < buf->maxlen && submeta_count < (sizeof(submeta)/sizeof(submeta[0]))) {
+    while (buf->offset < buf->maxlen && submeta_count < ARRAYSIZE(submeta)) {
         buffer_seek(buf, 1);
         uint32_t exth_key = buffer_get32(buf);
         MOBIExthHeader *sub = mobi_get_exthrecord_by_tag(m, exth_key);

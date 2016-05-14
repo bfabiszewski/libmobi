@@ -20,6 +20,8 @@
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
+#define ARRAYSIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+
 #if defined(__clang__)
 # define COMPILER "clang " __VERSION__
 #elif defined(__SUNPRO_C)

@@ -121,6 +121,8 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
+#define ARRAYSIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+
 #define MOBI_TITLE_SIZEMAX 1024
 
 int mobi_bitcount(const uint8_t byte);

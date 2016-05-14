@@ -40,7 +40,7 @@ const char *libmobi_messages[] = {
     "DRM support not included",
 };
 
-#define LIBMOBI_MSG_COUNT sizeof(libmobi_messages)/sizeof(libmobi_messages[0])
+#define LIBMOBI_MSG_COUNT ARRAYSIZE(libmobi_messages)
 
 /**
  @brief Return message for given libmobi return code

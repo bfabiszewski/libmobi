@@ -1499,7 +1499,7 @@ char * mobi_decode_htmlentities(const char *input) {
             }
         } else {
             // named entity
-            for (size_t i = 0; i < (sizeof(entities)/sizeof(entities[0])); i++) {
+            for (size_t i = 0; i < ARRAYSIZE(entities); i++) {
                 if (strncmp(in, entities[i].name, strlen(entities[i].name)) == 0) {
                     int ret = snprintf(decoded, MOBI_UTF8_MAXBYTES + 1, "%s", entities[i].utf8_bytes);
                     if (ret > 0) {
