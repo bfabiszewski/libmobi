@@ -3,7 +3,6 @@
 * Copyright (c) 2016 Bartek Fabiszewski
 * http://www.fabiszewski.net
 *
-* This file is part of libmobi.
 * Licensed under LGPL, either version 3, or any later.
 * See <http://www.gnu.org/licenses/>
 */

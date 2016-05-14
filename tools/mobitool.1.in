@@ -23,7 +23,8 @@
 .Op Fl o Ar dir          \" [-o dir]
 .if !'@ENCRYPTION_OPT@'yes' .ig
 .Op Fl p Ar pid          \" [-p pid]
-..
+.Op Fl P Ar serial          \" [-P serial]
+.
 .Ar file                 \" Underlined argument - use .Ar anywhere to underline
 .Sh DESCRIPTION          \" Section Header - required - don't modify
 The program handles .prc, .mobi, .azw; .azw3, .azw4, some .pdb documents. Written as a test case for
@@ -49,6 +50,8 @@ save output to dir folder
 .if !'@ENCRYPTION_OPT@'yes' .ig
 .It Fl p Ar pid
 set pid for decryption
+.It Fl P Ar serial
+set device serial number for decryption
 ..
 .It Fl r
 dump raw records

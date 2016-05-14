@@ -28,11 +28,14 @@
 #include <stdlib.h>
 #include "util.h"
 #include "debug.h"
+#include "sha1.h"
 #include "encryption.h"
 
 #define KEYVEC1 ((unsigned char*) "\x72\x38\x33\xb0\xb4\xf2\xe3\xca\xdf\x09\x01\xd6\xe2\xe0\x3f\x96")
 #define KEYVEC1_V1 ((unsigned char*) "QDCVEPMU675RUBSZ")
 #define PIDSIZE 10
+#define SERIALSIZE 16
+#define SERIALLONGSIZE 40
 #define KEYSIZE 16
 #define COOKIESIZE 32
 #define pk1_swap(a, b) { uint16_t tmp = a; a = b; b = tmp; }
@@ -322,7 +325,7 @@ static MOBI_RET mobi_drm_getkey_v2(unsigned char key[KEYSIZE], const unsigned ch
  @param[in] m MOBIData structure with raw data and metadata
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-MOBI_RET mobi_drm_getkey_v1(unsigned char key[KEYSIZE], const MOBIData *m) {
+static MOBI_RET mobi_drm_getkey_v1(unsigned char key[KEYSIZE], const MOBIData *m) {
     if (m == NULL || m->ph == NULL) {
         return MOBI_DATA_CORRUPT;
     }
@@ -393,25 +396,232 @@ MOBI_RET mobi_drm_decrypt_buffer(unsigned char *out, const unsigned char *in, co
 }
 
 /**
- @brief Verify PID
+ @brief Calculate pid checksum
  
- @param[in] pid PID
- @return MOBI_RET status code (on success MOBI_SUCCESS)
+ @param[in] pid Pid
+ @param[out] checksum Calculated checksum
  */
-static MOBI_RET mobi_drm_pidverify(const unsigned char *pid) {
-    char map[] = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
-    uint8_t map_length = sizeof(map) - 1;
+static void mobi_drm_pidchecksum(char checksum[2], const unsigned char *pid) {
+    const char map[] = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
+    const uint8_t map_length = sizeof(map) - 1;
     uint32_t crc = (uint32_t) ~m_crc32(0xffffffff, pid, PIDSIZE - 2);
     crc ^= (crc >> 16);
-    char checksum[2];
     for (size_t i = 0; i < 2; i++){
         uint8_t b = crc & 0xff;
         uint8_t pos = (b / map_length) ^ (b % map_length);
         checksum[i] = map[pos % map_length];
         crc >>= 8;
     }
-    if (memcmp(checksum, &pid[8], 2) == 0) {
+}
+
+/**
+ @brief Verify PID
+ 
+ @param[in] pid PID
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_drm_pidverify(const unsigned char *pid) {
+    char checksum[2] = "\0";
+    mobi_drm_pidchecksum(checksum, pid);
+    if (memcmp(checksum, &pid[PIDSIZE - 2], 2) == 0) {
         return MOBI_SUCCESS;
+    }
+    return MOBI_DRM_PIDINV;
+}
+
+/**
+ @brief Decrypt buffer with PK1 algorithm
+ 
+ @param[in] serial Device serial number
+ @param[out] pid Pid
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_drm_devicepid_from_serial(char pid[PIDSIZE + 1], const char *serial) {
+    memset(pid, 0, PIDSIZE + 1);
+    const size_t serial_length = strlen(serial);
+    if (serial_length != SERIALSIZE && serial_length != SERIALLONGSIZE) {
+        debug_print("Wrong serial length: %zu\n", serial_length);
+        return MOBI_DRM_PIDINV;
+    }
+    const char map[] = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
+    unsigned char out[PIDSIZE - 2] = "\0";
+    size_t out_length = sizeof(out);
+    if (serial_length == SERIALSIZE) {
+        out_length--;
+        pid[out_length] = '*';
+    }
+    uint32_t crc = (uint32_t) ~m_crc32(0xffffffff, (const unsigned char *) serial, (unsigned int) serial_length);
+    for (size_t i = 0; i < serial_length; i++) {
+        out[i % out_length] ^= serial[i];
+    }
+    for (size_t i = 0; i < out_length; i++) {
+        uint8_t b = crc >> (24 - 8 * (i & 3)) & 0xff;
+        out[i] ^= b;
+        uint8_t pos = (out[i] >> 7) + ((out[i] >> 5 & 3) ^ (out[i] & 0x1f));
+        /* pos max is 32 < map size */
+        pid[i] = map[pos];
+    }
+    char checksum[2] = "\0";
+    mobi_drm_pidchecksum(checksum, (unsigned char *) pid);
+    memcpy(&pid[PIDSIZE - 2], checksum, 2);
+    return MOBI_SUCCESS;
+}
+
+/**
+ @brief Drm components extracted from EXTH records
+ */
+typedef struct {
+    unsigned char *data; /**< EXTH_TAMPERKEYS record data */
+    unsigned char *token; /**< Drm token */
+    size_t data_size; /**< Data size */
+    size_t token_size;  /**< Token size */
+} EXTHDrm;
+
+/**
+ @brief Get drm components from EXTH records
+ 
+ Must be deallocated after use with mobi_exthdrm_free()
+ 
+ @param[in] m MOBIData structure
+ @return EXTHDrm structure (NULL or error)
+ */
+EXTHDrm * mobi_exthdrm_get(const MOBIData *m) {
+    if (m == NULL || m->eh == NULL) {
+        return NULL;
+    }
+    MOBIExthHeader *meta = mobi_get_exthrecord_by_tag(m, EXTH_TAMPERKEYS);
+    if (meta == NULL) {
+        return NULL;
+    }
+    MOBIBuffer *buf = buffer_init_null(meta->size);
+    buf->data = meta->data;
+    MOBIExthHeader *submeta[10];
+    size_t submeta_count = 0;
+    size_t submeta_total = 0;
+    while (buf->offset < buf->maxlen && submeta_count < (sizeof(submeta)/sizeof(submeta[0]))) {
+        buffer_seek(buf, 1);
+        uint32_t exth_key = buffer_get32(buf);
+        MOBIExthHeader *sub = mobi_get_exthrecord_by_tag(m, exth_key);
+        if (sub) {
+            submeta[submeta_count++] = sub;
+            submeta_total += sub->size;
+        }
+    }
+    if (submeta_total == 0) {
+        return NULL;
+    }
+    unsigned char *token = malloc(submeta_total);
+    if (token == NULL) {
+        return NULL;
+    }
+    unsigned char *p = token;
+    for (size_t i = 0; i < submeta_count; i++) {
+        memcpy(p, submeta[i]->data, submeta[i]->size);
+        p += submeta[i]->size;
+    }
+    EXTHDrm *exth_drm = malloc(sizeof(EXTHDrm));
+    if (exth_drm) {
+        exth_drm->data = meta->data;
+        exth_drm->data_size = meta->size;
+        exth_drm->token = token;
+        exth_drm->token_size = submeta_total;
+    }
+    return exth_drm;
+}
+
+/**
+ @brief Free EXTHDrm structure
+ 
+ @param[in,out] exth_drm EXTHDrm to be freed
+ */
+void mobi_exthdrm_free(EXTHDrm **exth_drm) {
+    if (*exth_drm) {
+        free((*exth_drm)->token);
+        (*exth_drm)->token = NULL;
+    }
+    free(*exth_drm);
+    *exth_drm = NULL;
+}
+
+/**
+ @brief Calculate SHA-1 hash for given message
+ 
+ @param[in] message Message
+ @param[in] message_length Message length
+ @param[out] hash Hash
+ */
+static void mobi_SHA1(unsigned char hash[SHA1_DIGEST_SIZE], size_t message_length, const unsigned char *message) {
+    SHA1_CTX ctx;
+    SHA1_Init(&ctx);
+    SHA1_Update(&ctx, message, message_length);
+    SHA1_Final(&ctx, hash);
+}
+
+/**
+ @brief Calculate book pid from device serial
+ 
+ @param[in] serial Device serial number
+ @param[in] m MOBIData structure
+ @param[out] pid Pid
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_drm_bookpid_from_serial(char pid[PIDSIZE + 1], const MOBIData *m, const char *serial) {
+    memset(pid, 0, PIDSIZE + 1);
+    const char map[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    EXTHDrm *exth_drm = mobi_exthdrm_get(m);
+    if (exth_drm == NULL) {
+        return MOBI_DRM_PIDINV;
+    }
+    const size_t serial_length = strlen(serial);
+    size_t message_length = serial_length + exth_drm->token_size + exth_drm->data_size;
+    unsigned char *message = malloc(message_length);
+    if (message == NULL) {
+        return MOBI_MALLOC_FAILED;
+    }
+    memcpy(message, serial, serial_length);
+    memcpy(&message[serial_length], exth_drm->data, exth_drm->data_size);
+    memcpy(&message[serial_length + exth_drm->data_size], exth_drm->token, exth_drm->token_size);
+    mobi_exthdrm_free(&exth_drm);
+
+    unsigned char hash[SHA1_DIGEST_SIZE];
+    mobi_SHA1(hash, message_length, message);
+
+    int bytes = 8;
+    uint64_t val = 0;
+    unsigned char *ptr = hash;
+    while (bytes--) {
+        val |= (uint64_t) *ptr++ << (bytes * 8);
+    }
+    for (size_t i = 0; i < 8; i++) {
+        uint8_t pos = (uint64_t) val >> 58;
+        val <<= 6;
+        pid[i] = map[pos];
+    }
+    char checksum[2] = "\0";
+    mobi_drm_pidchecksum(checksum, (unsigned char *) pid);
+    memcpy(&pid[PIDSIZE - 2], checksum, 2);
+    return MOBI_SUCCESS;
+}
+
+/**
+ @brief Store key for encryption in MOBIData stucture. 
+ Pid will be calculated from device serial number.
+ 
+ @param[in,out] m MOBIData structure with raw data and metadata
+ @param[in] serial Serial
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_drm_setkey_serial_internal(MOBIData *m, const char *serial) {
+    char pid[PIDSIZE + 1];
+    MOBI_RET ret = mobi_drm_devicepid_from_serial(pid, serial);
+    debug_print("Device pid: %s\n", pid);
+    if (ret == MOBI_SUCCESS && mobi_drm_setkey_internal(m, pid) == MOBI_SUCCESS) {
+        return MOBI_SUCCESS;
+    }
+    ret = mobi_drm_bookpid_from_serial(pid, m, serial);
+    debug_print("Book pid: %s\n", pid);
+    if (ret == MOBI_SUCCESS) {
+        return mobi_drm_setkey_internal(m, pid);
     }
     return MOBI_DRM_PIDINV;
 }

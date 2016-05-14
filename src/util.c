@@ -2853,6 +2853,25 @@ MOBI_RET mobi_swap_mobidata(MOBIData *m) {
 }
 
 /**
+ @brief Store PID for encryption in MOBIData stucture.
+ PID will be calculated from device serial number.
+ 
+ @param[in,out] m MOBIData structure with raw data and metadata
+ @param[in] serial Device serial number
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_drm_setkey_serial(MOBIData *m, const char *serial) {
+#ifdef USE_ENCRYPTION
+    return mobi_drm_setkey_serial_internal(m, serial);
+#else
+    UNUSED(m);
+    UNUSED(serial);
+    debug_print("Libmobi compiled without encryption support%s", "\n");
+    return MOBI_DRM_UNSUPPORTED;
+#endif
+}
+
+/**
  @brief Store PID for encryption in MOBIData stucture
  
  @param[in,out] m MOBIData structure with raw data and metadata

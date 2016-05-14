@@ -1,10 +1,11 @@
-//
-//  common.h
-//  mobi
-//
-//  Created by Bartek Fabiszewski on 19/04/16.
-//  Copyright © 2016 Bartek Fabiszewski. All rights reserved.
-//
+/** @file common.h
+ *
+ * Copyright (c) 2016 Bartek Fabiszewski
+ * http://www.fabiszewski.net
+ *
+ * Licensed under LGPL, either version 3, or any later.
+ * See <http://www.gnu.org/licenses/>
+ */
 
 #ifndef common_h
 #define common_h
@@ -51,5 +52,6 @@ void split_fullpath(const char *fullpath, char *dirname, char *basename);
 bool dir_exists(const char *path);
 void print_summary(const MOBIData *m);
 void print_exth(const MOBIData *m);
+int set_decryption_key(MOBIData *m, const char *serial, const char *pid);
 
 #endif /* common_h */

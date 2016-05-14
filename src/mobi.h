@@ -593,6 +593,7 @@ extern "C"
     MOBI_EXPORT MOBI_RET mobi_meta_delete_language(MOBIData *m);
     
     MOBI_EXPORT MOBI_RET mobi_drm_setkey(MOBIData *m, const char *pid);
+    MOBI_EXPORT MOBI_RET mobi_drm_setkey_serial(MOBIData *m, const char *serial);
     MOBI_EXPORT MOBI_RET mobi_drm_delkey(MOBIData *m);
     MOBI_EXPORT MOBI_RET mobi_drm_decrypt(MOBIData *m);
     

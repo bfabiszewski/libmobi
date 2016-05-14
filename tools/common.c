@@ -380,3 +380,50 @@ void print_exth(const MOBIData *m) {
         curr = curr->next;
     }
 }
+
+/**
+ @brief Set key for decryption. Use user supplied pid or device serial number
+ @param[in,out] m MOBIData structure
+ @param[in] serial Serial number
+ @param[in] pid Pid
+ */
+int set_decryption_key(MOBIData *m, const char *serial, const char *pid) {
+    MOBI_RET mobi_ret = MOBI_SUCCESS;
+    if (!pid && !serial) {
+        return SUCCESS;
+    }
+    if (!mobi_is_encrypted(m)) {
+        printf("\nDocument is not encrypted, ignoring PID/serial\n");
+        return SUCCESS;
+    }
+    else if (m->rh && m->rh->encryption_type == 1) {
+        printf("\nEncryption type 1, ignoring PID/serial\n");
+        return SUCCESS;
+    }
+    int ret = SUCCESS;
+    if (pid) {
+        /* Try to set key for decompression */
+        printf("\nVerifying PID... ");
+        mobi_ret = mobi_drm_setkey(m, pid);
+        if (mobi_ret != MOBI_SUCCESS) {
+            printf("failed (%s)\n", libmobi_msg(mobi_ret));
+            ret = mobi_ret;
+        } else {
+            printf("ok\n");
+            return SUCCESS;
+        }
+    }
+    if (serial) {
+        /* Try to set key for decompression */
+        printf("\nVerifying serial... ");
+        mobi_ret = mobi_drm_setkey_serial(m, serial);
+        if (mobi_ret != MOBI_SUCCESS) {
+            printf("failed (%s)\n", libmobi_msg(mobi_ret));
+            ret = mobi_ret;
+        } else {
+            printf("ok\n");
+            ret = SUCCESS;
+        }
+    }
+    return ret;
+}

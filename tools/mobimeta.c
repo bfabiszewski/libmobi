@@ -31,8 +31,8 @@
 
 /* encryption */
 #ifdef USE_ENCRYPTION
-# define PRINT_ENC_USG " [-p pid]"
-# define PRINT_ENC_ARG "p:"
+# define PRINT_ENC_USG " [-p pid] [-P serial]"
+# define PRINT_ENC_ARG "p:P:"
 #else
 # define PRINT_ENC_USG ""
 # define PRINT_ENC_ARG ""
@@ -41,11 +41,13 @@
 /* command line options */
 #ifdef USE_ENCRYPTION
 int setpid_opt = 0;
+int setserial_opt = 0;
 #endif
 
 /* options values */
 #ifdef USE_ENCRYPTION
-char *pid;
+char *pid = NULL;
+char *serial = NULL;
 #endif
 
 #define META_SIZE (sizeof(meta_functions)/sizeof(meta_functions[0]))
@@ -94,6 +96,7 @@ void exit_with_usage(const char *progname) {
     printf("       -s meta=value  set metadata\n");
 #ifdef USE_ENCRYPTION
     printf("       -p pid         set pid for decryption\n");
+    printf("       -P serial set device serial for decryption\n");
 #endif
     printf("       -v             show version and exit\n");
     exit(ERROR);
@@ -150,6 +153,9 @@ int get_meta(const char *token) {
     return -1;
 }
 
+/**
+ @brief Main
+ */
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         exit_with_usage(argv[0]);
@@ -217,6 +223,10 @@ int main(int argc, char *argv[]) {
                 setpid_opt = 1;
                 pid = optarg;
                 break;
+            case 'P':
+                setserial_opt = 1;
+                serial = optarg;
+                break;
 #endif
             case 'v':
                 printf("mobimeta build: " __DATE__ " " __TIME__ " (" COMPILER ")\n");
@@ -281,31 +291,12 @@ int main(int argc, char *argv[]) {
     }
     
 #ifdef USE_ENCRYPTION
-    if (setpid_opt) {
-        /* Try to set key for decryption */
-        if (!mobi_is_encrypted(m)) {
-            printf("\nDocument is not encrypted, ignoring PID\n");
-        }
-        else {
-            printf("\nVerifying PID... ");
-            mobi_ret = mobi_drm_setkey(m, pid);
-            if (mobi_ret != MOBI_SUCCESS) {
-                printf("failed\n");
-                mobi_free(m);
-                return ERROR;
-            }
-            printf("ok\n");
-        }
-    }
-    if (mobi_is_encrypted(m)) {
-        /* try to decrypt even if pid is not set */
-        printf("\nDecrypting... ");
-        mobi_ret = mobi_drm_decrypt(m);
-        if (mobi_ret != MOBI_SUCCESS) {
-            printf("failed\n");
-        } else {
-            printf("ok\n");
-        }
+    if (setpid_opt || setserial_opt) {
+        int ret = set_decryption_key(m, serial, pid);
+        if (ret != SUCCESS) {
+            mobi_free(m);
+            return ret;
+        };
     }
 #endif
     

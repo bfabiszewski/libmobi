@@ -11,6 +11,7 @@
 .Op Fl s Ar meta=value Ns Op Ar ,meta=value,...
 .if !'@ENCRYPTION_OPT@'yes' .ig
 .Op Fl p Ar pid
+.Op Fl P Ar serial
 ..
 .Ar filein
 .Op Ar fileout
@@ -43,6 +44,8 @@ new value that will be set for a given meta key
 .if !'@ENCRYPTION_OPT@'yes' .ig
 .It Fl p Ar pid
 set pid for decryption
+.It Fl P Ar serial
+set device serial number for decryption
 ..
 .It Fl v
 show version and exit

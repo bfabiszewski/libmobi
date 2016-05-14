@@ -45,8 +45,8 @@
 #endif
 /* encryption */
 #ifdef USE_ENCRYPTION
-# define PRINT_ENC_USG " [-p pid]"
-# define PRINT_ENC_ARG "p:"
+# define PRINT_ENC_USG " [-p pid] [-P serial]"
+# define PRINT_ENC_ARG "p:P:"
 #else
 # define PRINT_ENC_USG ""
 # define PRINT_ENC_ARG ""
@@ -80,12 +80,14 @@ int outdir_opt = 0;
 int extract_source_opt = 0;
 #ifdef USE_ENCRYPTION
 int setpid_opt = 0;
+int setserial_opt = 0;
 #endif
 
 /* options values */
 char outdir[FILENAME_MAX];
 #ifdef USE_ENCRYPTION
-char *pid;
+char *pid = NULL;
+char *serial = NULL;
 #endif
 
 /**
@@ -743,24 +745,12 @@ int loadfilename(const char *fullpath) {
     }
     
 #ifdef USE_ENCRYPTION
-    if (setpid_opt) {
-        /* Try to set key for decompression */
-        if (!mobi_is_encrypted(m)) {
-            printf("\nDocument is not encrypted, ignoring PID\n");
-        }
-        else if (m->rh && m->rh->encryption_type == 1) {
-            printf("\nEncryption type 1, ignoring PID\n");
-        }
-        else {
-            printf("\nVerifying PID... ");
-            mobi_ret = mobi_drm_setkey(m, pid);
-            if (mobi_ret != MOBI_SUCCESS) {
-                printf("failed (%s)\n", libmobi_msg(mobi_ret));
-                mobi_free(m);
-                return ERROR;
-            }
-            printf("ok\n");
-        }
+    if (setpid_opt || setserial_opt) {
+        ret = set_decryption_key(m, serial, pid);
+        if (ret != SUCCESS) {
+            mobi_free(m);
+            return ret;
+        };
     }
 #endif
     if (print_rec_meta_opt) {
@@ -828,26 +818,28 @@ int loadfilename(const char *fullpath) {
 void exit_with_usage(const char *progname) {
     printf("usage: %s [-d" PRINT_EPUB_ARG "imrs" PRINT_RUSAGE_ARG "vx7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
     printf("       without arguments prints document metadata and exits\n");
-    printf("       -d      dump rawml text record\n");
+    printf("       -d        dump rawml text record\n");
 #ifdef USE_XMLWRITER
-    printf("       -e      create EPUB file (with -s will dump EPUB source)\n");
+    printf("       -e        create EPUB file (with -s will dump EPUB source)\n");
 #endif
-    printf("       -i      print detailed metadata\n");
-    printf("       -m      print records metadata\n");
-    printf("       -o dir  save output to dir folder\n");
+    printf("       -i        print detailed metadata\n");
+    printf("       -m        print records metadata\n");
+    printf("       -o dir    save output to dir folder\n");
 #ifdef USE_ENCRYPTION
-    printf("       -p pid  set pid for decryption\n");
+    printf("       -p pid    set pid for decryption\n");
+    printf("       -P serial set device serial for decryption\n");
 #endif
-    printf("       -r      dump raw records\n");
-    printf("       -s      dump recreated source files\n");
+    printf("       -r        dump raw records\n");
+    printf("       -s        dump recreated source files\n");
 #ifdef HAVE_SYS_RESOURCE_H
-    printf("       -u      show rusage\n");
+    printf("       -u        show rusage\n");
 #endif
-    printf("       -v      show version and exit\n");
-    printf("       -x      extract conversion source and log (if present)\n");
-    printf("       -7      parse KF7 part of hybrid file (by default KF8 part is parsed)\n");
+    printf("       -v        show version and exit\n");
+    printf("       -x        extract conversion source and log (if present)\n");
+    printf("       -7        parse KF7 part of hybrid file (by default KF8 part is parsed)\n");
     exit(SUCCESS);
 }
+
 /**
  @brief Main
  */
@@ -899,6 +891,10 @@ int main(int argc, char *argv[]) {
             case 'p':
                 setpid_opt = 1;
                 pid = optarg;
+                break;
+            case 'P':
+                setserial_opt = 1;
+                serial = optarg;
                 break;
 #endif
             case 'r':
