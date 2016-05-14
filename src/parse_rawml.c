@@ -645,12 +645,11 @@ MOBI_RET mobi_reconstruct_resources(const MOBIData *m, MOBIRawml *rawml) {
  */
 MOBI_RET mobi_process_replica(unsigned char *pdf, const char *text, size_t *length) {
     MOBI_RET ret = MOBI_SUCCESS;
-    MOBIBuffer *buf = buffer_init_null(*length);
+    MOBIBuffer *buf = buffer_init_null((unsigned char*) text, *length);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    buf->data = (unsigned char*) text;
     buffer_setpos(buf, 12);
     size_t pdf_offset = buffer_get32(buf); /* offset 12 */
     size_t pdf_length = buffer_get32(buf); /* 16 */
@@ -784,12 +783,11 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
         return MOBI_INIT_FAILED;
     }
     /* take first part, xhtml */
-    MOBIBuffer *buf = buffer_init_null(rawml->flow->size);
+    MOBIBuffer *buf = buffer_init_null(rawml->flow->data, rawml->flow->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    buf->data = rawml->flow->data;
     rawml->markup = calloc(1, sizeof(MOBIPart));
     if (rawml->markup == NULL) {
         debug_print("%s", "Memory allocation for markup part failed\n");

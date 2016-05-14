@@ -1185,13 +1185,12 @@ MOBI_RET mobi_add_exthrecord(MOBIData *m, const MOBIExthTag tag, const uint32_t 
                 free(record);
                 return MOBI_PARAM_ERR;
             }
-            MOBIBuffer *buf = buffer_init_null(size);
+            MOBIBuffer *buf = buffer_init_null(record->data, size);
             if (buf == NULL) {
                 free(record->data);
                 free(record);
                 return MOBI_MALLOC_FAILED;
             }
-            buf->data = record->data;
             buffer_add32(buf, *(uint32_t *) value);
             buffer_free_null(buf);
         } else {
@@ -2067,12 +2066,11 @@ MOBI_RET mobi_decode_audio_resource(unsigned char **decoded_resource, size_t *de
         debug_print("Audio resource record too short (%zu)\n", part->size);
         return MOBI_DATA_CORRUPT;
     }
-    MOBIBuffer *buf = buffer_init_null(part->size);
+    MOBIBuffer *buf = buffer_init_null(part->data, part->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    buf->data = part->data;
     char magic[5];
     buffer_getstring(magic, buf, 4);
     if (strncmp(magic, AUDI_MAGIC, 4) != 0) {
@@ -2121,12 +2119,11 @@ MOBI_RET mobi_decode_video_resource(unsigned char **decoded_resource, size_t *de
         debug_print("Video resource record too short (%zu)\n", part->size);
         return MOBI_DATA_CORRUPT;
     }
-    MOBIBuffer *buf = buffer_init_null(part->size);
+    MOBIBuffer *buf = buffer_init_null(part->data, part->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    buf->data = part->data;
     char magic[5];
     buffer_getstring(magic, buf, 4);
     if (strncmp(magic, VIDE_MAGIC, 4) != 0) {
@@ -2233,11 +2230,10 @@ MOBI_RET mobi_get_embedded_log(unsigned char **data, size_t *size, const MOBIDat
         debug_print("Wrong size of CMET resource: %zu\n", srcs_record->size);
         return MOBI_DATA_CORRUPT;
     }
-    MOBIBuffer *buf = buffer_init_null(srcs_record->size);
+    MOBIBuffer *buf = buffer_init_null(srcs_record->data, srcs_record->size);
     if (buf == NULL) {
         return MOBI_MALLOC_FAILED;
     }
-    buf->data = srcs_record->data;
     if (buffer_match_magic(buf, CMET_MAGIC) == false) {
         debug_print("%s\n", "Wrong magic for CMET resource");
         buffer_free_null(buf);

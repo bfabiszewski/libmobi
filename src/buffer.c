@@ -24,41 +24,36 @@
  @return MOBIBuffer on success, NULL otherwise
  */
 MOBIBuffer * buffer_init(const size_t len) {
-    MOBIBuffer *buf = NULL;
-    buf = malloc(sizeof(MOBIBuffer));
-	if (buf == NULL) {
-        debug_print("%s", "Buffer allocation failed\n");
+    unsigned char *data = malloc(len);
+    if (data == NULL) {
+        debug_print("%s", "Buffer data allocation failed\n");
         return NULL;
     }
-    buf->data = malloc(len);
-	if (buf->data == NULL) {
-		free(buf);
-        debug_print("%s", "Buffer data allocation failed\n");
-		return NULL;
-	}
-	buf->offset = 0;
-	buf->maxlen = len;
-    buf->error = MOBI_SUCCESS;
-	return buf;
+    MOBIBuffer *buf = buffer_init_null(data, len);
+    if (buf == NULL) {
+        free(data);
+    }
+    return buf;
 }
 
 /**
  @brief Initializer for MOBIBuffer structure
  
  It allocates memory for structure but, unlike buffer_init(), it does not allocate memory for data.
- Memory should be freed with buffer_free_null().
+ Instead it works on external data.
+ Memory should be freed with buffer_free_null() (buf->data will not be deallocated).
  
+ @param[in,out] data Set data as buffer data
  @param[in] len Size of data held by the buffer
  @return MOBIBuffer on success, NULL otherwise
  */
-MOBIBuffer * buffer_init_null(const size_t len) {
-    MOBIBuffer *buf = NULL;
-    buf = malloc(sizeof(MOBIBuffer));
+MOBIBuffer * buffer_init_null(unsigned char *data, const size_t len) {
+    MOBIBuffer *buf = malloc(sizeof(MOBIBuffer));
 	if (buf == NULL) {
         debug_print("%s", "Buffer allocation failed\n");
         return NULL;
     }
-    buf->data = NULL;
+    buf->data = data;
 	buf->offset = 0;
 	buf->maxlen = len;
     buf->error = MOBI_SUCCESS;

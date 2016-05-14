@@ -25,7 +25,7 @@ typedef struct {
 } MOBIBuffer;
 
 MOBIBuffer * buffer_init(const size_t len);
-MOBIBuffer * buffer_init_null(const size_t len);
+MOBIBuffer * buffer_init_null(unsigned char *data, const size_t len);
 void buffer_resize(MOBIBuffer *buf, const size_t newlen);
 void buffer_add8(MOBIBuffer *buf, const uint8_t data);
 void buffer_add16(MOBIBuffer *buf, const uint16_t data);

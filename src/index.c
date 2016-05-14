@@ -490,12 +490,11 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
         return MOBI_INIT_FAILED;
     }
     MOBI_RET ret;
-    MOBIBuffer *buf = buffer_init_null(indx_record->size);
+    MOBIBuffer *buf = buffer_init_null(indx_record->data, indx_record->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    buf->data = indx_record->data;
     char indx_magic[5];
     buffer_getstring(indx_magic, buf, 4); /* 0: INDX magic */
     const uint32_t header_length = buffer_get32(buf); /* 4: header length */
@@ -799,12 +798,11 @@ bool mobi_indx_has_tag(const MOBIIndx *indx, const size_t tagid) {
  */
 char * mobi_get_cncx_string(const MOBIPdbRecord *cncx_record, const uint32_t cncx_offset) {
     /* TODO: handle multiple cncx records */
-    MOBIBuffer *buf = buffer_init_null(cncx_record->size);
+    MOBIBuffer *buf = buffer_init_null(cncx_record->data, cncx_record->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return NULL;
     }
-    buf->data = cncx_record->data;
     buffer_setpos(buf, cncx_offset);
     size_t len = 0;
     const uint32_t string_length = buffer_get_varlen(buf, &len);
@@ -828,12 +826,11 @@ char * mobi_get_cncx_string(const MOBIPdbRecord *cncx_record, const uint32_t cnc
  */
 char * mobi_get_cncx_string_flat(const MOBIPdbRecord *cncx_record, const uint32_t cncx_offset, const size_t length) {
     /* TODO: handle multiple cncx records */
-    MOBIBuffer *buf = buffer_init_null(cncx_record->size);
+    MOBIBuffer *buf = buffer_init_null(cncx_record->data, cncx_record->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return NULL;
     }
-    buf->data = cncx_record->data;
     buffer_setpos(buf, cncx_offset);
     char *string = malloc(length + 1);
     if (string) {

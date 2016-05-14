@@ -31,20 +31,17 @@
  */
 MOBI_RET mobi_decompress_lz77(unsigned char *out, const unsigned char *in, size_t *len_out, const size_t len_in) {
     MOBI_RET ret = MOBI_SUCCESS;
-    MOBIBuffer *buf_in = buffer_init_null(len_in);
+    MOBIBuffer *buf_in = buffer_init_null((unsigned char *) in, len_in);
     if (buf_in == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    MOBIBuffer *buf_out = buffer_init_null(*len_out);
+    MOBIBuffer *buf_out = buffer_init_null(out, *len_out);
     if (buf_out == NULL) {
         buffer_free_null(buf_in);
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-
-    buf_in->data = (unsigned char *) in;
-    buf_out->data = out;
     while (ret == MOBI_SUCCESS && buf_in->offset < buf_in->maxlen) {
         uint8_t byte = buffer_get8(buf_in);
         /* byte pair: space + char */
@@ -202,21 +199,17 @@ static MOBI_RET mobi_decompress_huffman_internal(MOBIBuffer *buf_out, MOBIBuffer
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_decompress_huffman(unsigned char *out, const unsigned char *in, size_t *len_out, size_t len_in, const MOBIHuffCdic *huffcdic) {
-    MOBIBuffer *buf_in = buffer_init_null(len_in);
+    MOBIBuffer *buf_in = buffer_init_null((unsigned char *) in, len_in);
     if (buf_in == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    MOBIBuffer *buf_out = buffer_init_null(*len_out);
+    MOBIBuffer *buf_out = buffer_init_null(out, *len_out);
     if (buf_out == NULL) {
         buffer_free_null(buf_in);
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    /* FIXME: is it ok to cast const to non-const here */
-    /* or is there a better way? */
-    buf_in->data = (unsigned char *) in;
-    buf_out->data = out;
     MOBI_RET ret = mobi_decompress_huffman_internal(buf_out, buf_in, huffcdic, 0);
     *len_out = buf_out->offset;
     buffer_free_null(buf_out);
