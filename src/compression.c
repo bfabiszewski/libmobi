@@ -153,7 +153,7 @@ static MOBI_RET mobi_decompress_huffman_internal(MOBIBuffer *buf_out, MOBIBuffer
         /* get index for symbol offset */
         uint32_t index = (uint32_t) (maxcode - code) >> (32 - code_length);
         /* check which part of cdic to use */
-        uint8_t cdic_index = (uint8_t) ((uint32_t)index >> huffcdic->code_length);
+        uint16_t cdic_index = (uint16_t) ((uint32_t)index >> huffcdic->code_length);
         if (index >= huffcdic->index_count) {
             debug_print("Wrong symbol offsets index: %u\n", index);
             return MOBI_DATA_CORRUPT;
