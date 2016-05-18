@@ -133,7 +133,7 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
             return ret;
         }
         const MOBIPdbRecord *cncx_record = rawml->guide->cncx_record;
-        char *ref_title = mobi_get_cncx_string(cncx_record, cncx_offset);
+        char *ref_title = mobi_get_cncx_string_utf8(cncx_record, cncx_offset, rawml->guide->encoding);
         if (ref_title == NULL) {
             free(reference);
             free(opf->guide);
@@ -575,7 +575,7 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
                 return ret;
             }
             const MOBIPdbRecord *cncx_record = rawml->ncx->cncx_record;
-            char *text = mobi_get_cncx_string(cncx_record, cncx_offset);
+            char *text = mobi_get_cncx_string_utf8(cncx_record, cncx_offset, rawml->ncx->encoding);
             if (text == NULL) {
                 mobi_free_ncx(ncx, i);
                 debug_print("%s\n", "Memory allocation failed");
