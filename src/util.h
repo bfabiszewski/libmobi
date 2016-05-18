@@ -112,6 +112,15 @@
 #define MEDIA_HEADER_LEN 12
 #define FONT_SIZEMAX (50 * 1024 * 1024)
 #define RAWTEXT_SIZEMAX 0xfffffff
+#define MOBI_HEADER_V2_SIZE 0x18
+#define MOBI_HEADER_V3_SIZE 0x74
+#define MOBI_HEADER_V4_SIZE 0xd0
+#define MOBI_HEADER_V5_SIZE 0xe4
+#define MOBI_HEADER_V6_SIZE 0xe4
+#define MOBI_HEADER_V6_EXT_SIZE 0xe8
+#define MOBI_HEADER_V7_SIZE 0xe4
+/** @} */
+
 /** @} */
 
 #ifndef max

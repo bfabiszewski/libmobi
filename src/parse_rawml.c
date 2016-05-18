@@ -1985,7 +1985,7 @@ MOBI_RET mobi_parse_rawml_opt(MOBIRawml *rawml, const MOBIData *m, bool parse_to
     /* Get maximal size of text data */
     const size_t maxlen = mobi_get_text_maxsize(m);
     if (maxlen == MOBI_NOTSET) {
-        debug_print("%s", "Insane text lenght\n");
+        debug_print("%s", "Insane text length\n");
         return MOBI_DATA_CORRUPT;
     }
     char *text = malloc(maxlen + 1);

@@ -1863,7 +1863,7 @@ bool mobi_exists_skel_indx(const MOBIData *m) {
  @return true on success, false otherwise
  */
 bool mobi_exists_fdst(const MOBIData *m) {
-    if (!mobi_exists_mobiheader(m)) {
+    if (!mobi_exists_mobiheader(m) || mobi_get_fileversion(m) <= 3) {
         return false;
     }
     if (mobi_get_fileversion(m) >= 8) {
@@ -1871,7 +1871,8 @@ bool mobi_exists_fdst(const MOBIData *m) {
             return true;
         }
     } else {
-        if (m->mh->fdst_section_count && *m->mh->fdst_section_count > 1) {
+        if ((m->mh->fdst_section_count && *m->mh->fdst_section_count > 1)
+            && (m->mh->last_text_index && *m->mh->last_text_index != (uint16_t) -1)) {
             return true;
         }
     }
@@ -1886,6 +1887,9 @@ bool mobi_exists_fdst(const MOBIData *m) {
  @return Record number on success, MOBI_NOTSET otherwise
  */
 size_t mobi_get_fdst_record_number(const MOBIData *m) {
+    if (!mobi_exists_mobiheader(m)) {
+        return MOBI_NOTSET;
+    }
     const size_t offset = mobi_get_kf8offset(m);
     if (m->mh->fdst_index && *m->mh->fdst_index != MOBI_NOTSET) {
         if (m->mh->fdst_section_count && *m->mh->fdst_section_count > 1) {
@@ -1894,7 +1898,9 @@ size_t mobi_get_fdst_record_number(const MOBIData *m) {
     }
     if (m->mh->fdst_section_count && *m->mh->fdst_section_count > 1) {
         /* FIXME: if KF7, is it safe to asume last_text_index has fdst index */
-        return *m->mh->last_text_index;
+        if (m->mh->last_text_index) {
+            return *m->mh->last_text_index;
+        }
     }
     return MOBI_NOTSET;
 }
@@ -2492,14 +2498,27 @@ bool mobi_is_encrypted(const MOBIData *m) {
  @return MOBI document version, 1 if ancient version (no MOBI header) or MOBI_NOTSET if error
  */
 size_t mobi_get_fileversion(const MOBIData *m) {
-    if (m == NULL) {
+    size_t version = 1;
+    if (m == NULL || m->ph == NULL) {
         debug_print("%s", "Mobi structure not initialized\n");
         return MOBI_NOTSET;
     }
-    if (m && m->mh && m->mh->version) {
-        return *m->mh->version;
+    if (strcmp(m->ph->type, "BOOK") == 0 && strcmp(m->ph->creator, "MOBI") == 0) {
+        if (m->mh && m->mh->header_length) {
+            uint32_t header_length = *m->mh->header_length;
+            if (header_length < MOBI_HEADER_V2_SIZE) {
+                version = 2;
+            } else if (m->mh->version && *m->mh->version > 1) {
+                if ((*m->mh->version > 2 && header_length < MOBI_HEADER_V3_SIZE)
+                    || (*m->mh->version > 3 && header_length < MOBI_HEADER_V4_SIZE)
+                    ||(*m->mh->version > 5 && header_length < MOBI_HEADER_V5_SIZE)) {
+                    return MOBI_NOTSET;
+                }
+                version = *m->mh->version;
+            }
+        }
     }
-    return 1;
+    return version;
 }
 
 /**

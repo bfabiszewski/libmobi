@@ -309,7 +309,8 @@ MOBI_RET mobi_parse_mobiheader(MOBIData *m, MOBIBuffer *buf) {
     }
     buffer_dup32(&m->mh->uid, buf);
     buffer_dup32(&m->mh->version, buf);
-    if (m->mh->version && *m->mh->version == 8) {
+    if (header_length >= MOBI_HEADER_V7_SIZE
+        && m->mh->version && *m->mh->version == 8) {
         isKF8 = 1;
     }
     buffer_dup32(&m->mh->orth_index, buf);
