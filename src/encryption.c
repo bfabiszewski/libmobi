@@ -522,6 +522,8 @@ EXTHDrm * mobi_exthdrm_get(const MOBIData *m) {
         exth_drm->data_size = meta->size;
         exth_drm->token = token;
         exth_drm->token_size = submeta_total;
+    } else {
+        free(token);
     }
     return exth_drm;
 }
@@ -573,6 +575,7 @@ static MOBI_RET mobi_drm_bookpid_from_serial(char pid[PIDSIZE + 1], const MOBIDa
     size_t message_length = serial_length + exth_drm->token_size + exth_drm->data_size;
     unsigned char *message = malloc(message_length);
     if (message == NULL) {
+        mobi_exthdrm_free(&exth_drm);
         return MOBI_MALLOC_FAILED;
     }
     memcpy(message, serial, serial_length);
