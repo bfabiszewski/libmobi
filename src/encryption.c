@@ -487,28 +487,33 @@ EXTHDrm * mobi_exthdrm_get(const MOBIData *m) {
     if (m == NULL || m->eh == NULL) {
         return NULL;
     }
-    MOBIExthHeader *meta = mobi_get_exthrecord_by_tag(m, EXTH_TAMPERKEYS);
+    const MOBIExthHeader *meta = mobi_get_exthrecord_by_tag(m, EXTH_TAMPERKEYS);
     if (meta == NULL) {
         return NULL;
     }
     MOBIBuffer *buf = buffer_init_null(meta->data, meta->size);
-    MOBIExthHeader *submeta[10];
+    if (buf == NULL) {
+        return NULL;
+    }
+    const MOBIExthHeader *submeta[10];
     size_t submeta_count = 0;
     size_t submeta_total = 0;
     while (buf->offset < buf->maxlen && submeta_count < ARRAYSIZE(submeta)) {
         buffer_seek(buf, 1);
         uint32_t exth_key = buffer_get32(buf);
-        MOBIExthHeader *sub = mobi_get_exthrecord_by_tag(m, exth_key);
+        const MOBIExthHeader *sub = mobi_get_exthrecord_by_tag(m, exth_key);
         if (sub) {
             submeta[submeta_count++] = sub;
             submeta_total += sub->size;
         }
     }
     if (submeta_total == 0) {
+        buffer_free_null(buf);
         return NULL;
     }
     unsigned char *token = malloc(submeta_total);
     if (token == NULL) {
+        buffer_free_null(buf);
         return NULL;
     }
     unsigned char *p = token;
@@ -525,6 +530,7 @@ EXTHDrm * mobi_exthdrm_get(const MOBIData *m) {
     } else {
         free(token);
     }
+    buffer_free_null(buf);
     return exth_drm;
 }
 
@@ -585,6 +591,7 @@ static MOBI_RET mobi_drm_bookpid_from_serial(char pid[PIDSIZE + 1], const MOBIDa
 
     unsigned char hash[SHA1_DIGEST_SIZE];
     mobi_SHA1(hash, message_length, message);
+    free(message);
 
     int bytes = 8;
     uint64_t val = 0;
