@@ -19,7 +19,7 @@ mobitool_LDFLAGS = $(TOOLS_STATIC)
 if USE_XMLWRITER
 # miniz.c zip functions are needed for epub creation
 noinst_LIBRARIES += libminiz.a
-libminiz_a_SOURCES = $(top_builddir)/src/miniz.c
+libminiz_a_SOURCES = $(top_srcdir)/src/miniz.c
 libminiz_a_CFLAGS = $(MINIZ_CFLAGS) -DMINIZ_NO_ZLIB_COMPATIBLE_NAMES
 mobitool_LDADD += libminiz.a
 endif
