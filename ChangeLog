@@ -1,3 +1,21 @@
+2016-05-18: update vcxproj
+2016-05-18: Include headers in automake sources
+2016-05-18: Fix: automake out-of-tree miniz build
+2016-05-18: Fix: wrongly detected fdst record broke some ancient documents
+2016-05-18: Fix: improve index header parsing, some old dictionaries might not load
+2016-05-18: Fix: convert encoding of opf strings from cp1252 indices
+2016-05-18: Quiet warnings about unused values of wiped variables
+2016-05-18: Fix: potential memory leak
+2016-05-18: Fix: wrongly decoded "&copy;" entity
+2016-05-16: Fix: huffdic decompression fails in case of huge documents
+2016-05-14: Simplify buffer_init_null() function
+2016-05-14: Use ARRAYSIZE macro
+2016-05-14: Feature: calculate pid for decryption from device serial number
+2016-04-29: Use endian-independent byte swapping
+2016-04-29: Exclude unused miniz functions from binary
+2016-04-29: Add SHA-1 routines
+2016-04-27: Fix miniz.c formatting
+2016-04-27: Documentation
 2016-04-20: Update changelog
 2016-04-20: Fix potential null pointer dereference
 2016-04-20: Remove useless check
