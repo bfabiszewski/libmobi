@@ -1431,7 +1431,7 @@ const HTMLEntity entities[] = {
     { "&gt;", ">" },
     { "&apos;", "'" },
     { "&nbsp;", "\xc2\xa0" },
-    { "&copy;", "\xc2\a9" },
+    { "&copy;", "\xc2\xa9" },
     { "&reg;", "\xc2\xae" },
     { "&cent;", "\xc2\xa2" },
     { "&pound;", "\xc2\xa3" },
