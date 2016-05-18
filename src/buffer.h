@@ -49,6 +49,7 @@ void buffer_copy8(MOBIBuffer *in, MOBIBuffer *source);
 void buffer_move(MOBIBuffer *buf, const int offset, const size_t len);
 void buffer_copy(MOBIBuffer *dest, MOBIBuffer *source, const size_t len);
 bool buffer_match_magic(MOBIBuffer *buf, const char *magic);
+bool buffer_match_magic_offset(MOBIBuffer *buf, const char *magic, const size_t offset);
 void buffer_seek(MOBIBuffer *buf, const int diff);
 void buffer_setpos(MOBIBuffer *buf, const size_t pos);
 void buffer_free(MOBIBuffer *buf);

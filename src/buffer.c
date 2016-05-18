@@ -540,6 +540,25 @@ bool buffer_match_magic(MOBIBuffer *buf, const char *magic) {
 }
 
 /**
+ @brief Check if buffer contains magic signature at given offset
+ 
+ @param[in] buf MOBIBuffer buffer containing data
+ @param[in] magic Magic signature
+ @param[in] offset Offset
+ @return boolean true on match, false otherwise
+ */
+bool buffer_match_magic_offset(MOBIBuffer *buf, const char *magic, const size_t offset) {
+    bool match = false;
+    if (offset <= buf->maxlen) {
+        const size_t save_offset = buf->offset;
+        buf->offset = offset;
+        match = buffer_match_magic(buf, magic);
+        buf->offset = save_offset;
+    }
+    return match;
+}
+
+/**
  @brief Move current buffer offset by diff bytes
  
  @param[in,out] buf MOBIBuffer buffer containing data
