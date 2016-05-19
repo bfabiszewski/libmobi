@@ -2919,3 +2919,17 @@ MOBI_RET mobi_drm_delkey(MOBIData *m) {
     return MOBI_DRM_UNSUPPORTED;
 #endif
 }
+
+/**
+ @brief Convert char buffer to 32-bit unsigned integer
+ 
+ @param[in] buf Input buffer
+ @return Converted value
+ */
+uint32_t mobi_get32be(const unsigned char buf[4]) {
+    uint32_t val = (uint32_t) buf[0] << 24;
+    val |= (uint32_t) buf[1] << 16;
+    val |= (uint32_t) buf[2] << 8;
+    val |= buf[3];
+    return val;
+}

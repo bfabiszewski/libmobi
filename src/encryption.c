@@ -26,6 +26,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "util.h"
 #include "debug.h"
 #include "sha1.h"
@@ -238,6 +239,33 @@ static void mobi_drm_free(MOBIDrm **drm, const size_t count) {
 }
 
 /**
+ @brief Check whether drm expired
+ 
+ @param[in] from Cookie valid after (unix timestamp in minutes)
+ @param[in] to Cookie valid before (unix timestamp in minutes)
+ @return True if drm validation dates are present and expired, false otherwise
+ */
+static bool mobi_drm_expired(const uint32_t from, const uint32_t to) {
+    if (from == 0 || to == (uint32_t) -1) {
+        /* expiration dates not set */
+        return false;
+    }
+    /* FIXME: needs sample for testing */
+    struct tm epoch;
+    memset(&epoch, 0, sizeof(epoch));
+    epoch.tm_year = 70; epoch.tm_mday = 1; epoch.tm_isdst = -1;
+    time_t now = time(NULL);
+    double curr = difftime(now, mktime(&epoch)) / 60;
+    if (curr < 0 || curr > UINT32_MAX || (uint32_t) curr < from || (uint32_t) curr > to) {
+        debug_print("Drm expired (%u), valid period %u-%u\n", (uint32_t) curr, from, to);
+        return true;
+    } else {
+        debug_print("Drm valid (%u), valid period %u-%u\n", (uint32_t) curr, from, to);
+        return false;
+    }
+}
+
+/**
  @brief Verify decrypted cookie
  
  @param[in,out] drm_verification Checksum from drm header
@@ -245,18 +273,13 @@ static void mobi_drm_free(MOBIDrm **drm, const size_t count) {
  @return True if verification succeeds, false otherwise
  */
 static bool mobi_drm_verify(const uint32_t drm_verification, const unsigned char cookie[COOKIESIZE]) {
-    uint32_t verification = (uint32_t) cookie[0] << 24;
-    verification |= (uint32_t) cookie[1] << 16;
-    verification |= (uint32_t) cookie[2] << 8;
-    verification |= cookie[3];
-    uint32_t flags = (uint32_t) cookie[4] << 24;
-    flags |= (uint32_t) cookie[5] << 16;
-    flags |= (uint32_t) cookie[6] << 8;
-    flags |= cookie[7];
+    uint32_t verification = mobi_get32be(&cookie[0]);
+    uint32_t flags = mobi_get32be(&cookie[4]);
     if (verification == drm_verification && (flags & 0x1f)) {
-        return true;
+        uint32_t to = mobi_get32be(&cookie[24]);
+        uint32_t from = mobi_get32be(&cookie[28]);
+        return !mobi_drm_expired(from, to);
     }
-    /* FIXME: check expiry dates: two last longs of cookie */
     return false;
 }
 
