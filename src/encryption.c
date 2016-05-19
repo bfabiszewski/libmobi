@@ -268,14 +268,15 @@ static bool mobi_drm_expired(const uint32_t from, const uint32_t to) {
 /**
  @brief Verify decrypted cookie
  
- @param[in,out] drm_verification Checksum from drm header
+ @param[in] drm_verification Checksum from drm header
  @param[in] cookie Decrypted cookie
+ @param[in] key_type Key type
  @return True if verification succeeds, false otherwise
  */
-static bool mobi_drm_verify(const uint32_t drm_verification, const unsigned char cookie[COOKIESIZE]) {
+static bool mobi_drm_verify(const uint32_t drm_verification, const unsigned char cookie[COOKIESIZE], const uint8_t key_type) {
     uint32_t verification = mobi_get32be(&cookie[0]);
     uint32_t flags = mobi_get32be(&cookie[4]);
-    if (verification == drm_verification && (flags & 0x1f)) {
+    if (verification == drm_verification && (flags & 0x1f) == key_type) {
         uint32_t to = mobi_get32be(&cookie[24]);
         uint32_t from = mobi_get32be(&cookie[28]);
         return !mobi_drm_expired(from, to);
@@ -316,7 +317,7 @@ static MOBI_RET mobi_drm_getkey_v2(unsigned char key[KEYSIZE], const unsigned ch
                 mobi_drm_free(drm, drm_count);
                 return ret;
             }
-            if (mobi_drm_verify(drm[i]->verification, cookie)) {
+            if (mobi_drm_verify(drm[i]->verification, cookie, 1)) {
                 memcpy(key, &cookie[8], KEYSIZE);
                 mobi_drm_free(drm, drm_count);
                 return MOBI_SUCCESS;
@@ -329,7 +330,8 @@ static MOBI_RET mobi_drm_getkey_v2(unsigned char key[KEYSIZE], const unsigned ch
                 mobi_drm_free(drm, drm_count);
                 return ret;
             }
-            if (mobi_drm_verify(drm[i]->verification, cookie)) {
+            /* FIXME: needs sample to verify if key_type 3 is ok */
+            if (mobi_drm_verify(drm[i]->verification, cookie, 3)) {
                 memcpy(key, &cookie[8], KEYSIZE);
                 mobi_drm_free(drm, drm_count);
                 return MOBI_SUCCESS;
