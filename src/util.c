@@ -2406,7 +2406,7 @@ MOBIFiletype mobi_determine_resource_type(const MOBIPdbRecord *record) {
     } else if (memcmp(record->data, eof_magic, 4) == 0) {
         return T_BREAK;
     } else if (memcmp(record->data, bmp_magic, 2) == 0) {
-        const size_t bmp_size = (uint32_t) record->data[2] | (uint32_t) record->data[3] << 8 | (uint32_t) record->data[4] << 16 | (uint32_t) record->data[5] << 24;
+        const size_t bmp_size = mobi_get32le(&record->data[2]);
         if (record->size == bmp_size) {
             return T_BMP;
         }
@@ -2921,7 +2921,7 @@ MOBI_RET mobi_drm_delkey(MOBIData *m) {
 }
 
 /**
- @brief Convert char buffer to 32-bit unsigned integer
+ @brief Convert char buffer to 32-bit unsigned integer big endian
  
  @param[in] buf Input buffer
  @return Converted value
@@ -2930,6 +2930,20 @@ uint32_t mobi_get32be(const unsigned char buf[4]) {
     uint32_t val = (uint32_t) buf[0] << 24;
     val |= (uint32_t) buf[1] << 16;
     val |= (uint32_t) buf[2] << 8;
-    val |= buf[3];
+    val |= (uint32_t) buf[3];
+    return val;
+}
+
+/**
+ @brief Convert char buffer to 32-bit unsigned integer little endian
+ 
+ @param[in] buf Input buffer
+ @return Converted value
+ */
+uint32_t mobi_get32le(const unsigned char buf[4]) {
+    uint32_t val = (uint32_t) buf[0];
+    val |= (uint32_t) buf[1] << 8;
+    val |= (uint32_t) buf[2] << 16;
+    val |= (uint32_t) buf[3] << 24;
     return val;
 }

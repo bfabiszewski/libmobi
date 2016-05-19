@@ -156,4 +156,5 @@ MOBI_RET mobi_add_font_resource(MOBIPart *part);
 MOBI_RET mobi_set_fullname(MOBIData *m, const char *fullname);
 MOBI_RET mobi_set_pdbname(MOBIData *m, const char *name);
 uint32_t mobi_get32be(const unsigned char buf[4]);
+uint32_t mobi_get32le(const unsigned char buf[4]);
 #endif
