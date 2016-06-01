@@ -1,3 +1,10 @@
+2016-06-01: Update README
+2016-05-19: Feature: verify decryption key type
+2016-05-19: Cleanup converting little endian buffer to 32-bit integer
+2016-05-19: Feature: check drm expiration dates
+2016-05-18: Fix: memory leaks in encryption
+2016-05-18: Fix concurrent autotools builds
+2016-05-18: use relative path, as $(top_srcdir) fails to be substituted (?)
 2016-05-18: update vcxproj
 2016-05-18: Include headers in automake sources
 2016-05-18: Fix: automake out-of-tree miniz build

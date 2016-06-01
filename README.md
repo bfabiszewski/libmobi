@@ -117,15 +117,15 @@ return SUCCESS;
 - [![Travis status](https://travis-ci.org/bfabiszewski/libmobi.svg?branch=public)](https://travis-ci.org/bfabiszewski/libmobi)
 - [![Coverity status](https://scan.coverity.com/projects/3521/badge.svg)](https://scan.coverity.com/projects/3521)
 
+## Projects using libmobi
+- [KyBook 2 Reader](http://kybook-reader.com)
+- [@Voice Aloud Reader](http://www.hyperionics.com/atVoice/)
+- [QLMobi quicklook plugin](https://github.com/bfabiszewski/QLMobi/tree/master/QLMobi)
+- ... (let me know to include your project)
+
 ## License:
 - LGPL, either version 3, or any later
 
 ## Credits:
-- The huffman decompression and KF8 parsing algorithms were learned by studying python source code of [KindleUnpack](http://wiki.mobileread.com/wiki/KindleUnpack) distributed with following license:
-
-        Based on initial mobipocket version Copyright © 2009 Charles M. Hannum 
-        Extensive Extensions and Improvements Copyright © 2009-2014 
-        By P. Durrant, K. Hendricks, S. Siebert, fandrieu, DiapDealer, nickredding, tkeo.
-        This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3.
-    
+- The huffman decompression and KF8 parsing algorithms were learned by studying python source code of [KindleUnpack](https://github.com/kevinhendricks/KindleUnpack).
 - Thanks to all contributors of Mobileread [MOBI wiki](http://wiki.mobileread.com/wiki/MOBI)
