@@ -16,21 +16,21 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "opf.h"
+#ifdef USE_LIBXML2
 #ifdef __clang__
 #pragma clang diagnostic push
 /* suppress clang documentation warning for libxml headers */
 #pragma clang diagnostic ignored "-Wdocumentation"
 #endif
-#ifdef USE_LIBXML2
 #include <libxml/encoding.h>
 #include <libxml/xmlwriter.h>
-#else
-#include "xmlwriter.h"
-#endif
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
-#include "opf.h"
+#else
+#include "xmlwriter.h"
+#endif
 #include "index.h"
 #include "util.h"
 #include "parse_rawml.h"
