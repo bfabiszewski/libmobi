@@ -411,12 +411,6 @@ xmlTextWriterPtr xmlNewTextWriterMemory(xmlBufferPtr xmlbuf, int compression) {
         return NULL;
     }
     writer->xmlbuf = xmlbuf;
-    MOBIArray *states = array_init(MOBI_XML_STATESSIZE);
-    if (states == NULL) {
-        debug_print("%s", "XML states array allocation failed\n");
-        free(writer);
-        return NULL;
-    }
     writer->states = NULL;
     writer->nsname = NULL;
     writer->nsvalue = NULL;
