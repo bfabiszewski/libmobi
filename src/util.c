@@ -2384,6 +2384,9 @@ MOBIFiletype mobi_determine_resource_type(const MOBIPdbRecord *record) {
     /* PNG: 89 50 4E 47 0D 0A 1A 0A */
     /* SVG is XML-based format, so stored in flow parts */
     /* FONT: must be decoded */
+    if (record->size < 4) {
+        return T_UNKNOWN;
+    }
     const unsigned char jpg_magic[] = "\xff\xd8\xff";
     const unsigned char gif_magic[] = "\x47\x49\x46\x38";
     const unsigned char png_magic[] = "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a";
@@ -2397,11 +2400,11 @@ MOBIFiletype mobi_determine_resource_type(const MOBIPdbRecord *record) {
         return T_JPG;
     } else if (memcmp(record->data, gif_magic, 4) == 0) {
         return T_GIF;
-    } else if (memcmp(record->data, png_magic, 8) == 0) {
+    } else if (record->size >= 8 && memcmp(record->data, png_magic, 8) == 0) {
         return T_PNG;
     } else if (memcmp(record->data, font_magic, 4) == 0) {
         return T_FONT;
-    } else if (memcmp(record->data, boundary_magic, 8) == 0) {
+    } else if (record->size >= 8 && memcmp(record->data, boundary_magic, 8) == 0) {
         return T_BREAK;
     } else if (memcmp(record->data, eof_magic, 4) == 0) {
         return T_BREAK;
