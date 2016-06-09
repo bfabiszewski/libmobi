@@ -1,3 +1,7 @@
+2016-06-10: Fix: USE_LIBXML2 macro was not included from config.h
+2016-06-09: Fix: memory leak in tools
+2016-06-09: Fix: potential out of bounds read
+2016-06-09: Fix: memory leak in internal xmlwriter
 2016-06-01: Update README
 2016-05-19: Feature: verify decryption key type
 2016-05-19: Cleanup converting little endian buffer to 32-bit integer
