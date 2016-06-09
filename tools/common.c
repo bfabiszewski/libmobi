@@ -258,8 +258,11 @@ void print_summary(const MOBIData *m) {
             exth = mobi_get_exthrecord_by_tag(m, EXTH_CREATORBUILDREV);
             if (major == 2 && minor == 9 && build == 0 && exth) {
                 char *rev = mobi_decode_exthstring(m, exth->data, exth->size);
-                if (strcmp(rev, "0730-890adc2") == 0) {
-                    is_calibre = true;
+                if (rev) {
+                    if (strcmp(rev, "0730-890adc2") == 0) {
+                        is_calibre = true;
+                    }
+                    free(rev);
                 }
             }
             switch (creator) {
