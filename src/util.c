@@ -2021,21 +2021,24 @@ MOBIFiletype mobi_determine_flowpart_type(const MOBIRawml *rawml, const size_t p
  @brief Get font type of given font resource
  
  @param[in] font_data Font resource data
+ @param[in] font_size Font resource size
  @return MOBIFiletype file type
  */
-MOBIFiletype mobi_determine_font_type(const unsigned char *font_data) {
+MOBIFiletype mobi_determine_font_type(const unsigned char *font_data, const size_t font_size) {
     const char otf_magic[] = "OTTO";
     const char ttf_magic[] = "\0\1\0\0";
     const char ttf2_magic[] = "true";
 
-    if (memcmp(font_data, otf_magic, 4) == 0) {
-        return T_OTF;
-    } else if (memcmp(font_data, ttf_magic, 4) == 0) {
-        return T_TTF;
-    } else if (memcmp(font_data, ttf2_magic, 4) == 0) {
-        return T_TTF;
+    if (font_size >= 4) {
+        if (memcmp(font_data, otf_magic, 4) == 0) {
+            return T_OTF;
+        } else if (memcmp(font_data, ttf_magic, 4) == 0) {
+            return T_TTF;
+        } else if (memcmp(font_data, ttf2_magic, 4) == 0) {
+            return T_TTF;
+        }
     }
-    debug_print("Unknown font resource type (%c%c%c%c)\n", font_data[0], font_data[1], font_data[2], font_data[3]);
+    debug_print("Unknown font resource type%s", "\n");
     return T_UNKNOWN;
 }
 
@@ -2277,7 +2280,7 @@ MOBI_RET mobi_add_font_resource(MOBIPart *part) {
     }
     part->data = data;
     part->size = size;
-    part->type = mobi_determine_font_type(data);
+    part->type = mobi_determine_font_type(data, size);
     /* FIXME: mark unknown font types as ttf (shouldn't happen).
        This will allow proper font resource deallocation. */
     if (part->type == T_UNKNOWN) { part->type = T_TTF; }
