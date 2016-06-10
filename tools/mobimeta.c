@@ -96,7 +96,7 @@ void exit_with_usage(const char *progname) {
     printf("       -s meta=value  set metadata\n");
 #ifdef USE_ENCRYPTION
     printf("       -p pid         set pid for decryption\n");
-    printf("       -P serial set device serial for decryption\n");
+    printf("       -P serial      set device serial for decryption\n");
 #endif
     printf("       -v             show version and exit\n");
     exit(ERROR);

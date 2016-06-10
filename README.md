@@ -4,7 +4,7 @@ C library for handling Mobipocket/Kindle (MOBI) ebook format documents.
 
 For examples on how to use the library have a look at tools folder.
 
-## What works:
+## Features:
 - reading and parsing: 
   - some older text Palmdoc formats (pdb), 
   - Mobipocket files (prc, mobi), 
@@ -101,7 +101,7 @@ mobi_free(m);
 
 return SUCCESS;
 ```
-- for examples of usage, see [mobitool.c](https://github.com/bfabiszewski/libmobi/tree/public/tools)
+- for examples of usage, see [tools](https://github.com/bfabiszewski/libmobi/tree/public/tools)
 
 
 ## Requirements

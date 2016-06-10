@@ -1,3 +1,10 @@
+2016-06-10: Update docs
+2016-06-10: Update test files
+2016-06-10: Fix: out of bounds read in corrupt font resource
+2016-06-10: Prevent memory leak in case of corrupt font resources
+2016-06-10: Calculate deobfuscation buffer limit from key length
+2016-06-10: Merge branch 'public' of ssh://fabiszewski.net/home/git/libmobi into public
+2016-06-10: Fix: USE_LIBXML2 macro was not included from config.h
 2016-06-10: Fix: USE_LIBXML2 macro was not included from config.h
 2016-06-09: Fix: memory leak in tools
 2016-06-09: Fix: potential out of bounds read
