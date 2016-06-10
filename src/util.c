@@ -2331,8 +2331,8 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
         buffer_setpos(buf, h.data_offset);
         const unsigned char *xor_key = buf->data + h.xor_data_off;
         size_t i = 0;
-        /* only xor first 1040 bytes */
-        while (buf->offset < buf->maxlen && i < 1040) {
+        const size_t xor_limit = h.xor_key_len * 52;
+        while (buf->offset < buf->maxlen && i < xor_limit) {
             buf->data[buf->offset++] ^= xor_key[i % h.xor_key_len];
             i++;
         }
