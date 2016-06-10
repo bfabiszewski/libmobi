@@ -2035,6 +2035,7 @@ MOBIFiletype mobi_determine_font_type(const unsigned char *font_data) {
     } else if (memcmp(font_data, ttf2_magic, 4) == 0) {
         return T_TTF;
     }
+    debug_print("Unknown font resource type (%c%c%c%c)\n", font_data[0], font_data[1], font_data[2], font_data[3]);
     return T_UNKNOWN;
 }
 
@@ -2277,6 +2278,9 @@ MOBI_RET mobi_add_font_resource(MOBIPart *part) {
     part->data = data;
     part->size = size;
     part->type = mobi_determine_font_type(data);
+    /* FIXME: mark unknown font types as ttf (shouldn't happen).
+       This will allow proper font resource deallocation. */
+    if (part->type == T_UNKNOWN) { part->type = T_TTF; }
     return MOBI_SUCCESS;
 }
 
