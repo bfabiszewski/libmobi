@@ -642,7 +642,16 @@ int dump_embedded_source(const MOBIData *m, const char *fullpath) {
         return ERROR;
     }
     char srcsname[FILENAME_MAX];
-    snprintf(srcsname, sizeof(srcsname), "%s%c%s_source.zip", newdir, separator, basename);
+    const unsigned char epub_magic[] = "mimetypeapplication/epub+zip";
+    const size_t em_offset = 30;
+    const size_t em_size = sizeof(epub_magic) - 1;
+    const char *ext;
+    if (size > em_offset + em_size && memcmp(data + em_offset, epub_magic, em_size) == 0) {
+        ext = "epub";
+    } else {
+        ext = "zip";
+    }
+    snprintf(srcsname, sizeof(srcsname), "%s%c%s_source.%s", newdir, separator, basename, ext);
 
     printf("Saving source archive to %s\n", srcsname);
     errno = 0;
