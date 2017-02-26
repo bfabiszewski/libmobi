@@ -520,12 +520,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="src\buffer.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobitool|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mobimeta|Win32'">true</ExcludedFromBuild>
@@ -648,9 +642,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='libmobi-noxml-release|x64'">true</ExcludedFromBuild>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="libmobi.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
