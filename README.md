@@ -121,6 +121,7 @@ return SUCCESS;
 - [KyBook 2 Reader](http://kybook-reader.com)
 - [@Voice Aloud Reader](http://www.hyperionics.com/atVoice/)
 - [QLMobi quicklook plugin](https://github.com/bfabiszewski/QLMobi/tree/master/QLMobi)
+- [Librera Reader](http://librera.mobi)
 - ... (let me know to include your project)
 
 ## License:
