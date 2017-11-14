@@ -1698,7 +1698,6 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                 return MOBI_DATA_CORRUPT;
             }
         }
-        const size_t record_size = curr->size - extra_size;
         size_t decompressed_size = mobi_get_textrecord_maxsize(m);
         unsigned char *decompressed = malloc(decompressed_size);
         if (decompressed == NULL) {
@@ -1709,12 +1708,15 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         MOBI_RET ret = MOBI_SUCCESS;
 #ifdef USE_ENCRYPTION
         if (mobi_is_encrypted(m) && m->drm_key) {
-            size_t decrypt_size = record_size;
             if (compression_type != RECORD0_HUFF_COMPRESSION) {
                 /* decrypt also multibyte extra data */
-                size_t mb_size = mobi_get_record_mb_extrasize(curr, extra_flags);
-                decrypt_size += mb_size;
+                extra_size = mobi_get_record_extrasize(curr, extra_flags & 0xfffe);
+                if (extra_size == MOBI_NOTSET || extra_size >= curr->size) {
+                    free(decompressed);
+                    return MOBI_DATA_CORRUPT;
+                }
             }
+            const size_t decrypt_size = curr->size - extra_size;
             ret = mobi_drm_decrypt_buffer(decompressed, curr->data, decrypt_size, m);
             if (ret != MOBI_SUCCESS) {
                 mobi_free_huffcdic(huffcdic);
@@ -1722,8 +1724,17 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                 return ret;
             }
             memcpy(curr->data, decompressed, decrypt_size);
+            if (compression_type != RECORD0_HUFF_COMPRESSION && (extra_flags & 1)) {
+                // update multibyte data size after decryption
+                extra_size = mobi_get_record_extrasize(curr, extra_flags);
+                if (extra_size == MOBI_NOTSET || extra_size >= curr->size) {
+                    free(decompressed);
+                    return MOBI_DATA_CORRUPT;
+                }
+            }
         }
 #endif
+        const size_t record_size = curr->size - extra_size;
         switch (compression_type) {
             case RECORD0_NO_COMPRESSION:
                 /* no compression */
