@@ -28,42 +28,6 @@ const char separator = '/';
 #endif
 
 /**
- @brief Messages for libmobi return codes
- For reference see enum MOBI_RET in mobi.h
- */
-const char *libmobi_messages[] = {
-    "Success",
-    "Generic error",
-    "Wrong function parameter",
-    "Corrupted data",
-    "File not found",
-    "Document is encrypted",
-    "Unsupported document format",
-    "Memory allocation error",
-    "Initialization error",
-    "Buffer error",
-    "XML error",
-    "Invalid DRM pid",
-    "DRM key not found",
-    "DRM support not included",
-};
-
-#define LIBMOBI_MSG_COUNT ARRAYSIZE(libmobi_messages)
-
-/**
- @brief Return message for given libmobi return code
- @param[in] ret Libmobi return code
- */
-const char * libmobi_msg(const MOBI_RET ret) {
-    size_t index = ret;
-    if (index < LIBMOBI_MSG_COUNT) {
-        return libmobi_messages[index];
-    } else {
-        return "Unknown error";
-    }
-}
-
-/**
  @brief Parse file name into file path and base name.
         Dirname or basename can be skipped by setting to null.
         All buffers must have FILENAME_MAX size.

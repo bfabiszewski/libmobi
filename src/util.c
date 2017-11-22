@@ -67,6 +67,42 @@ static const unsigned char cp1252_to_utf8[32][3] = {
 };
 
 /**
+ @brief Messages for libmobi return codes
+ For reference see enum MOBI_RET in mobi.h
+ */
+const char *libmobi_messages[] = {
+    "Success",
+    "Generic error",
+    "Wrong function parameter",
+    "Corrupted data",
+    "File not found",
+    "Document is encrypted",
+    "Unsupported document format",
+    "Memory allocation error",
+    "Initialization error",
+    "Buffer error",
+    "XML error",
+    "Invalid DRM pid",
+    "DRM key not found",
+    "DRM support not included",
+};
+
+#define LIBMOBI_MSG_COUNT ARRAYSIZE(libmobi_messages)
+
+/**
+ @brief Return message for given libmobi return code
+ @param[in] ret Libmobi return code
+ */
+const char * libmobi_msg(const MOBI_RET ret) {
+    size_t index = ret;
+    if (index < LIBMOBI_MSG_COUNT) {
+        return libmobi_messages[index];
+    } else {
+        return "Unknown error";
+    }
+}
+
+/**
  @brief Get libmobi version
 
  @return String version
@@ -2827,6 +2863,39 @@ uint32_t mobi_get_exthsize(const MOBIData *m) {
     } else {
         return (uint32_t) size;
     }
+}
+
+/**
+ @brief Get entry start offset for the orth entry
+
+ @param[in] m MOBIIndexEntry structure
+ @return Start offset, -1 on failure
+*/
+uint32_t mobi_get_orth_entry_start_offset(const MOBIIndexEntry* m) {
+    uint32_t entry_startpos;
+    MOBI_RET ret = mobi_get_indxentry_tagvalue(&entry_startpos, m,
+                                               INDX_TAG_ORTH_STARTPOS);
+    if (ret != MOBI_SUCCESS)
+        return -1;
+
+    return entry_startpos;
+}
+
+/**
+ @brief Get text length for the orth entry
+
+ @param[in] MOBIIndexEntry structure
+ @return Text length, -1 on failure
+*/
+uint32_t mobi_get_orth_entry_text_length(const MOBIIndexEntry* m) {
+    uint32_t entry_textlen;
+    MOBI_RET ret = mobi_get_indxentry_tagvalue(&entry_textlen, m,
+                                               INDX_TAG_ORTH_ENDPOS);
+
+    if (ret != MOBI_SUCCESS)
+        return -1;
+
+    return entry_textlen;
 }
 
 /**

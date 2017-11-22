@@ -472,6 +472,7 @@ extern "C"
      @defgroup mobi_export Functions exported by the library
      @{
      */
+    MOBI_EXPORT const char * libmobi_msg(const MOBI_RET ret);
     MOBI_EXPORT const char * mobi_version(void);
     MOBI_EXPORT MOBI_RET mobi_load_file(MOBIData *m, FILE *file);
     MOBI_EXPORT MOBI_RET mobi_load_filename(MOBIData *m, const char *path);
@@ -506,6 +507,8 @@ extern "C"
     MOBI_EXPORT uint16_t mobi_get_textrecord_maxsize(const MOBIData *m);
     MOBI_EXPORT size_t mobi_get_kf8offset(const MOBIData *m);
     MOBI_EXPORT size_t mobi_get_kf8boundary_seqnumber(const MOBIData *m);
+    MOBI_EXPORT uint32_t mobi_get_orth_entry_start_offset(const MOBIIndexEntry* m);
+    MOBI_EXPORT uint32_t mobi_get_orth_entry_text_length(const MOBIIndexEntry* m);
     MOBI_EXPORT size_t mobi_get_record_extrasize(const MOBIPdbRecord *record, const uint16_t flags);
     MOBI_EXPORT size_t mobi_get_record_mb_extrasize(const MOBIPdbRecord *record, const uint16_t flags);
     MOBI_EXPORT size_t mobi_get_fileversion(const MOBIData *m);
