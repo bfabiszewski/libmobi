@@ -1092,15 +1092,14 @@ MOBI_RET mobi_posfid_to_link(char *link, const MOBIRawml *rawml, const char *val
  */
 MOBI_RET mobi_flow_to_link(char *link, const MOBIRawml *rawml, const char *value) {
     /* "kindle:flow:0000?mime=" */
+    *link = '\0';
     if (strlen(value) < (sizeof("kindle:flow:0000?mime=") - 1)) {
         debug_print("Skipping too short link: %s\n", value);
-        *link = '\0';
         return MOBI_SUCCESS;
     }
     value += (sizeof("kindle:flow:") - 1);
     if (value[4] != '?') {
-        debug_print("Skipping malformed link: kindle:flow:%s\n", value);
-        *link = '\0';
+        debug_print("Skipping broken link: kindle:flow:%s\n", value);
         return MOBI_SUCCESS;
     }
     char str_fid[4 + 1];
@@ -1109,8 +1108,8 @@ MOBI_RET mobi_flow_to_link(char *link, const MOBIRawml *rawml, const char *value
     
     MOBIPart *flow = mobi_get_flow_by_fid(rawml, str_fid);
     if (flow == NULL) {
-        debug_print("Link corrupt: kindle:flow:%s\n", value);
-        return MOBI_DATA_CORRUPT;
+        debug_print("Skipping broken link (missing resource): kindle:flow:%s\n", value);
+        return MOBI_SUCCESS;
     }
     MOBIFileMeta meta = mobi_get_filemeta_by_type(flow->type);
     char *extension = meta.extension;
@@ -1132,9 +1131,9 @@ MOBI_RET mobi_embed_to_link(char *link, const MOBIRawml *rawml, const char *valu
     while (*value == '"' || *value == '\'' || isspace(*value)) {
         value++;
     }
+    *link = '\0';
     if (strlen(value) < (sizeof("kindle:embed:0000") - 1)) {
         debug_print("Skipping too short link: %s\n", value);
-        *link = '\0';
         return MOBI_SUCCESS;
     }
     value += (sizeof("kindle:embed:") - 1);
@@ -1146,13 +1145,14 @@ MOBI_RET mobi_embed_to_link(char *link, const MOBIRawml *rawml, const char *valu
     uint32_t part_id;
     MOBI_RET ret = mobi_base32_decode(&part_id, str_fid);
     if (ret != MOBI_SUCCESS) {
-        return ret;
+        debug_print("Skipping broken link (corrupt base32): kindle:embed:%s\n", value);
+        return MOBI_SUCCESS;
     }
     part_id--;
     MOBIPart *resource = mobi_get_resource_by_uid(rawml, part_id);
     if (resource == NULL) {
-        debug_print("Link corrupt: kindle:embed:%s\n", value);
-        return MOBI_DATA_CORRUPT;
+        debug_print("Skipping broken link (missing resource): kindle:embed:%s\n", value);
+        return MOBI_SUCCESS;
     }
     MOBIFileMeta meta = mobi_get_filemeta_by_type(resource->type);
     char *extension = meta.extension;
