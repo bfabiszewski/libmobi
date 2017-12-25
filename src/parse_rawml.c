@@ -565,8 +565,8 @@ MOBI_RET mobi_reconstruct_resources(const MOBIData *m, MOBIRawml *rawml) {
     }
     const MOBIPdbRecord *curr_record = mobi_get_record_by_seqnumber(m, first_res_seqnumber);
     if (curr_record == NULL) {
-        debug_print("First resource record not found at %zu\n", first_res_seqnumber);
-        return MOBI_DATA_CORRUPT;
+        debug_print("First resource record not found at %zu, skipping resources\n", first_res_seqnumber);
+        return MOBI_SUCCESS;
     }
     rawml->resources = calloc(1, sizeof(MOBIPart));
     if (rawml->resources == NULL) {
