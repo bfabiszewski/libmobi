@@ -568,14 +568,8 @@ MOBI_RET mobi_reconstruct_resources(const MOBIData *m, MOBIRawml *rawml) {
         debug_print("First resource record not found at %zu, skipping resources\n", first_res_seqnumber);
         return MOBI_SUCCESS;
     }
-    rawml->resources = calloc(1, sizeof(MOBIPart));
-    if (rawml->resources == NULL) {
-        debug_print("%s", "Memory allocation for resources part failed\n");
-        return MOBI_MALLOC_FAILED;
-    }
-    MOBIPart *curr_part = rawml->resources;
     size_t i = 0;
-    int parts_count = 0;
+    MOBIPart *head = NULL;
     while (curr_record != NULL) {
         const MOBIFiletype filetype = mobi_determine_resource_type(curr_record);
         if (filetype == T_UNKNOWN) {
@@ -586,50 +580,49 @@ MOBI_RET mobi_reconstruct_resources(const MOBIData *m, MOBIRawml *rawml) {
         if (filetype == T_BREAK) {
             break;
         }
-        if (parts_count > 0) {
-            curr_part->next = calloc(1, sizeof(MOBIPart));
-            if (curr_part->next == NULL) {
-                debug_print("%s\n", "Memory allocation for flow part failed");
-                return MOBI_MALLOC_FAILED;
-            }
-            curr_part = curr_part->next;
-        }
         
+        MOBIPart *curr_part = calloc(1, sizeof(MOBIPart));;
+        if (curr_part == NULL) {
+            debug_print("%s\n", "Memory allocation for flow part failed");
+            return MOBI_MALLOC_FAILED;
+        }
         curr_part->data = curr_record->data;
         curr_part->size = curr_record->size;
+        curr_part->uid = i++;
+        curr_part->next = NULL;
         
-        MOBI_RET ret;
+        MOBI_RET ret = MOBI_SUCCESS;
         if (filetype == T_FONT) {
             ret = mobi_add_font_resource(curr_part);
             if (ret != MOBI_SUCCESS) {
                 debug_print("%s\n", "Decoding font resource failed");
-                return ret;
             }
         } else if (filetype == T_AUDIO) {
             ret = mobi_add_audio_resource(curr_part);
             if (ret != MOBI_SUCCESS) {
                 debug_print("%s\n", "Decoding audio resource failed");
-                return ret;
             }
         } else if (filetype == T_VIDEO) {
             ret = mobi_add_video_resource(curr_part);
             if (ret != MOBI_SUCCESS) {
                 debug_print("%s\n", "Decoding video resource failed");
-                return ret;
             }
         } else {
             curr_part->type = filetype;
         }
         
-        curr_part->uid = i;
-        curr_part->next = NULL;
         curr_record = curr_record->next;
-        i++;
-        parts_count++;
-    }
-    if (parts_count == 0) {
-        free(rawml->resources);
-        rawml->resources = NULL;
+        
+        if (ret != MOBI_SUCCESS) {
+            free(curr_part);
+            curr_part = NULL;
+        } else if (head) {
+            head->next = curr_part;
+            head = curr_part;
+        } else {
+            rawml->resources = curr_part;
+            head = curr_part;
+        }
     }
     return MOBI_SUCCESS;
 }
