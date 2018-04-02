@@ -1743,7 +1743,6 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
             return MOBI_DATA_CORRUPT;
         } else if (extra_size == curr->size) {
             debug_print("Skipping empty record%s", "\n");
-            mobi_free_huffcdic(huffcdic);
             free(decompressed);
             curr = curr->next;
             continue;
