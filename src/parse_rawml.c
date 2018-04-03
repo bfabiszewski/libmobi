@@ -989,14 +989,15 @@ MOBI_RET mobi_get_filepos_array(MOBIArray *links, const MOBIPart *part) {
  @brief Scan ncx part and build array of filepos link target offsets.
  
  @param[in,out] links MOBIArray structure for link target offsets array
- @param[in] part MOBIPart html part structure
+ @param[in] rawml MOBIRawml parsed records structure
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-MOBI_RET mobi_get_ncx_filepos_array(MOBIArray *links, const MOBIPart *part) {
-    if (!links || !part) {
+MOBI_RET mobi_get_ncx_filepos_array(MOBIArray *links, const MOBIRawml *rawml) {
+    if (!links || !rawml) {
         return MOBI_PARAM_ERR;
     }
-    while ((part = part->next) != NULL) {
+    MOBIPart *part = rawml->resources;
+    while (part) {
         if (part->type == T_NCX) {
             size_t offset = 0;
             size_t size = part->size;
@@ -1016,6 +1017,7 @@ MOBI_RET mobi_get_ncx_filepos_array(MOBIArray *links, const MOBIPart *part) {
                 }
             }
         }
+        part = part->next;
     }
     return MOBI_SUCCESS;
 }
@@ -1606,7 +1608,7 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         array_free(links);
         return ret;
     }
-    ret = mobi_get_ncx_filepos_array(links, part);
+    ret = mobi_get_ncx_filepos_array(links, rawml);
     if (ret != MOBI_SUCCESS) {
         array_free(links);
         return ret;
