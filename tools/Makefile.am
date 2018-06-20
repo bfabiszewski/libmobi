@@ -10,7 +10,7 @@ man_MANS = mobitool.1 mobimeta.1
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
 
-mobitool_SOURCES = mobitool.c mobitool.h
+mobitool_SOURCES = mobitool.c
 mobitool_DEPENDENCIES = $(top_builddir)/src/libmobi.la libcommon.a
 mobitool_LDADD = $(top_builddir)/src/libmobi.la libcommon.a
 mobitool_CFLAGS = $(ISO99_SOURCE) $(DEBUG_CFLAGS) -D_POSIX_C_SOURCE=200112L
@@ -25,7 +25,7 @@ mobitool_DEPENDENCIES += libminiz.a
 mobitool_LDADD += libminiz.a
 endif
 
-mobimeta_SOURCES = mobimeta.c mobimeta.h
+mobimeta_SOURCES = mobimeta.c
 mobimeta_DEPENDENCIES = $(top_builddir)/src/libmobi.la libcommon.a
 mobimeta_LDADD = $(top_builddir)/src/libmobi.la libcommon.a
 mobimeta_CFLAGS = $(ISO99_SOURCE) $(DEBUG_CFLAGS) -D_POSIX_C_SOURCE=200112L
