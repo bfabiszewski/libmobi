@@ -1717,6 +1717,12 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                 }
             }
             const size_t decrypt_size = curr->size - extra_size;
+            if (decrypt_size > decompressed_size) {
+                debug_print("Record too large: %zu\n", decrypt_size);
+                mobi_free_huffcdic(huffcdic);
+                free(decompressed);
+                return MOBI_DATA_CORRUPT;
+            }
             if (decrypt_size) {
                 ret = mobi_drm_decrypt_buffer(decompressed, curr->data, decrypt_size, m);
                 if (ret != MOBI_SUCCESS) {
