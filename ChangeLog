@@ -1,3 +1,26 @@
+2018-06-20: VERSION 0.4
+2018-06-20: Fix: buffer overflow (CVE-2018-11726)
+2018-06-20: Fix: buffer overflow (CVE-2018-11724)
+2018-06-20: Fix: read beyond buffer (CVE-2018-11725)
+2018-06-20: Fix: buffer overflow (mobitool), closes #18
+2018-06-20: Fix: read beyond buffer with corrupted KF8 Boundary record, closes #19
+2018-06-20: Fix: read beyond buffer, closes #16, #17
+2018-06-20: Updated xcode project files
+2018-04-03: Fix: ncx part was not scanned for links, fixes #12
+2018-04-02: Fix regression, potential use after free
+2018-04-02: Skip broken resources, fixes #10
+2018-03-05: Allow processing zero length text records, fixes #9
+2017-12-25: Skip broken first resource offset instead of dying
+2017-12-18: Skip broken links reconstruction instead of dying
+2017-11-27: Disable travis OS X builds, as they usually time out
+2017-11-16: Fix: increase max number of dictionary entries per record
+2017-11-14: Fix for some encrypted documents with palmdoc encoding
+2017-11-06: Fix: potential null pointer dereference
+2017-10-16: Manpage cleanup
+2017-09-27: Update README
+2017-09-26: Increase maximum length of attribute name and value, closes #5
+2017-02-26: Remove obsolete files from VS build (closes #3) [ci skip]
+2016-11-05: Mobitool: use epub extension if extracted source resource is epub
 2016-06-10: Update docs
 2016-06-10: Update test files
 2016-06-10: Fix: out of bounds read in corrupt font resource

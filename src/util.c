@@ -73,7 +73,7 @@ static const unsigned char cp1252_to_utf8[32][3] = {
  */
 const char * mobi_version(void) {
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "0.3"
+#define PACKAGE_VERSION "0.4"
 #endif
     return PACKAGE_VERSION;
 }
