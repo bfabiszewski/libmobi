@@ -2755,8 +2755,8 @@ size_t mobi_get_kf8boundary_seqnumber(const MOBIData *m) {
         uint32_t rec_number = mobi_decode_exthvalue(exth_tag->data, exth_tag->size);
         rec_number--;
         const MOBIPdbRecord *record = mobi_get_record_by_seqnumber(m, rec_number);
-        if (record) {
-            if(memcmp(record->data, "BOUNDARY", 8) == 0) {
+        if (record && record->size >= sizeof(BOUNDARY_MAGIC) - 1) {
+            if (memcmp(record->data, BOUNDARY_MAGIC, sizeof(BOUNDARY_MAGIC) - 1) == 0) {
                 return rec_number;
             }
         }
