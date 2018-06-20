@@ -2403,7 +2403,7 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
         if (*decoded_size < encoded_size) {
             buffer_free(buf);
             free(*decoded_font);
-            debug_print("Font size in record (%zu) larger then declared (%zu)\n", encoded_size, *decoded_size);
+            debug_print("Font size in record (%lu) larger then declared (%zu)\n", encoded_size, *decoded_size);
             return MOBI_DATA_CORRUPT;
         }
         memcpy(*decoded_font, encoded_font, encoded_size);
