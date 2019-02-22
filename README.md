@@ -114,7 +114,7 @@ return SUCCESS;
 - works cross-compiled on Kindle :)
 
 ## Tests
-- [![Travis status](https://travis-ci.org/bfabiszewski/libmobi.svg?branch=public)](https://travis-ci.org/bfabiszewski/libmobi)
+- [![Travis status](https://travis-ci.com/bfabiszewski/libmobi.svg?branch=public)](https://travis-ci.com/bfabiszewski/libmobi)
 - [![Coverity status](https://scan.coverity.com/projects/3521/badge.svg)](https://scan.coverity.com/projects/3521)
 
 ## Projects using libmobi
