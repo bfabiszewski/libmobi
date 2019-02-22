@@ -1,3 +1,9 @@
+2019-02-22: Add mobi_is_replica function
+2019-02-22: Fix potential read beyond buffer
+2019-02-22: Travis migration
+2018-08-07: Fix: missing items in recreated ncx file
+2018-06-20: Fix: printf format warning on some gcc versions
+2018-06-20: Fix: make dist broken by nonexistent header files
 2018-06-20: VERSION 0.4
 2018-06-20: Fix: buffer overflow (CVE-2018-11726)
 2018-06-20: Fix: buffer overflow (CVE-2018-11724)

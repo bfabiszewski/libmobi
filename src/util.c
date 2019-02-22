@@ -2538,6 +2538,26 @@ bool mobi_is_encrypted(const MOBIData *m) {
 }
 
 /**
+ @brief Check if loaded document is Print Replica type
+
+ @param[in] m MOBIData structure with loaded Record(s) 0 headers
+ @return true or false
+ */
+bool mobi_is_replica(const MOBIData *m) {
+    if (m == NULL) {
+        debug_print("%s", "Mobi structure not initialized\n");
+        return false;
+    }
+    if (m->rec && m->rh && m->rh->compression_type == RECORD0_NO_COMPRESSION) {
+        MOBIPdbRecord *rec = m->rec->next;
+        if (rec && rec->size >= sizeof(REPLICA_MAGIC)) {
+            return memcmp(rec->data, REPLICA_MAGIC, sizeof(REPLICA_MAGIC) - 1) == 0;
+        }
+    }
+    return false;
+}
+
+/**
  @brief Get mobi file version
  
  @param[in] m MOBIData structure with loaded Record(s) 0 headers

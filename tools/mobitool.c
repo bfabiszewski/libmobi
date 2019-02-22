@@ -734,6 +734,11 @@ int loadfilename(const char *fullpath) {
     mobi_ret = mobi_load_file(m, file);
     fclose(file);
     
+    if (create_epub_opt && mobi_is_replica(m)) {
+        create_epub_opt = 0;
+        printf("\nWarning: Can't create EPUB format from Print Replica book (ignoring -e argument)\n\n");
+    }
+
     /* Try to print basic metadata, even if further loading failed */
     /* In case of some unsupported formats it may still print some useful info */
     if (print_extended_meta_opt) { print_meta(m); }

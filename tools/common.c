@@ -233,6 +233,9 @@ void print_summary(const MOBIData *m) {
         }
         printf("\n");
     }
+    if (mobi_is_replica(m)) {
+        printf("Print Replica\n");
+    }
     if (mobi_is_encrypted(m)) {
         printf("Document is encrypted\n");
     }
