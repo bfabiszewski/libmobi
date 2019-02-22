@@ -673,7 +673,17 @@ MOBI_RET mobi_parse_cdic(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record, co
     }
     /* read i * 2 byte big-endian indices */
     while (index_count--) {
-        huffcdic->symbol_offsets[huffcdic->index_read++] = buffer_get16(buf);
+        const uint16_t offset = buffer_get16(buf);
+        const size_t saved_pos = buf->offset;
+        buffer_setpos(buf, offset + CDIC_HEADER_LEN);
+        const size_t len = buffer_get16(buf) & 0x7fff;
+        if (buf->error != MOBI_SUCCESS || buf->offset + len > buf->maxlen) {
+            debug_print("%s", "CDIC offset beyond buffer\n");
+            buffer_free_null(buf);
+            return MOBI_DATA_CORRUPT;
+        }
+        buffer_setpos(buf, saved_pos);
+        huffcdic->symbol_offsets[huffcdic->index_read++] = offset;
     }
     if (buf->offset + code_length > buf->maxlen) {
         debug_print("%s", "CDIC dictionary data too short\n");
