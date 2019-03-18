@@ -564,6 +564,7 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
             debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
         }
+        MOBIAttrType pref_attr = ATTR_ID;
         while (i < count) {
             const MOBIIndexEntry *ncx_entry = &rawml->ncx->entries[i];
             const char *label = ncx_entry->label;
@@ -607,7 +608,7 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
                 }
                 uint32_t filenumber;
                 char targetid[MOBI_ATTRNAME_MAXSIZE + 1];
-                ret = mobi_get_id_by_posoff(&filenumber, targetid, rawml, posfid, posoff);
+                ret = mobi_get_id_by_posoff(&filenumber, targetid, rawml, posfid, posoff, &pref_attr);
                 if (ret != MOBI_SUCCESS) {
                     free(text);
                     free(target);

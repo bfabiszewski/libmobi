@@ -27,7 +27,16 @@ typedef struct {
     bool is_url; /**< True if value is part of css url attribute */
 } MOBIResult;
 
-MOBI_RET mobi_get_id_by_posoff(uint32_t *file_number, char *id, const MOBIRawml *rawml, const size_t pos_fid, const size_t pos_off);
+/**
+ @brief HTML attribute type
+ */
+typedef enum {
+    ATTR_ID = 0, /**< Attribute 'id' */
+    ATTR_NAME /**< Attribute 'name' */
+} MOBIAttrType;
+
+
+MOBI_RET mobi_get_id_by_posoff(uint32_t *file_number, char *id, const MOBIRawml *rawml, const size_t pos_fid, const size_t pos_off, MOBIAttrType *pref_attr);
 MOBI_RET mobi_find_attrvalue(MOBIResult *result, const unsigned char *data_start, const unsigned char *data_end, const MOBIFiletype type, const char *needle);
 
 #endif

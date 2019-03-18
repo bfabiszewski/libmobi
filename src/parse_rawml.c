@@ -468,14 +468,15 @@ MOBI_RET mobi_get_aid_by_offset(char *aid, const MOBIPart *html, const size_t of
 }
 
 /**
- @brief Get value of the closest "id" attribute following given offset in a given part
+ @brief Get value of the closest "id" or "name" attribute following given offset in a given part
  
- @param[in,out] id String value of "id" attribute
+ @param[in,out] id String value of found attribute
  @param[in] html MOBIPart html part
  @param[in] offset Offset from the beginning of the part data
+ @param[in,out] pref_attr Preferred attribute to link to (id or name)
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-MOBI_RET mobi_get_id_by_offset(char *id, const MOBIPart *html, const size_t offset) {
+MOBI_RET mobi_get_id_by_offset(char *id, const MOBIPart *html, const size_t offset, MOBIAttrType *pref_attr) {
     if (!id || !html) {
         debug_print("Parameter error (id (%p), html (%p)\n", (void *) id, (void *) html);
         return MOBI_PARAM_ERR;
@@ -487,11 +488,21 @@ MOBI_RET mobi_get_id_by_offset(char *id, const MOBIPart *html, const size_t offs
     const unsigned char *data = html->data;
     data += offset;
     size_t length = html->size - offset;
-    
-    size_t off = mobi_get_attribute_value(id, data, length, "id", true);
+    static const char * attributes[] = {
+        [ATTR_ID] = "id",
+        [ATTR_NAME] = "name",
+    };
+    size_t off = mobi_get_attribute_value(id, data, length, attributes[*pref_attr], true);
     if (off == SIZE_MAX) {
-        id[0] = '\0';
-        //return MOBI_DATA_CORRUPT;
+        // try optional attribute
+        const MOBIAttrType opt_attr = (*pref_attr == ATTR_ID) ? ATTR_NAME : ATTR_ID;
+        off = mobi_get_attribute_value(id, data, length, attributes[opt_attr], true);
+        if (off == SIZE_MAX) {
+            id[0] = '\0';
+        } else {
+            // save optional attribute as preferred
+            *pref_attr = opt_attr;
+        }
     }
     return MOBI_SUCCESS;
 }
@@ -531,9 +542,10 @@ MOBI_RET mobi_get_aid_by_posoff(uint32_t *file_number, char *aid, const MOBIRawm
  @param[in] rawml MOBIRawml parsed records structure
  @param[in] pos_fid X value of pos:fid:x
  @param[in] pos_off Y value of off:y
+ @param[in,out] pref_attr Attribute to link to
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-MOBI_RET mobi_get_id_by_posoff(uint32_t *file_number, char *id, const MOBIRawml *rawml, const size_t pos_fid, const size_t pos_off) {
+MOBI_RET mobi_get_id_by_posoff(uint32_t *file_number, char *id, const MOBIRawml *rawml, const size_t pos_fid, const size_t pos_off, MOBIAttrType *pref_attr) {
     size_t offset;
     MOBI_RET ret = mobi_get_offset_by_posoff(file_number, &offset, rawml, pos_fid, pos_off);
     if (ret != MOBI_SUCCESS) {
@@ -543,7 +555,7 @@ MOBI_RET mobi_get_id_by_posoff(uint32_t *file_number, char *id, const MOBIRawml 
     if (html == NULL) {
         return MOBI_DATA_CORRUPT;
     }
-    ret = mobi_get_id_by_offset(id, html, offset);
+    ret = mobi_get_id_by_offset(id, html, offset, pref_attr);
     if (ret != MOBI_SUCCESS) {
         return MOBI_DATA_CORRUPT;
     }
@@ -1028,9 +1040,10 @@ MOBI_RET mobi_get_ncx_filepos_array(MOBIArray *links, const MOBIRawml *rawml) {
  @param[in,out] link Memory area which will be filled with "part00000.html#customid", including quotation marks
  @param[in] rawml Structure rawml
  @param[in] value String kindle:pos:fid:0000:off:0000000000, without quotation marks
+ @param[in,out] pref_attr Preferred attribute to link to (id or name)
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-MOBI_RET mobi_posfid_to_link(char *link, const MOBIRawml *rawml, const char *value) {
+MOBI_RET mobi_posfid_to_link(char *link, const MOBIRawml *rawml, const char *value, MOBIAttrType *pref_attr) {
     /* "kindle:pos:fid:0000:off:0000000000" */
     /* extract fid and off */
     if (strlen(value) < (sizeof("kindle:pos:fid:0000:off:0000000000") - 1)) {
@@ -1064,7 +1077,7 @@ MOBI_RET mobi_posfid_to_link(char *link, const MOBIRawml *rawml, const char *val
     }
     uint32_t part_id;
     char id[MOBI_ATTRVALUE_MAXSIZE + 1];
-    ret = mobi_get_id_by_posoff(&part_id, id, rawml, pos_fid, pos_off);
+    ret = mobi_get_id_by_posoff(&part_id, id, rawml, pos_fid, pos_off, pref_attr);
     if (ret != MOBI_SUCCESS) {
         return ret;
     }
@@ -1188,6 +1201,7 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
             MOBIFragment *first = NULL;
             MOBIFragment *curr = NULL;
             size_t part_size = 0;
+            MOBIAttrType pref_attr = ATTR_ID;
             while (true) {
                 mobi_search_links_kf8(&result, result.start, data_end, part->type);
                 if (result.start == NULL) {
@@ -1205,8 +1219,8 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
                 if ((target = strstr(value, "kindle:pos:fid:")) != NULL) {
                     /* "kindle:pos:fid:0001:off:0000000000" */
                     /* replace link with href="part00000.html#00" */
-                    /* FIXME: this requires present target id tag */
-                    MOBI_RET ret = mobi_posfid_to_link(link, rawml, target);
+                    /* FIXME: this requires present target id or name attribute */
+                    MOBI_RET ret = mobi_posfid_to_link(link, rawml, target, &pref_attr);
                     if (ret != MOBI_SUCCESS) {
                         mobi_list_del_all(first);
                         return ret;
