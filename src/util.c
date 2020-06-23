@@ -2451,7 +2451,7 @@ MOBIFiletype mobi_determine_resource_type(const MOBIPdbRecord *record) {
         return T_BREAK;
     } else if (memcmp(record->data, eof_magic, 4) == 0) {
         return T_BREAK;
-    } else if (memcmp(record->data, bmp_magic, 2) == 0) {
+    } else if (record->size >= 6 && memcmp(record->data, bmp_magic, 2) == 0) {
         const size_t bmp_size = mobi_get32le(&record->data[2]);
         if (record->size == bmp_size) {
             return T_BMP;
