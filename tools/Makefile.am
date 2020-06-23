@@ -23,6 +23,11 @@ libminiz_a_SOURCES = ../src/miniz.c ../src/miniz.h
 libminiz_a_CFLAGS = $(MINIZ_CFLAGS) -DMINIZ_NO_ZLIB_COMPATIBLE_NAMES
 mobitool_DEPENDENCIES += libminiz.a
 mobitool_LDADD += libminiz.a
+if USE_STATIC
+if USE_MINIZ
+mobitool_LDFLAGS += $(MOBI_ALLOW_MULTIPLE)
+endif
+endif
 endif
 
 mobimeta_SOURCES = mobimeta.c

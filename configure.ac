@@ -133,6 +133,21 @@ case "$host" in
 esac
 AC_SUBST(DARWIN_LDFLAGS)
 
+# Check for --allow-multiple-definition support in linker
+AC_MSG_CHECKING([whether linker supports --allow-multiple-definition flag])
+MOBI_ALLOW_MULTIPLE=
+SAVED_CFLAGS="${CFLAGS}"
+CFLAGS="-Wl,--allow-multiple-definition -Werror"
+AC_TRY_COMPILE([], [],
+def_allow_multiple=yes,
+def_allow_multiple=no)
+CFLAGS="${SAVED_CFLAGS}"
+AS_IF([test "${def_allow_multiple}" = "yes"], [
+MOBI_ALLOW_MULTIPLE="-Wl,--allow-multiple-definition"
+])
+AC_MSG_RESULT($def_allow_multiple)
+AC_SUBST(MOBI_ALLOW_MULTIPLE)
+
 # Check for non-broken inline under various spellings
 AC_MSG_CHECKING([for inline keyword])
 def_inline=""
@@ -144,7 +159,7 @@ int bar() { return foo();], def_inline="__inline",
 int bar() { return foo();], def_inline="inline")])])
 AC_MSG_RESULT($def_inline)
 AC_DEFINE_UNQUOTED([MOBI_INLINE], [$def_inline],
-                   [How to obtain function inlining.])
+[How to obtain function inlining.])
 
 
 # Check --enable-xmlwriter
@@ -284,6 +299,7 @@ AC_HELP_STRING([--with-zlib],[Use zlib instead of included miniz @<:@default=yes
 AC_MSG_RESULT($use_zlib)
 AM_CONDITIONAL(USE_ZLIB,[test x$use_zlib = xyes])
 AM_CONDITIONAL(USE_MINIZ,[test x$use_zlib = xno])
+AM_CONDITIONAL(USE_STATIC,[test x$tools_static = xyes])
 if test x$use_zlib = xyes; then
 AC_CHECK_HEADER([zlib.h],
 [AC_DEFINE(USE_ZLIB, 1, [Define if you want to use system zlib library])
