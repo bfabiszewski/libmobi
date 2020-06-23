@@ -903,7 +903,7 @@ int loadfilename(const char *fullpath) {
  @param[in] progname Executed program name
  */
 void exit_with_usage(const char *progname) {
-    printf("usage: %s [-d" PRINT_EPUB_ARG "imrs" PRINT_RUSAGE_ARG "vx7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
+    printf("usage: %s [-cd" PRINT_EPUB_ARG "imrs" PRINT_RUSAGE_ARG "vx7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
     printf("       without arguments prints document metadata and exits\n");
     printf("       -c        dump cover\n");
     printf("       -d        dump rawml text record\n");

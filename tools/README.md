@@ -1,6 +1,7 @@
 ## mobitool
-    usage: mobitool [-deimrsuvx7] [-o dir] [-p pid] [-P serial] filename
+    usage: mobitool [-cdeimrsuvx7] [-o dir] [-p pid] [-P serial] filename
         without arguments prints document metadata and exits
+        -c         dump cover
         -d         dump rawml text record
         -e         create EPUB file (with -s will dump EPUB source)
         -i         print detailed metadata
