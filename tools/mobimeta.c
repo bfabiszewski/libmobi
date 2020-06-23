@@ -91,6 +91,7 @@ void exit_with_usage(const char *progname) {
     if (p) { progname = ++p; }
     printf("usage: %s [-a | -s meta=value[,meta=value,...]] [-d meta[,meta,...]]" PRINT_ENC_USG " [-v] filein [fileout]\n", progname);
     printf("       without arguments prints document metadata and exits\n");
+    printf("       -a ?           list valid meta named keys\n");
     printf("       -a meta=value  add metadata\n");
     printf("       -d meta        delete metadata\n");
     printf("       -s meta=value  set metadata\n");
