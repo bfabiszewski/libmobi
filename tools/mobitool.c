@@ -68,6 +68,7 @@
 #define EPUB_MIMETYPE "application/epub+zip"
 
 /* command line options */
+int dump_cover_opt = 0;
 int dump_rawml_opt = 0;
 int create_epub_opt = 0;
 int print_extended_meta_opt = 0;
@@ -309,6 +310,75 @@ int dump_rawml(const MOBIData *m, const char *fullpath) {
         printf("Dumping rawml file failed (%s)\n", libmobi_msg(mobi_ret));
         return ERROR;
     }
+    return SUCCESS;
+}
+
+/**
+ @brief Dump cover record
+ @param[in] m MOBIData structure
+ @param[in] fullpath File path will be parsed to create a new name for saved file
+ */
+int dump_cover(const MOBIData *m, const char *fullpath) {
+    
+    MOBIPdbRecord *record = NULL;
+    MOBIExthHeader *exth = mobi_get_exthrecord_by_tag(m, EXTH_COVEROFFSET);
+    if (exth) {
+        uint32_t offset = mobi_decode_exthvalue(exth->data, exth->size);
+        size_t first_resource = mobi_get_first_resource_record(m);
+        size_t uid = first_resource + offset;
+        record = mobi_get_record_by_seqnumber(m, uid);
+    }
+    if (record == NULL || record->size < 4) {
+        printf("Cover not found\n");
+        return ERROR;
+    }
+
+    const unsigned char jpg_magic[] = "\xff\xd8\xff";
+    const unsigned char gif_magic[] = "\x47\x49\x46\x38";
+    const unsigned char png_magic[] = "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a";
+    const unsigned char bmp_magic[] = "\x42\x4d";
+    
+    char ext[4] = "raw";
+    if (memcmp(record->data, jpg_magic, 3) == 0) {
+        snprintf(ext, sizeof(ext), "%s", "jpg");
+    } else if (memcmp(record->data, gif_magic, 4) == 0) {
+        snprintf(ext, sizeof(ext), "%s", "gif");
+    } else if (record->size >= 8 && memcmp(record->data, png_magic, 8) == 0) {
+        snprintf(ext, sizeof(ext), "%s", "png");
+    } else if (record->size >= 6 && memcmp(record->data, bmp_magic, 2) == 0) {
+        const size_t bmp_size = (uint32_t) record->data[2] | ((uint32_t) record->data[3] << 8) |
+        ((uint32_t) record->data[4] << 16) | ((uint32_t) record->data[5] << 24);
+        if (record->size == bmp_size) {
+            snprintf(ext, sizeof(ext), "%s", "bmp");
+        }
+    }
+    
+    char dirname[FILENAME_MAX];
+    char basename[FILENAME_MAX];
+    split_fullpath(fullpath, dirname, basename);
+    char cover_path[FILENAME_MAX];
+    if (outdir_opt) {
+        snprintf(cover_path, sizeof(cover_path), "%s%s_cover.%s", outdir, basename, ext);
+    } else {
+        snprintf(cover_path, sizeof(cover_path), "%s%s_cover.%s", dirname, basename, ext);
+    }
+    
+    printf("Saving cover to %s\n", cover_path);
+    errno = 0;
+    FILE *file = fopen(cover_path, "wb");
+    if (file == NULL) {
+        int errsv = errno;
+        printf("Could not open file for writing: %s (%s)\n", cover_path, strerror(errsv));
+        return ERROR;
+    }
+    size_t count = fwrite(record->data, 1, record->size, file);
+    if (count != record->size) {
+        int errsv = errno;
+        printf("Error writing to file: %s (%s)\n", cover_path, strerror(errsv));
+        return ERROR;
+    }
+    fclose(file);
+    
     return SUCCESS;
 }
 
@@ -820,6 +890,9 @@ int loadfilename(const char *fullpath) {
     if (extract_source_opt) {
         ret = dump_embedded_source(m, fullpath);
     }
+    if (dump_cover_opt) {
+        ret = dump_cover(m, fullpath);
+    }
     /* Free MOBIData structure */
     mobi_free(m);
     return ret;
@@ -832,6 +905,7 @@ int loadfilename(const char *fullpath) {
 void exit_with_usage(const char *progname) {
     printf("usage: %s [-d" PRINT_EPUB_ARG "imrs" PRINT_RUSAGE_ARG "vx7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
     printf("       without arguments prints document metadata and exits\n");
+    printf("       -c        dump cover\n");
     printf("       -d        dump rawml text record\n");
 #ifdef USE_XMLWRITER
     printf("       -e        create EPUB file (with -s will dump EPUB source)\n");
@@ -863,8 +937,11 @@ int main(int argc, char *argv[]) {
     }
     opterr = 0;
     int c;
-    while((c = getopt(argc, argv, "d" PRINT_EPUB_ARG "imo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "vx7")) != -1)
+    while((c = getopt(argc, argv, "cd" PRINT_EPUB_ARG "imo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "vx7")) != -1)
         switch(c) {
+            case 'c':
+                dump_cover_opt = 1;
+                break;
             case 'd':
                 dump_rawml_opt = 1;
                 break;

@@ -1,4 +1,4 @@
-.Dd March 21, 2016
+.Dd June 23, 2020
 .Dt mobitool 1 URM
 .Os Unix
 .Sh NAME
@@ -27,6 +27,8 @@ Invoked without arguments prints document metadata and exits.
 .Pp
 A list of flags and their descriptions:
 .Bl -tag -width -indent
+.It Fl c
+dump cover
 .It Fl d
 dump rawml text record
 .if !'@XMLWRITER_OPT@'yes' .ig
