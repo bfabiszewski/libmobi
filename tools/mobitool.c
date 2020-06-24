@@ -375,6 +375,7 @@ int dump_cover(const MOBIData *m, const char *fullpath) {
     if (count != record->size) {
         int errsv = errno;
         printf("Error writing to file: %s (%s)\n", cover_path, strerror(errsv));
+        fclose(file);
         return ERROR;
     }
     fclose(file);
