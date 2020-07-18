@@ -23,13 +23,13 @@
  @param[in] len Size of data to be allocated for the buffer
  @return MOBIBuffer on success, NULL otherwise
  */
-MOBIBuffer * buffer_init(const size_t len) {
+MOBIBuffer * mobi_buffer_init(const size_t len) {
     unsigned char *data = malloc(len);
     if (data == NULL) {
         debug_print("%s", "Buffer data allocation failed\n");
         return NULL;
     }
-    MOBIBuffer *buf = buffer_init_null(data, len);
+    MOBIBuffer *buf = mobi_buffer_init_null(data, len);
     if (buf == NULL) {
         free(data);
     }
@@ -39,7 +39,7 @@ MOBIBuffer * buffer_init(const size_t len) {
 /**
  @brief Initializer for MOBIBuffer structure
  
- It allocates memory for structure but, unlike buffer_init(), it does not allocate memory for data.
+ It allocates memory for structure but, unlike mobi_buffer_init(), it does not allocate memory for data.
  Instead it works on external data.
  Memory should be freed with buffer_free_null() (buf->data will not be deallocated).
  
@@ -47,7 +47,7 @@ MOBIBuffer * buffer_init(const size_t len) {
  @param[in] len Size of data held by the buffer
  @return MOBIBuffer on success, NULL otherwise
  */
-MOBIBuffer * buffer_init_null(unsigned char *data, const size_t len) {
+MOBIBuffer * mobi_buffer_init_null(unsigned char *data, const size_t len) {
     MOBIBuffer *buf = malloc(sizeof(MOBIBuffer));
 	if (buf == NULL) {
         debug_print("%s", "Buffer allocation failed\n");
@@ -599,7 +599,7 @@ void buffer_setpos(MOBIBuffer *buf, const size_t pos) {
 /**
  @brief Free pointer to MOBIBuffer structure and pointer to data
  
- Free data initialized with buffer_init();
+ Free data initialized with mobi_buffer_init();
  
  @param[in] buf MOBIBuffer structure
  */
@@ -614,7 +614,7 @@ void buffer_free(MOBIBuffer *buf) {
 /**
  @brief Free pointer to MOBIBuffer structure
  
- Free data initialized with buffer_init_null();
+ Free data initialized with mobi_buffer_init_null();
  Unlike buffer_free() it will not free pointer to buf->data
  
  @param[in] buf MOBIBuffer structure

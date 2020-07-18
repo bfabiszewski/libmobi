@@ -53,7 +53,7 @@ MOBI_RET mobi_write_pdbheader(FILE *file, const MOBIData *m) {
         debug_print("%s", "File not initialized\n");
         return MOBI_PARAM_ERR;
     }
-    MOBIBuffer *buf = buffer_init(PALMDB_HEADER_LEN);
+    MOBIBuffer *buf = mobi_buffer_init(PALMDB_HEADER_LEN);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
@@ -102,7 +102,7 @@ MOBI_RET mobi_serialize_mobiheader(MOBIBuffer *buf, const MOBIData *m, const uin
         debug_print("%s", "Mobi structure not initialized\n");
         return MOBI_INIT_FAILED;
     }
-    size_t buffer_init = buf->offset;
+    size_t mobi_buffer_init = buf->offset;
     buffer_addstring(buf, m->mh->mobi_magic);
     if (buf->offset > UINT32_MAX) {
         debug_print("Offset too large: %zu\n", buf->offset);
@@ -200,7 +200,7 @@ finalize:
     if (buf->error != MOBI_SUCCESS) {
         return MOBI_DATA_CORRUPT;
     }
-    size_t headersize = buf->offset - buffer_init;
+    size_t headersize = buf->offset - mobi_buffer_init;
     if (headersize > UINT32_MAX) {
          debug_print("Header too large: %zu\n", headersize);
         return MOBI_DATA_CORRUPT;
@@ -302,7 +302,7 @@ MOBI_RET mobi_update_record0(MOBIData *m, const size_t seqnumber) {
     record0_maxlen += exthsize;
     record0_maxlen += MOBI_TITLE_SIZEMAX;
     record0_maxlen += padding;
-    MOBIBuffer *buf = buffer_init(record0_maxlen);
+    MOBIBuffer *buf = mobi_buffer_init(record0_maxlen);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
@@ -391,7 +391,7 @@ MOBI_RET mobi_write_records(FILE *file, const MOBIData *m) {
         if (offset > UINT32_MAX) {
             return MOBI_DATA_CORRUPT;
         }
-        MOBIBuffer *buf = buffer_init(PALMDB_RECORD_INFO_SIZE);
+        MOBIBuffer *buf = mobi_buffer_init(PALMDB_RECORD_INFO_SIZE);
         if (buf == NULL) {
             return MOBI_MALLOC_FAILED;
         }

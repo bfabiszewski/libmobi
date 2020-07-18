@@ -370,7 +370,7 @@ xmlBufferPtr xmlBufferCreate(void) {
         return NULL;
     }
     unsigned int size = MOBI_XML_BUFFERSIZE;
-    MOBIBuffer *buf = buffer_init(size);
+    MOBIBuffer *buf = mobi_buffer_init(size);
     if (buf == NULL) {
         free(xmlbuf);
         return NULL;

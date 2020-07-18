@@ -31,12 +31,12 @@
  */
 MOBI_RET mobi_decompress_lz77(unsigned char *out, const unsigned char *in, size_t *len_out, const size_t len_in) {
     MOBI_RET ret = MOBI_SUCCESS;
-    MOBIBuffer *buf_in = buffer_init_null((unsigned char *) in, len_in);
+    MOBIBuffer *buf_in = mobi_buffer_init_null((unsigned char *) in, len_in);
     if (buf_in == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    MOBIBuffer *buf_out = buffer_init_null(out, *len_out);
+    MOBIBuffer *buf_out = mobi_buffer_init_null(out, *len_out);
     if (buf_out == NULL) {
         buffer_free_null(buf_in);
         debug_print("%s\n", "Memory allocation failed");
@@ -199,12 +199,12 @@ static MOBI_RET mobi_decompress_huffman_internal(MOBIBuffer *buf_out, MOBIBuffer
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_decompress_huffman(unsigned char *out, const unsigned char *in, size_t *len_out, size_t len_in, const MOBIHuffCdic *huffcdic) {
-    MOBIBuffer *buf_in = buffer_init_null((unsigned char *) in, len_in);
+    MOBIBuffer *buf_in = mobi_buffer_init_null((unsigned char *) in, len_in);
     if (buf_in == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    MOBIBuffer *buf_out = buffer_init_null(out, *len_out);
+    MOBIBuffer *buf_out = mobi_buffer_init_null(out, *len_out);
     if (buf_out == NULL) {
         buffer_free_null(buf_in);
         debug_print("%s\n", "Memory allocation failed");

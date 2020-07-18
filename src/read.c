@@ -33,7 +33,7 @@ MOBI_RET mobi_load_pdbheader(MOBIData *m, FILE *file) {
     if (!file) {
         return MOBI_FILE_NOT_FOUND;
     }
-    MOBIBuffer *buf = buffer_init(PALMDB_HEADER_LEN);
+    MOBIBuffer *buf = mobi_buffer_init(PALMDB_HEADER_LEN);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
@@ -91,7 +91,7 @@ MOBI_RET mobi_load_reclist(MOBIData *m, FILE *file) {
     }
     MOBIPdbRecord *curr = m->rec;
     for (int i = 0; i < m->ph->rec_count; i++) {
-        MOBIBuffer *buf = buffer_init(PALMDB_RECORD_INFO_SIZE);
+        MOBIBuffer *buf = mobi_buffer_init(PALMDB_RECORD_INFO_SIZE);
         if (buf == NULL) {
             debug_print("%s\n", "Memory allocation failed");
             return MOBI_MALLOC_FAILED;
@@ -430,7 +430,7 @@ MOBI_RET mobi_parse_record0(MOBIData *m, const size_t seqnumber) {
         debug_print("%s", "Record 0 too short\n");
         return MOBI_DATA_CORRUPT;
     }
-    MOBIBuffer *buf = buffer_init_null(record0->data, record0->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(record0->data, record0->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
@@ -480,7 +480,7 @@ MOBI_RET mobi_parse_record0(MOBIData *m, const size_t seqnumber) {
  */
 size_t mobi_get_record_extrasize(const MOBIPdbRecord *record, const uint16_t flags) {
     size_t extra_size = 0;
-    MOBIBuffer *buf = buffer_init_null(record->data, record->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(record->data, record->size);
     if (buf == NULL) {
         debug_print("%s", "Buffer init in extrasize failed\n");
         return MOBI_NOTSET;
@@ -519,7 +519,7 @@ size_t mobi_get_record_extrasize(const MOBIPdbRecord *record, const uint16_t fla
 size_t mobi_get_record_mb_extrasize(const MOBIPdbRecord *record, const uint16_t flags) {
     size_t extra_size = 0;
     if (flags & 1) {
-        MOBIBuffer *buf = buffer_init_null(record->data, record->size);
+        MOBIBuffer *buf = mobi_buffer_init_null(record->data, record->size);
         if (buf == NULL) {
             debug_print("%s", "Buffer init in extrasize failed\n");
             return MOBI_NOTSET;
@@ -554,7 +554,7 @@ size_t mobi_get_record_mb_extrasize(const MOBIPdbRecord *record, const uint16_t 
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_parse_huff(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record) {
-    MOBIBuffer *buf = buffer_init_null(record->data, record->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(record->data, record->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
@@ -608,7 +608,7 @@ MOBI_RET mobi_parse_huff(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record) {
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_parse_cdic(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record, const size_t num) {
-    MOBIBuffer *buf = buffer_init_null(record->data, record->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(record->data, record->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
@@ -775,7 +775,7 @@ MOBI_RET mobi_parse_fdst(const MOBIData *m, MOBIRawml *rawml) {
     if (fdst_record == NULL) {
         return MOBI_DATA_CORRUPT;
     }
-    MOBIBuffer *buf = buffer_init_null(fdst_record->data, fdst_record->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(fdst_record->data, fdst_record->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;

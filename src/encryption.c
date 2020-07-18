@@ -184,7 +184,7 @@ static size_t mobi_drm_parse(MOBIDrm **drm, const MOBIData *m) {
     }
     /* First record */
     MOBIPdbRecord *rec = m->rec;
-    MOBIBuffer *buf = buffer_init_null(rec->data, rec->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(rec->data, rec->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return 0;
@@ -355,7 +355,7 @@ static MOBI_RET mobi_drm_getkey_v1(unsigned char key[KEYSIZE], const MOBIData *m
     }
     /* First record */
     MOBIPdbRecord *rec = m->rec;
-    MOBIBuffer *buf = buffer_init_null(rec->data, rec->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(rec->data, rec->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
@@ -516,7 +516,7 @@ EXTHDrm * mobi_exthdrm_get(const MOBIData *m) {
     if (meta == NULL) {
         return NULL;
     }
-    MOBIBuffer *buf = buffer_init_null(meta->data, meta->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(meta->data, meta->size);
     if (buf == NULL) {
         return NULL;
     }
