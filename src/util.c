@@ -1185,14 +1185,14 @@ MOBI_RET mobi_add_exthrecord(MOBIData *m, const MOBIExthTag tag, const uint32_t 
                 free(record);
                 return MOBI_PARAM_ERR;
             }
-            MOBIBuffer *buf = buffer_init_null(record->data, size);
+            MOBIBuffer *buf = mobi_buffer_init_null(record->data, size);
             if (buf == NULL) {
                 free(record->data);
                 free(record);
                 return MOBI_MALLOC_FAILED;
             }
-            buffer_add32(buf, *(uint32_t *) value);
-            buffer_free_null(buf);
+            mobi_buffer_add32(buf, *(uint32_t *) value);
+            mobi_buffer_free_null(buf);
         } else {
             memcpy(record->data, value, size);
         }
@@ -2106,23 +2106,23 @@ MOBI_RET mobi_decode_audio_resource(unsigned char **decoded_resource, size_t *de
         debug_print("Audio resource record too short (%zu)\n", part->size);
         return MOBI_DATA_CORRUPT;
     }
-    MOBIBuffer *buf = buffer_init_null(part->data, part->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(part->data, part->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     char magic[5];
-    buffer_getstring(magic, buf, 4);
+    mobi_buffer_getstring(magic, buf, 4);
     if (strncmp(magic, AUDI_MAGIC, 4) != 0) {
         debug_print("Wrong magic for audio resource: %s\n", magic);
-        buffer_free_null(buf);
+        mobi_buffer_free_null(buf);
         return MOBI_DATA_CORRUPT;
     }
-    uint32_t offset = buffer_get32(buf);
-    buffer_setpos(buf, offset);
+    uint32_t offset = mobi_buffer_get32(buf);
+    mobi_buffer_setpos(buf, offset);
     *decoded_size = buf->maxlen - buf->offset;
-    *decoded_resource = buffer_getpointer(buf, *decoded_size);
-    buffer_free_null(buf);
+    *decoded_resource = mobi_buffer_getpointer(buf, *decoded_size);
+    mobi_buffer_free_null(buf);
     return MOBI_SUCCESS;
 }
 
@@ -2159,24 +2159,24 @@ MOBI_RET mobi_decode_video_resource(unsigned char **decoded_resource, size_t *de
         debug_print("Video resource record too short (%zu)\n", part->size);
         return MOBI_DATA_CORRUPT;
     }
-    MOBIBuffer *buf = buffer_init_null(part->data, part->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(part->data, part->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     char magic[5];
-    buffer_getstring(magic, buf, 4);
+    mobi_buffer_getstring(magic, buf, 4);
     if (strncmp(magic, VIDE_MAGIC, 4) != 0) {
         debug_print("Wrong magic for video resource: %s\n", magic);
-        buffer_free_null(buf);
+        mobi_buffer_free_null(buf);
         return MOBI_DATA_CORRUPT;
     }
-    uint32_t offset = buffer_get32(buf);
+    uint32_t offset = mobi_buffer_get32(buf);
     /* offset is always(?) 12, next four bytes are unknown */
-    buffer_setpos(buf, offset);
+    mobi_buffer_setpos(buf, offset);
     *decoded_size = buf->maxlen - buf->offset;
-    *decoded_resource = buffer_getpointer(buf, *decoded_size);
-    buffer_free_null(buf);
+    *decoded_resource = mobi_buffer_getpointer(buf, *decoded_size);
+    mobi_buffer_free_null(buf);
     return MOBI_SUCCESS;
 }
 
@@ -2270,28 +2270,28 @@ MOBI_RET mobi_get_embedded_log(unsigned char **data, size_t *size, const MOBIDat
         debug_print("Wrong size of CMET resource: %zu\n", srcs_record->size);
         return MOBI_DATA_CORRUPT;
     }
-    MOBIBuffer *buf = buffer_init_null(srcs_record->data, srcs_record->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(srcs_record->data, srcs_record->size);
     if (buf == NULL) {
         return MOBI_MALLOC_FAILED;
     }
-    if (buffer_match_magic(buf, CMET_MAGIC) == false) {
+    if (mobi_buffer_match_magic(buf, CMET_MAGIC) == false) {
         debug_print("%s\n", "Wrong magic for CMET resource");
-        buffer_free_null(buf);
+        mobi_buffer_free_null(buf);
         return MOBI_DATA_CORRUPT;
     }
-    buffer_setpos(buf, 8);
-    uint32_t log_length = buffer_get32(buf);
-    unsigned char *log_data = buffer_getpointer(buf, log_length);
+    mobi_buffer_setpos(buf, 8);
+    uint32_t log_length = mobi_buffer_get32(buf);
+    unsigned char *log_data = mobi_buffer_getpointer(buf, log_length);
     if (buf->error != MOBI_SUCCESS) {
         debug_print("CMET resource too short: %zu (log size: %u)\n", srcs_record->size, log_length);
-        buffer_free_null(buf);
+        mobi_buffer_free_null(buf);
         return MOBI_DATA_CORRUPT;
     }
     
     *data = log_data;
     *size = log_length;
     
-    buffer_free_null(buf);
+    mobi_buffer_free_null(buf);
     return MOBI_SUCCESS;
 }
 
@@ -2330,7 +2330,7 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
         debug_print("Font resource record too short (%zu)\n", part->size);
         return MOBI_DATA_CORRUPT;
     }
-    MOBIBuffer *buf = buffer_init(part->size);
+    MOBIBuffer *buf = mobi_buffer_init(part->size);
     if (buf == NULL) {
         debug_print("Memory allocation failed%s", "\n");
         return MOBI_MALLOC_FAILED;
@@ -2345,27 +2345,27 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
         uint32_t xor_data_off;
     };
     struct header h;
-    buffer_getstring(h.magic, buf, 4);
+    mobi_buffer_getstring(h.magic, buf, 4);
     if (strncmp(h.magic, FONT_MAGIC, 4) != 0) {
         debug_print("Wrong magic for font resource: %s\n", h.magic);
-        buffer_free(buf);
+        mobi_buffer_free(buf);
         return MOBI_DATA_CORRUPT;
     }
-    h.decoded_size = buffer_get32(buf);
+    h.decoded_size = mobi_buffer_get32(buf);
     if (h.decoded_size == 0 || h.decoded_size > FONT_SIZEMAX) {
         debug_print("Invalid declared font resource size: %u\n", h.decoded_size);
-        buffer_free(buf);
+        mobi_buffer_free(buf);
         return MOBI_DATA_CORRUPT;
     }
-    h.flags = buffer_get32(buf);
-    h.data_offset = buffer_get32(buf);
-    h.xor_key_len = buffer_get32(buf);
-    h.xor_data_off = buffer_get32(buf);
+    h.flags = mobi_buffer_get32(buf);
+    h.data_offset = mobi_buffer_get32(buf);
+    h.xor_key_len = mobi_buffer_get32(buf);
+    h.xor_data_off = mobi_buffer_get32(buf);
     const uint32_t zlib_flag = 1; /* bit 0 */
     const uint32_t xor_flag = 2; /* bit 1 */
     if (h.flags & xor_flag && h.xor_key_len > 0) {
         /* deobfuscate */
-        buffer_setpos(buf, h.data_offset);
+        mobi_buffer_setpos(buf, h.data_offset);
         const unsigned char *xor_key = buf->data + h.xor_data_off;
         size_t i = 0;
         const size_t xor_limit = h.xor_key_len * 52;
@@ -2374,11 +2374,11 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
             i++;
         }
     }
-    buffer_setpos(buf, h.data_offset);
+    mobi_buffer_setpos(buf, h.data_offset);
     *decoded_size = h.decoded_size;
     *decoded_font = malloc(h.decoded_size);
     if (*decoded_font == NULL) {
-        buffer_free(buf);
+        mobi_buffer_free(buf);
         debug_print("%s", "Memory allocation failed\n");
         return MOBI_MALLOC_FAILED;
     }
@@ -2388,20 +2388,20 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
         /* unpack */
         int ret = m_uncompress(*decoded_font, (unsigned long *) decoded_size, encoded_font, encoded_size);
         if (ret != M_OK) {
-            buffer_free(buf);
+            mobi_buffer_free(buf);
             free(*decoded_font);
             debug_print("%s", "Font resource decompression failed\n");
             return MOBI_DATA_CORRUPT;
         }
         if (*decoded_size != h.decoded_size) {
-            buffer_free(buf);
+            mobi_buffer_free(buf);
             free(*decoded_font);
             debug_print("Decompressed font size (%zu) differs from declared (%i)\n", *decoded_size, h.decoded_size);
             return MOBI_DATA_CORRUPT;
         }
     } else {
         if (*decoded_size < encoded_size) {
-            buffer_free(buf);
+            mobi_buffer_free(buf);
             free(*decoded_font);
             debug_print("Font size in record (%lu) larger then declared (%zu)\n", encoded_size, *decoded_size);
             return MOBI_DATA_CORRUPT;
@@ -2409,7 +2409,7 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
         memcpy(*decoded_font, encoded_font, encoded_size);
     }
 
-    buffer_free(buf);
+    mobi_buffer_free(buf);
     return MOBI_SUCCESS;
 }
 

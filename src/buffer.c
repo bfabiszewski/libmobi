@@ -18,18 +18,18 @@
  @brief Initializer for MOBIBuffer structure
  
  It allocates memory for structure and for data.
- Memory should be freed with buffer_free().
+ Memory should be freed with mobi_buffer_free().
  
  @param[in] len Size of data to be allocated for the buffer
  @return MOBIBuffer on success, NULL otherwise
  */
-MOBIBuffer * buffer_init(const size_t len) {
+MOBIBuffer * mobi_buffer_init(const size_t len) {
     unsigned char *data = malloc(len);
     if (data == NULL) {
         debug_print("%s", "Buffer data allocation failed\n");
         return NULL;
     }
-    MOBIBuffer *buf = buffer_init_null(data, len);
+    MOBIBuffer *buf = mobi_buffer_init_null(data, len);
     if (buf == NULL) {
         free(data);
     }
@@ -39,15 +39,15 @@ MOBIBuffer * buffer_init(const size_t len) {
 /**
  @brief Initializer for MOBIBuffer structure
  
- It allocates memory for structure but, unlike buffer_init(), it does not allocate memory for data.
+ It allocates memory for structure but, unlike mobi_buffer_init(), it does not allocate memory for data.
  Instead it works on external data.
- Memory should be freed with buffer_free_null() (buf->data will not be deallocated).
+ Memory should be freed with mobi_buffer_free_null() (buf->data will not be deallocated).
  
  @param[in,out] data Set data as buffer data
  @param[in] len Size of data held by the buffer
  @return MOBIBuffer on success, NULL otherwise
  */
-MOBIBuffer * buffer_init_null(unsigned char *data, const size_t len) {
+MOBIBuffer * mobi_buffer_init_null(unsigned char *data, const size_t len) {
     MOBIBuffer *buf = malloc(sizeof(MOBIBuffer));
 	if (buf == NULL) {
         debug_print("%s", "Buffer allocation failed\n");
@@ -68,7 +68,7 @@ MOBIBuffer * buffer_init_null(unsigned char *data, const size_t len) {
  @param[in,out] buf MOBIBuffer structure to be filled with data
  @param[in] newlen New buffer size
  */
-void buffer_resize(MOBIBuffer *buf, const size_t newlen) {
+void mobi_buffer_resize(MOBIBuffer *buf, const size_t newlen) {
     unsigned char *tmp = realloc(buf->data, newlen);
     if (tmp == NULL) {
         debug_print("%s", "Buffer allocation failed\n");
@@ -90,7 +90,7 @@ void buffer_resize(MOBIBuffer *buf, const size_t newlen) {
  @param[in,out] buf MOBIBuffer structure to be filled with data
  @param[in] data Integer to be put into the buffer
  */
-void buffer_add8(MOBIBuffer *buf, const uint8_t data) {
+void mobi_buffer_add8(MOBIBuffer *buf, const uint8_t data) {
     if (buf->offset + 1 > buf->maxlen) {
         debug_print("%s", "Buffer full\n");
         buf->error = MOBI_BUFFER_END;
@@ -105,7 +105,7 @@ void buffer_add8(MOBIBuffer *buf, const uint8_t data) {
  @param[in,out] buf MOBIBuffer structure to be filled with data
  @param[in] data Integer to be put into the buffer
  */
-void buffer_add16(MOBIBuffer *buf, const uint16_t data) {
+void mobi_buffer_add16(MOBIBuffer *buf, const uint16_t data) {
     if (buf->offset + 2 > buf->maxlen) {
         debug_print("%s", "Buffer full\n");
         buf->error = MOBI_BUFFER_END;
@@ -123,7 +123,7 @@ void buffer_add16(MOBIBuffer *buf, const uint16_t data) {
  @param[in,out] buf MOBIBuffer structure to be filled with data
  @param[in] data Integer to be put into the buffer
  */
-void buffer_add32(MOBIBuffer *buf, const uint32_t data) {
+void mobi_buffer_add32(MOBIBuffer *buf, const uint32_t data) {
     if (buf->offset + 4 > buf->maxlen) {
         debug_print("%s", "Buffer full\n");
         buf->error = MOBI_BUFFER_END;
@@ -144,7 +144,7 @@ void buffer_add32(MOBIBuffer *buf, const uint32_t data) {
  @param[in] data Pointer to read data
  @param[in] len Size of the read data
  */
-void buffer_addraw(MOBIBuffer *buf, const unsigned char* data, const size_t len) {
+void mobi_buffer_addraw(MOBIBuffer *buf, const unsigned char* data, const size_t len) {
     if (buf->offset + len > buf->maxlen) {
         debug_print("%s", "Buffer full\n");
         buf->error = MOBI_BUFFER_END;
@@ -160,9 +160,9 @@ void buffer_addraw(MOBIBuffer *buf, const unsigned char* data, const size_t len)
  @param[in,out] buf MOBIBuffer structure to be filled with data
  @param[in] str Pointer to string
  */
-void buffer_addstring(MOBIBuffer *buf, const char *str) {
+void mobi_buffer_addstring(MOBIBuffer *buf, const char *str) {
     const size_t len = strlen(str);
-    buffer_addraw(buf, (const unsigned char *) str, len);
+    mobi_buffer_addraw(buf, (const unsigned char *) str, len);
 }
 
 /**
@@ -171,7 +171,7 @@ void buffer_addstring(MOBIBuffer *buf, const char *str) {
  @param[in,out] buf MOBIBuffer structure to be filled with data
  @param[in] count Number of zeroes to be put into the buffer
  */
-void buffer_addzeros(MOBIBuffer *buf, const size_t count) {
+void mobi_buffer_addzeros(MOBIBuffer *buf, const size_t count) {
     if (buf->offset + count > buf->maxlen) {
         debug_print("%s", "Buffer full\n");
         buf->error = MOBI_BUFFER_END;
@@ -187,7 +187,7 @@ void buffer_addzeros(MOBIBuffer *buf, const size_t count) {
  @param[in] buf MOBIBuffer structure containing data
  @return Read value, 0 if end of buffer is encountered
  */
-uint8_t buffer_get8(MOBIBuffer *buf) {
+uint8_t mobi_buffer_get8(MOBIBuffer *buf) {
     if (buf->offset + 1 > buf->maxlen) {
         debug_print("%s", "End of buffer\n");
         buf->error = MOBI_BUFFER_END;
@@ -202,7 +202,7 @@ uint8_t buffer_get8(MOBIBuffer *buf) {
  @param[in] buf MOBIBuffer structure containing data
  @return Read value, 0 if end of buffer is encountered
  */
-uint16_t buffer_get16(MOBIBuffer *buf) {
+uint16_t mobi_buffer_get16(MOBIBuffer *buf) {
     if (buf->offset + 2 > buf->maxlen) {
         debug_print("%s", "End of buffer\n");
         buf->error = MOBI_BUFFER_END;
@@ -220,7 +220,7 @@ uint16_t buffer_get16(MOBIBuffer *buf) {
  @param[in] buf MOBIBuffer structure containing data
  @return Read value, 0 if end of buffer is encountered
  */
-uint32_t buffer_get32(MOBIBuffer *buf) {
+uint32_t mobi_buffer_get32(MOBIBuffer *buf) {
     if (buf->offset + 4 > buf->maxlen) {
         debug_print("%s", "End of buffer\n");
         buf->error = MOBI_BUFFER_END;
@@ -236,8 +236,8 @@ uint32_t buffer_get32(MOBIBuffer *buf) {
  @brief Reads variable length value from MOBIBuffer
  
  Internal function for wrappers: 
- buffer_get_varlen();
- buffer_get_varlen_dec();
+ mobi_buffer_get_varlen();
+ mobi_buffer_get_varlen_dec();
  
  Reads maximum 4 bytes from the buffer. Stops when byte has bit 7 set.
  
@@ -288,7 +288,7 @@ static uint32_t _buffer_get_varlen(MOBIBuffer *buf, size_t *len, const int direc
  @param[out] len Value will be increased by number of bytes read
  @return Read value, 0 if end of buffer is encountered
  */
-uint32_t buffer_get_varlen(MOBIBuffer *buf, size_t *len) {
+uint32_t mobi_buffer_get_varlen(MOBIBuffer *buf, size_t *len) {
     return _buffer_get_varlen(buf, len, 1);
 }
 
@@ -301,7 +301,7 @@ uint32_t buffer_get_varlen(MOBIBuffer *buf, size_t *len) {
  @param[out] len Value will be increased by number of bytes read
  @return Read value, 0 if end of buffer is encountered
  */
-uint32_t buffer_get_varlen_dec(MOBIBuffer *buf, size_t *len) {
+uint32_t mobi_buffer_get_varlen_dec(MOBIBuffer *buf, size_t *len) {
     return _buffer_get_varlen(buf, len, -1);
 }
 
@@ -312,7 +312,7 @@ uint32_t buffer_get_varlen_dec(MOBIBuffer *buf, size_t *len) {
  @param[in] buf MOBIBuffer structure containing data
  @param[in] len Length of the data to be read from buffer
  */
-void buffer_getstring(char *str, MOBIBuffer *buf, const size_t len) {
+void mobi_buffer_getstring(char *str, MOBIBuffer *buf, const size_t len) {
     if (!str) {
         buf->error = MOBI_PARAM_ERR;
         return;
@@ -335,7 +335,7 @@ void buffer_getstring(char *str, MOBIBuffer *buf, const size_t len) {
  @param[in] buf MOBIBuffer structure containing data
  @param[in] len Length of the data to be read from buffer
  */
-void buffer_appendstring(char *str, MOBIBuffer *buf, const size_t len) {
+void mobi_buffer_appendstring(char *str, MOBIBuffer *buf, const size_t len) {
     if (!str) {
         buf->error = MOBI_PARAM_ERR;
         return;
@@ -358,7 +358,7 @@ void buffer_appendstring(char *str, MOBIBuffer *buf, const size_t len) {
  @param[in] buf MOBIBuffer structure containing data
  @param[in] len Length of the data to be read from buffer
  */
-void buffer_getraw(void *data, MOBIBuffer *buf, const size_t len) {
+void mobi_buffer_getraw(void *data, MOBIBuffer *buf, const size_t len) {
     if (!data) {
         buf->error = MOBI_PARAM_ERR;
         return;
@@ -379,7 +379,7 @@ void buffer_getraw(void *data, MOBIBuffer *buf, const size_t len) {
  @param[in] len Check if requested length is available in buffer
  @return Pointer to offset, or NULL on failure
  */
-unsigned char * buffer_getpointer(MOBIBuffer *buf, const size_t len) {
+unsigned char * mobi_buffer_getpointer(MOBIBuffer *buf, const size_t len) {
     if (buf->offset + len > buf->maxlen) {
         debug_print("%s", "End of buffer\n");
         buf->error = MOBI_BUFFER_END;
@@ -399,7 +399,7 @@ unsigned char * buffer_getpointer(MOBIBuffer *buf, const size_t len) {
  @param[out] val Pointer to value or null pointer on failure
  @param[in] buf MOBIBuffer structure containing data
  */
-void buffer_dup8(uint8_t **val, MOBIBuffer *buf) {
+void mobi_buffer_dup8(uint8_t **val, MOBIBuffer *buf) {
     *val = NULL;
     if (buf->offset + 1 > buf->maxlen) {
         return;
@@ -408,7 +408,7 @@ void buffer_dup8(uint8_t **val, MOBIBuffer *buf) {
     if (*val == NULL) {
         return;
     }
-    **val = buffer_get8(buf);
+    **val = mobi_buffer_get8(buf);
 }
 
 /**
@@ -421,7 +421,7 @@ void buffer_dup8(uint8_t **val, MOBIBuffer *buf) {
  @param[out] val Pointer to value or null pointer on failure
  @param[in] buf MOBIBuffer structure containing data
  */
-void buffer_dup16(uint16_t **val, MOBIBuffer *buf) {
+void mobi_buffer_dup16(uint16_t **val, MOBIBuffer *buf) {
     *val = NULL;
     if (buf->offset + 2 > buf->maxlen) {
         return;
@@ -430,7 +430,7 @@ void buffer_dup16(uint16_t **val, MOBIBuffer *buf) {
     if (*val == NULL) {
         return;
     }
-    **val = buffer_get16(buf);
+    **val = mobi_buffer_get16(buf);
 }
 
 /**
@@ -443,7 +443,7 @@ void buffer_dup16(uint16_t **val, MOBIBuffer *buf) {
  @param[out] val Pointer to value
  @param[in] buf MOBIBuffer structure containing data
  */
-void buffer_dup32(uint32_t **val, MOBIBuffer *buf) {
+void mobi_buffer_dup32(uint32_t **val, MOBIBuffer *buf) {
     *val = NULL;
     if (buf->offset + 4 > buf->maxlen) {
         return;
@@ -452,7 +452,7 @@ void buffer_dup32(uint32_t **val, MOBIBuffer *buf) {
     if (*val == NULL) {
         return;
     }
-    **val = buffer_get32(buf);
+    **val = mobi_buffer_get32(buf);
 }
 
 /**
@@ -461,8 +461,8 @@ void buffer_dup32(uint32_t **val, MOBIBuffer *buf) {
  @param[out] dest Destination buffer
  @param[in] source Source buffer
  */
-void buffer_copy8(MOBIBuffer *dest, MOBIBuffer *source) {
-    buffer_add8(dest, buffer_get8(source));
+void mobi_buffer_copy8(MOBIBuffer *dest, MOBIBuffer *source) {
+    mobi_buffer_add8(dest, mobi_buffer_get8(source));
 }
 
 /**
@@ -472,7 +472,7 @@ void buffer_copy8(MOBIBuffer *dest, MOBIBuffer *source) {
  @param[in] source Source buffer
  @param[in] len Number of bytes to copy
  */
-void buffer_copy(MOBIBuffer *dest, MOBIBuffer *source, const size_t len) {
+void mobi_buffer_copy(MOBIBuffer *dest, MOBIBuffer *source, const size_t len) {
     if (source->offset + len > source->maxlen) {
         debug_print("%s", "End of buffer\n");
         source->error = MOBI_BUFFER_END;
@@ -499,7 +499,7 @@ void buffer_copy(MOBIBuffer *dest, MOBIBuffer *source, const size_t len) {
  @param[in] offset Offset to read from
  @param[in] len Number of bytes to copy
  */
-void buffer_move(MOBIBuffer *buf, const int offset, const size_t len) {
+void mobi_buffer_move(MOBIBuffer *buf, const int offset, const size_t len) {
     size_t aoffset = (size_t) abs(offset);
     unsigned char *source = buf->data + buf->offset;
     if (offset >= 0) {
@@ -528,7 +528,7 @@ void buffer_move(MOBIBuffer *buf, const int offset, const size_t len) {
  @param[in] magic Magic signature
  @return boolean true on match, false otherwise
  */
-bool buffer_match_magic(MOBIBuffer *buf, const char *magic) {
+bool mobi_buffer_match_magic(MOBIBuffer *buf, const char *magic) {
     const size_t magic_length = strlen(magic);
     if (buf->offset + magic_length > buf->maxlen) {
         return false;
@@ -547,12 +547,12 @@ bool buffer_match_magic(MOBIBuffer *buf, const char *magic) {
  @param[in] offset Offset
  @return boolean true on match, false otherwise
  */
-bool buffer_match_magic_offset(MOBIBuffer *buf, const char *magic, const size_t offset) {
+bool mobi_buffer_match_magic_offset(MOBIBuffer *buf, const char *magic, const size_t offset) {
     bool match = false;
     if (offset <= buf->maxlen) {
         const size_t save_offset = buf->offset;
         buf->offset = offset;
-        match = buffer_match_magic(buf, magic);
+        match = mobi_buffer_match_magic(buf, magic);
         buf->offset = save_offset;
     }
     return match;
@@ -564,7 +564,7 @@ bool buffer_match_magic_offset(MOBIBuffer *buf, const char *magic, const size_t 
  @param[in,out] buf MOBIBuffer buffer containing data
  @param[in] diff Number of bytes by which the offset is adjusted
  */
-void buffer_seek(MOBIBuffer *buf, const int diff) {
+void mobi_buffer_seek(MOBIBuffer *buf, const int diff) {
     size_t adiff = (size_t) abs(diff);
     if (diff >= 0) {
         if (buf->offset + adiff <= buf->maxlen) {
@@ -587,7 +587,7 @@ void buffer_seek(MOBIBuffer *buf, const int diff) {
  @param[in,out] buf MOBIBuffer buffer containing data
  @param[in] pos New position
  */
-void buffer_setpos(MOBIBuffer *buf, const size_t pos) {
+void mobi_buffer_setpos(MOBIBuffer *buf, const size_t pos) {
     if (pos <= buf->maxlen) {
         buf->offset = pos;
         return;
@@ -599,11 +599,11 @@ void buffer_setpos(MOBIBuffer *buf, const size_t pos) {
 /**
  @brief Free pointer to MOBIBuffer structure and pointer to data
  
- Free data initialized with buffer_init();
+ Free data initialized with mobi_buffer_init();
  
  @param[in] buf MOBIBuffer structure
  */
-void buffer_free(MOBIBuffer *buf) {
+void mobi_buffer_free(MOBIBuffer *buf) {
 	if (buf == NULL) { return; }
 	if (buf->data != NULL) {
 		free(buf->data);
@@ -614,12 +614,12 @@ void buffer_free(MOBIBuffer *buf) {
 /**
  @brief Free pointer to MOBIBuffer structure
  
- Free data initialized with buffer_init_null();
- Unlike buffer_free() it will not free pointer to buf->data
+ Free data initialized with mobi_buffer_init_null();
+ Unlike mobi_buffer_free() it will not free pointer to buf->data
  
  @param[in] buf MOBIBuffer structure
  */
-void buffer_free_null(MOBIBuffer *buf) {
+void mobi_buffer_free_null(MOBIBuffer *buf) {
 	if (buf == NULL) { return; }
 	free(buf);
 }

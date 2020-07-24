@@ -31,53 +31,53 @@
  */
 MOBI_RET mobi_decompress_lz77(unsigned char *out, const unsigned char *in, size_t *len_out, const size_t len_in) {
     MOBI_RET ret = MOBI_SUCCESS;
-    MOBIBuffer *buf_in = buffer_init_null((unsigned char *) in, len_in);
+    MOBIBuffer *buf_in = mobi_buffer_init_null((unsigned char *) in, len_in);
     if (buf_in == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    MOBIBuffer *buf_out = buffer_init_null(out, *len_out);
+    MOBIBuffer *buf_out = mobi_buffer_init_null(out, *len_out);
     if (buf_out == NULL) {
-        buffer_free_null(buf_in);
+        mobi_buffer_free_null(buf_in);
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     while (ret == MOBI_SUCCESS && buf_in->offset < buf_in->maxlen) {
-        uint8_t byte = buffer_get8(buf_in);
+        uint8_t byte = mobi_buffer_get8(buf_in);
         /* byte pair: space + char */
         if (byte >= 0xc0) {
-            buffer_add8(buf_out, ' ');
-            buffer_add8(buf_out, byte ^ 0x80);
+            mobi_buffer_add8(buf_out, ' ');
+            mobi_buffer_add8(buf_out, byte ^ 0x80);
         }
         /* length, distance pair */
         /* 0x8000 + (distance << 3) + ((length-3) & 0x07) */
         else if (byte >= 0x80) {
-            uint8_t next = buffer_get8(buf_in);
+            uint8_t next = mobi_buffer_get8(buf_in);
             uint16_t distance = ((((byte << 8) | ((uint8_t)next)) >> 3) & 0x7ff);
             uint8_t length = (next & 0x7) + 3;
             while (length--) {
-                buffer_move(buf_out, -distance, 1);
+                mobi_buffer_move(buf_out, -distance, 1);
             }
         }
         /* single char, not modified */
         else if (byte >= 0x09) {
-            buffer_add8(buf_out, byte);
+            mobi_buffer_add8(buf_out, byte);
         }
         /* val chars not modified */
         else if (byte >= 0x01) {
-            buffer_copy(buf_out, buf_in, byte);
+            mobi_buffer_copy(buf_out, buf_in, byte);
         }
         /* char '\0', not modified */
         else {
-            buffer_add8(buf_out, byte);
+            mobi_buffer_add8(buf_out, byte);
         }
         if (buf_in->error || buf_out->error) {
             ret = MOBI_BUFFER_END;
         }
     }
     *len_out = buf_out->offset;
-    buffer_free_null(buf_out);
-    buffer_free_null(buf_in);
+    mobi_buffer_free_null(buf_out);
+    mobi_buffer_free_null(buf_in);
     return ret;
 }
 
@@ -89,7 +89,7 @@ MOBI_RET mobi_decompress_lz77(unsigned char *out, const unsigned char *in, size_
  @param[in] buf MOBIBuffer structure to read from
  @return 64-bit value
  */
-static MOBI_INLINE uint64_t buffer_fill64(MOBIBuffer *buf) {
+static MOBI_INLINE uint64_t mobi_buffer_fill64(MOBIBuffer *buf) {
     uint64_t val = 0;
     uint8_t i = 8;
     size_t bytesleft = buf->maxlen - buf->offset;
@@ -125,11 +125,11 @@ static MOBI_RET mobi_decompress_huffman_internal(MOBIBuffer *buf_out, MOBIBuffer
     /* this cast should be safe: max record size is 4096 */
     int bitsleft = (int) (buf_in->maxlen * 8);
     uint8_t code_length = 0;
-    uint64_t buffer = buffer_fill64(buf_in);
+    uint64_t buffer = mobi_buffer_fill64(buf_in);
     while (ret == MOBI_SUCCESS) {
         if (bitcount <= 0) {
             bitcount += 32;
-            buffer = buffer_fill64(buf_in);
+            buffer = mobi_buffer_fill64(buf_in);
         }
         uint32_t code = (buffer >> bitcount) & 0xffffffffU;
         /* lookup code in table1 */
@@ -167,7 +167,7 @@ static MOBI_RET mobi_decompress_huffman_internal(MOBIBuffer *buf_out, MOBIBuffer
         symbol_length &= 0x7fff;
         if (is_decompressed) {
             /* symbol is at (offset + 2), 2 bytes used earlier for symbol length */
-            buffer_addraw(buf_out, (huffcdic->symbols[cdic_index] + offset + 2), symbol_length);
+            mobi_buffer_addraw(buf_out, (huffcdic->symbols[cdic_index] + offset + 2), symbol_length);
             ret = buf_out->error;
         } else {
             /* symbol is compressed */
@@ -199,20 +199,20 @@ static MOBI_RET mobi_decompress_huffman_internal(MOBIBuffer *buf_out, MOBIBuffer
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_decompress_huffman(unsigned char *out, const unsigned char *in, size_t *len_out, size_t len_in, const MOBIHuffCdic *huffcdic) {
-    MOBIBuffer *buf_in = buffer_init_null((unsigned char *) in, len_in);
+    MOBIBuffer *buf_in = mobi_buffer_init_null((unsigned char *) in, len_in);
     if (buf_in == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
-    MOBIBuffer *buf_out = buffer_init_null(out, *len_out);
+    MOBIBuffer *buf_out = mobi_buffer_init_null(out, *len_out);
     if (buf_out == NULL) {
-        buffer_free_null(buf_in);
+        mobi_buffer_free_null(buf_in);
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     MOBI_RET ret = mobi_decompress_huffman_internal(buf_out, buf_in, huffcdic, 0);
     *len_out = buf_out->offset;
-    buffer_free_null(buf_out);
-    buffer_free_null(buf_in);
+    mobi_buffer_free_null(buf_out);
+    mobi_buffer_free_null(buf_in);
     return ret;
 }

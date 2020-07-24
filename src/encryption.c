@@ -184,31 +184,31 @@ static size_t mobi_drm_parse(MOBIDrm **drm, const MOBIData *m) {
     }
     /* First record */
     MOBIPdbRecord *rec = m->rec;
-    MOBIBuffer *buf = buffer_init_null(rec->data, rec->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(rec->data, rec->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return 0;
     }
     if (offset + size > rec->size) {
-        buffer_free_null(buf);
+        mobi_buffer_free_null(buf);
         return 0;
     }
-    buffer_setpos(buf, offset);
+    mobi_buffer_setpos(buf, offset);
     for (size_t i = 0; i < count; i++) {
         drm[i] = calloc(1, sizeof(MOBIDrm));
 		if (drm[i] == NULL) {
 			debug_print("%s\n", "Memory allocation failed");
-			buffer_free_null(buf);
+			mobi_buffer_free_null(buf);
 			return 0;
 		}
-        drm[i]->verification = buffer_get32(buf);
-        drm[i]->size = buffer_get32(buf);
-        drm[i]->type = buffer_get32(buf);
-        drm[i]->checksum = buffer_get8(buf);
-        buffer_seek(buf, 3);
-        drm[i]->cookie = buffer_getpointer(buf, COOKIESIZE);
+        drm[i]->verification = mobi_buffer_get32(buf);
+        drm[i]->size = mobi_buffer_get32(buf);
+        drm[i]->type = mobi_buffer_get32(buf);
+        drm[i]->checksum = mobi_buffer_get8(buf);
+        mobi_buffer_seek(buf, 3);
+        drm[i]->cookie = mobi_buffer_getpointer(buf, COOKIESIZE);
     }
-    buffer_free_null(buf);
+    mobi_buffer_free_null(buf);
     return count;
 }
 
@@ -355,27 +355,27 @@ static MOBI_RET mobi_drm_getkey_v1(unsigned char key[KEYSIZE], const MOBIData *m
     }
     /* First record */
     MOBIPdbRecord *rec = m->rec;
-    MOBIBuffer *buf = buffer_init_null(rec->data, rec->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(rec->data, rec->size);
     if (buf == NULL) {
         debug_print("%s\n", "Memory allocation failed");
         return MOBI_MALLOC_FAILED;
     }
     if (strcmp(m->ph->type, "TEXt") == 0 && strcmp(m->ph->creator, "REAd") == 0) {
         /* offset 14 */
-        buffer_setpos(buf, 14);
+        mobi_buffer_setpos(buf, 14);
     } else if (m->mh == NULL || m->mh->version == NULL || *m->mh->version == MOBI_NOTSET) {
         /* offset 144 */
-        buffer_setpos(buf, 144);
+        mobi_buffer_setpos(buf, 144);
     } else {
         /* offset header + 16 */
         if (m->mh == NULL) {
             return MOBI_DATA_CORRUPT;
         }
-        buffer_setpos(buf, *m->mh->header_length + 16);
+        mobi_buffer_setpos(buf, *m->mh->header_length + 16);
     }
     unsigned char key_enc[KEYSIZE];
-    buffer_getraw(key_enc, buf, KEYSIZE);
-    buffer_free_null(buf);
+    mobi_buffer_getraw(key_enc, buf, KEYSIZE);
+    mobi_buffer_free_null(buf);
     MOBI_RET ret = mobi_pk1_decrypt(key, key_enc, KEYSIZE, KEYVEC1_V1);
     return ret;
 }
@@ -516,7 +516,7 @@ EXTHDrm * mobi_exthdrm_get(const MOBIData *m) {
     if (meta == NULL) {
         return NULL;
     }
-    MOBIBuffer *buf = buffer_init_null(meta->data, meta->size);
+    MOBIBuffer *buf = mobi_buffer_init_null(meta->data, meta->size);
     if (buf == NULL) {
         return NULL;
     }
@@ -524,8 +524,8 @@ EXTHDrm * mobi_exthdrm_get(const MOBIData *m) {
     size_t submeta_count = 0;
     size_t submeta_total = 0;
     while (buf->offset < buf->maxlen && submeta_count < ARRAYSIZE(submeta)) {
-        buffer_seek(buf, 1);
-        uint32_t exth_key = buffer_get32(buf);
+        mobi_buffer_seek(buf, 1);
+        uint32_t exth_key = mobi_buffer_get32(buf);
         const MOBIExthHeader *sub = mobi_get_exthrecord_by_tag(m, exth_key);
         if (sub) {
             submeta[submeta_count++] = sub;
@@ -533,12 +533,12 @@ EXTHDrm * mobi_exthdrm_get(const MOBIData *m) {
         }
     }
     if (submeta_total == 0) {
-        buffer_free_null(buf);
+        mobi_buffer_free_null(buf);
         return NULL;
     }
     unsigned char *token = malloc(submeta_total);
     if (token == NULL) {
-        buffer_free_null(buf);
+        mobi_buffer_free_null(buf);
         return NULL;
     }
     unsigned char *p = token;
@@ -555,7 +555,7 @@ EXTHDrm * mobi_exthdrm_get(const MOBIData *m) {
     } else {
         free(token);
     }
-    buffer_free_null(buf);
+    mobi_buffer_free_null(buf);
     return exth_drm;
 }
 
