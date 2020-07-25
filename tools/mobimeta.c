@@ -5,7 +5,7 @@
  * @example mobimeta.c
  * Program for testing libmobi library
  *
- * Copyright (c) 2016 Bartek Fabiszewski
+ * Copyright (c) 2020 Bartek Fabiszewski
  * http://www.fabiszewski.net
  *
  * Licensed under LGPL, either version 3, or any later.
@@ -52,6 +52,12 @@ char *serial = NULL;
 
 #define META_SIZE ARRAYSIZE(meta_functions)
 #define ACTIONS_SIZE ARRAYSIZE(actions)
+
+#if HAVE_ATTRIBUTE_NORETURN 
+void exit_with_usage(const char *progname) __attribute__((noreturn));
+#else
+void exit_with_usage(const char *progname);
+#endif
 
 /**
  @brief Meta handling functions
@@ -247,7 +253,6 @@ int main(int argc, char *argv[]) {
                     printf("Unknown option character `\\x%x'\n", optopt);
                 }
                 exit_with_usage(argv[0]);
-                break;
             default:
                 exit_with_usage(argv[0]);
         }
@@ -297,7 +302,7 @@ int main(int argc, char *argv[]) {
         if (ret != SUCCESS) {
             mobi_free(m);
             return ret;
-        };
+        }
     }
 #endif
     

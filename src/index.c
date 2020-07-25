@@ -1,7 +1,7 @@
 /** @file index.c
  *  @brief Functions to parse index records
  *
- * Copyright (c) 2014 Bartek Fabiszewski
+ * Copyright (c) 2020 Bartek Fabiszewski
  * http://www.fabiszewski.net
  *
  * This file is part of libmobi.
@@ -314,10 +314,10 @@ size_t mobi_getstring_ordt(const MOBIOrdt *ordt, MOBIBuffer *buf, unsigned char 
             break;
         }
         output += bytes;
-        switch (bytes) { /* note: everything falls through. */
-            case 4: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6;
-            case 3: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6;
-            case 2: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6;
+        switch (bytes) {
+            case 4: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6; /* falls through */
+            case 3: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6; /* falls through */
+            case 2: *--output = (uint8_t)((codepoint | bytemark) & bytemask); codepoint >>= 6; /* falls through */
             case 1: *--output = (uint8_t)(codepoint | init_byte[bytes]);
         }
         output += bytes;

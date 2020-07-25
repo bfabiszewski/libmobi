@@ -161,6 +161,13 @@ AC_MSG_RESULT($def_inline)
 AC_DEFINE_UNQUOTED([MOBI_INLINE], [$def_inline],
 [How to obtain function inlining.])
 
+# Check for noreturn attribute support
+AC_MSG_CHECKING([whether compiler supports noreturn attribute])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[void foo( void ) __attribute__((noreturn));]])],
+[AC_MSG_RESULT(yes)
+AC_DEFINE_UNQUOTED([HAVE_ATTRIBUTE_NORETURN], [1],
+[Define to 1 if compiler supports __attribute__((noreturn))])],
+[AC_MSG_RESULT(no)])
 
 # Check --enable-xmlwriter
 XMLWRITER_OPT=""

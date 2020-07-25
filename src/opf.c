@@ -1,7 +1,7 @@
 /** @file opf.c
  *  @brief Functions for handling OPF structures
  *
- * Copyright (c) 2014 Bartek Fabiszewski
+ * Copyright (c) 2020 Bartek Fabiszewski
  * http://www.fabiszewski.net
  *
  * This file is part of libmobi.
@@ -193,7 +193,7 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
                 debug_print("%s\n", "Memory allocation failed");
                 return MOBI_MALLOC_FAILED;
             }
-            strncpy(ref_type, type, type_size);
+            memcpy(ref_type, type, type_size);
             ref_type[type_size] = '\0';
         }
         debug_print("<reference type=\"%s\" title=\"%s\" href=\"part%05u.html\" />", ref_type, ref_title, file_number);
@@ -617,7 +617,10 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
                 }
                 /* FIXME: posoff == 0 means top of file? */
                 if (posoff) {
-                    snprintf(target, MOBI_ATTRNAME_MAXSIZE + 1, "part%05u.html#%s", filenumber, targetid);
+                    int n = snprintf(target, MOBI_ATTRNAME_MAXSIZE + 1, "part%05u.html#%s", filenumber, targetid);
+                    if (n > MOBI_ATTRVALUE_MAXSIZE + 1) {
+                        debug_print("Warning: truncated target: %s\n", target);
+                    }
                 } else {
                     snprintf(target, MOBI_ATTRNAME_MAXSIZE + 1, "part%05u.html", filenumber);
                 }

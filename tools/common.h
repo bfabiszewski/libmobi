@@ -1,6 +1,6 @@
 /** @file common.h
  *
- * Copyright (c) 2016 Bartek Fabiszewski
+ * Copyright (c) 2020 Bartek Fabiszewski
  * http://www.fabiszewski.net
  *
  * Licensed under LGPL, either version 3, or any later.
@@ -51,6 +51,10 @@ extern const char separator;
 const char * libmobi_msg(const MOBI_RET ret);
 int mt_mkdir(const char *filename);
 void split_fullpath(const char *fullpath, char *dirname, char *basename);
+int make_directory(const char *path);
+int create_subdir(char *newdir, const char *dir, const char *name);
+int write_file(const unsigned char *content, const size_t len, const char *path);
+int write_to_dir(const char *dir, const char *name, const unsigned char *content, const size_t len);
 bool dir_exists(const char *path);
 void print_summary(const MOBIData *m);
 void print_exth(const MOBIData *m);

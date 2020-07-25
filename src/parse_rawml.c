@@ -1,7 +1,7 @@
 /** @file parse_rawml.c
  *  @brief Functions for parsing rawml markup
  *
- * Copyright (c) 2014 Bartek Fabiszewski
+ * Copyright (c) 2020 Bartek Fabiszewski
  * http://www.fabiszewski.net
  *
  * This file is part of libmobi.
@@ -1083,7 +1083,12 @@ MOBI_RET mobi_posfid_to_link(char *link, const MOBIRawml *rawml, const char *val
     }
     /* FIXME: pos_off == 0 means top of file? */
     if (pos_off) {
-        snprintf(link, MOBI_ATTRVALUE_MAXSIZE + 1, "\"part%05u.html#%s\"", part_id, id);
+        int n = snprintf(link, MOBI_ATTRVALUE_MAXSIZE + 1, "\"part%05u.html#%s\"", part_id, id);
+        if (n > MOBI_ATTRVALUE_MAXSIZE + 1) {
+            debug_print("Skipping truncated link: %s\n", link);
+            *link = '\0';
+            return MOBI_SUCCESS;
+       }
     } else {
         snprintf(link, MOBI_ATTRVALUE_MAXSIZE + 1, "\"part%05u.html\"", part_id);
     }
@@ -1395,7 +1400,11 @@ MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBI
             if (decoded_length == 0) {
                 continue;
             }
-            snprintf(infl_tag, INDX_INFLBUF_SIZEMAX, iform_tag, name_attr, decoded);
+            int n = snprintf(infl_tag, INDX_INFLBUF_SIZEMAX, iform_tag, name_attr, decoded);
+            if (n > INDX_INFLBUF_SIZEMAX) {
+                debug_print("Skipping truncated tag: %s\n", infl_tag);
+                continue;
+            }
             outlen += strlen(infl_tag);
             if (outlen > INDX_INFLTAG_SIZEMAX) {
                 debug_print("Inflections text in %s too long (%zu)\n", label, outlen);
@@ -1660,8 +1669,8 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
                 break;
             case 'h':
             case 'l':
-                /* fallthrough */
                 data_cur += 2;
+                /* falls through */
             case 'r':
                 /* (hi|lo)recindex="00000" */
                 /* replace link with src="resource00000.ext" */

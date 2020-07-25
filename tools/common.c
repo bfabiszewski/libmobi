@@ -77,7 +77,9 @@ int mt_mkdir(const char *filename) {
 }
 
 /**
- @brief Parse file name into file path and base name
+ @brief Parse file name into file path and base name.
+        Dirname or basename can be skipped by setting to null.
+        All buffers must have FILENAME_MAX size.
  @param[in] fullpath Full file path
  @param[in,out] dirname Will be set to full dirname
  @param[in,out] basename Will be set to file basename
@@ -86,18 +88,107 @@ void split_fullpath(const char *fullpath, char *dirname, char *basename) {
     char *p = strrchr(fullpath, separator);
     if (p) {
         p += 1;
-        strncpy(dirname, fullpath, (unsigned long)(p - fullpath));
-        dirname[p - fullpath] = '\0';
-        strncpy(basename, p, strlen(p) + 1);
+        if (dirname) {
+            strncpy(dirname, fullpath, (unsigned long)(p - fullpath));
+            dirname[p - fullpath] = '\0';
+        }
+        if (basename) {
+            strcpy(basename, p);
+        }
     }
     else {
-        dirname[0] = '\0';
-        strncpy(basename, fullpath, strlen(fullpath) + 1);
+        if (dirname) {
+            dirname[0] = '\0';
+        }
+        if (basename) {
+            strcpy(basename, fullpath);
+        }
     }
-    p = strrchr(basename, '.');
-    if (p) {
-        *p = '\0';
+    if (basename) {
+        p = strrchr(basename, '.');
+        if (p) {
+            *p = '\0';
+        }
     }
+}
+
+/**
+ * @brief Make directory
+ * @param[in] path Path
+ */
+int make_directory(const char *path) {
+    errno = 0;
+    if (mt_mkdir(path) != 0 && errno != EEXIST) {
+        int errsv = errno;
+        printf("Creating directory \"%s\" failed (%s)\n", path, strerror(errsv));
+        return ERROR;
+    }
+    return SUCCESS;
+}
+
+/**
+ @brief Create subfolder in directory
+ @param[in,out] newdir Path to created subfolder, must have FILENAME_MAX size
+ @param[in] dir Directory path
+ @param[in] name Subfolder name
+ */
+int create_subdir(char *newdir, const char *dir, const char *name) {
+    int n = snprintf(newdir, FILENAME_MAX, "%s%c%s", dir, separator, name);
+    if (n < 0) {
+        printf("Creating file name failed\n");
+        return ERROR;
+    }
+    if ((size_t) n > FILENAME_MAX) {
+        printf("File name too long: %s\n", newdir);
+        return ERROR;
+    }
+    return make_directory(newdir);
+}
+
+/**
+ @brief Open file descriptor and write buffer to it
+ @param[in] buffer Buffer
+ @param[in] len Buffer length
+ @param[in] path File path
+ */
+int write_file(const unsigned char *buffer, const size_t len, const char *path) {
+    errno = 0;
+    FILE *file = fopen(path, "wb");
+    if (file == NULL) {
+        int errsv = errno;
+        printf("Could not open file for writing: %s (%s)\n", path, strerror(errsv));
+        return ERROR;
+    }
+    size_t n = fwrite(buffer, 1, len, file);
+    if (n != len) {
+        int errsv = errno;
+        printf("Error writing to file: %s (%s)\n", path, strerror(errsv));
+        fclose(file);
+        return ERROR;
+    }
+    fclose(file);
+    return SUCCESS;
+}
+
+/**
+ @brief Write content to file in directory
+ @param[in] dir Directory path
+ @param[in] name File name
+ @param[in] buffer Buffer
+ @param[in] len Buffer length
+ */
+int write_to_dir(const char *dir, const char *name, const unsigned char *buffer, const size_t len) {
+    char path[FILENAME_MAX];
+    int n = snprintf(path, sizeof(path), "%s%c%s", dir, separator, name);
+    if (n < 0) {
+        printf("Creating file name failed\n");
+        return ERROR;
+    }
+    if ((size_t) n > sizeof(path)) {
+        printf("File name too long\n");
+        return ERROR;
+    }
+    return write_file(buffer, len, path);
 }
 
 /**
