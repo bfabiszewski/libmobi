@@ -2,6 +2,8 @@
 
 SUBDIRS = src tools tests
 
+EXTRA_DIST = README.md
+
 test: check
 
 ACLOCAL_AMFLAGS = -I m4
