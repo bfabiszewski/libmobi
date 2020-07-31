@@ -132,7 +132,7 @@ void print_meta(const MOBIData *m) {
     /* Record 0 header */
     if (m->rh) {
         printf("\nRecord 0 header:\n");
-        printf("compresion type: %u\n", m->rh->compression_type);
+        printf("compression type: %u\n", m->rh->compression_type);
         printf("text length: %u\n", m->rh->text_length);
         printf("text record count: %u\n", m->rh->text_record_count);
         printf("text record size: %u\n", m->rh->text_record_size);
