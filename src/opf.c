@@ -620,6 +620,7 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
                     int n = snprintf(target, MOBI_ATTRNAME_MAXSIZE + 1, "part%05u.html#%s", filenumber, targetid);
                     if (n > MOBI_ATTRVALUE_MAXSIZE + 1) {
                         debug_print("Warning: truncated target: %s\n", target);
+                        snprintf(target, MOBI_ATTRNAME_MAXSIZE + 1, "part%05u.html", filenumber);
                     }
                 } else {
                     snprintf(target, MOBI_ATTRNAME_MAXSIZE + 1, "part%05u.html", filenumber);
