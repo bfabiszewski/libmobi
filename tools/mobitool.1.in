@@ -7,16 +7,16 @@
 .Sh SYNOPSIS
 .Nm
 .if '@XMLWRITER_OPT@'yes' .ig
-.Op Fl dimrsuvx7
+.Op Fl cdimrsuvx7
 ..
 .if !'@XMLWRITER_OPT@'yes' .ig
-.Op Fl deimrsuvx7
+.Op Fl cdeimrsuvx7
 ..
 .Op Fl o Ar dir
 .if !'@ENCRYPTION_OPT@'yes' .ig
 .Op Fl p Ar pid
 .Op Fl P Ar serial
-.
+..
 .Ar file
 .Sh DESCRIPTION
 The program handles .prc, .mobi, .azw; .azw3, .azw4, some .pdb documents. Written as a test case for
