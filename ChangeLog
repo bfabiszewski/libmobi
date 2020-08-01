@@ -1,3 +1,19 @@
+2020-08-01: Version 0.6
+2020-07-31: Fix typo
+2020-07-31: Add Readme to dist package
+2020-07-31: Remove anchor on truncated link
+2020-07-31: Fix missing option in man page
+2020-07-30: Include test samples in dist package
+2020-07-25: Fix gcc 7+ warnings about implicit fall through and format truncation
+2020-07-24: Unique names for internal functions to avoid confilicts with static linking
+2020-06-24: Close file in error branch
+2020-06-24: Fix static compilation with miniz on gcc
+2020-06-24: Minor documentation fixes
+2020-06-23: Version 0.5
+2020-06-23: mobitool: add dump cover option
+2020-06-23: Minor documentation improvement
+2020-06-23: Fix potential buffer over-read
+2019-03-18: Fix: try also "name" attribute when searching for link anchor tags, closes #24
 2019-02-22: Add mobi_is_replica function
 2019-02-22: Fix potential read beyond buffer
 2019-02-22: Travis migration
