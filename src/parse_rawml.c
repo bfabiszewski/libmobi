@@ -938,8 +938,12 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
         }
         char *p = skel_text;
         while (first_fragment) {
-            memcpy(p, first_fragment->fragment, first_fragment->size);
-            p += first_fragment->size;
+            if (first_fragment->fragment) {
+                memcpy(p, first_fragment->fragment, first_fragment->size);
+                p += first_fragment->size;
+            } else {
+                debug_print("Skipping broken fragment in part %zu\n", i);
+            }
             first_fragment = mobi_list_del(first_fragment);
         }
         if (i > 0) {
