@@ -40,6 +40,8 @@ For examples on how to use the library have a look at tools folder.
     [optionally] $ make test
     $ sudo make install
 
+On macOS, you can install via [Homebrew](https://brew.sh/) with `brew install libmobi`.
+
 ## Optionally provided Xcode and MSVC++ project files
 
 ## Usage
