@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([1.10])
-AC_INIT([libmobi], [0.6])
+AC_INIT([libmobi], [0.7])
 AC_CONFIG_SRCDIR([src/buffer.c])
 
 # Enable automake
