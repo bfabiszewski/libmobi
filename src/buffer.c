@@ -510,8 +510,8 @@ void mobi_buffer_move(MOBIBuffer *buf, const int offset, const size_t len) {
         }
         source += aoffset;
     } else {
-        if (buf->offset < aoffset) {
-            debug_print("%s", "End of buffer\n");
+        if ( (buf->offset < aoffset) || (buf->offset + len > buf->maxlen) ) {
+            debug_print("%s", "Beyond start/end of buffer\n");
             buf->error = MOBI_BUFFER_END;
             return;
         }
