@@ -146,6 +146,9 @@ static MOBI_RET mobi_decompress_huffman_internal(MOBIBuffer *buf_out, MOBIBuffer
                   return MOBI_DATA_CORRUPT;
             }
 
+            if (code_length >= (sizeof(huffcdic->maxcode_table) / sizeof(huffcdic->maxcode_table[0])) )
+                  return MOBI_DATA_CORRUPT;
+
             maxcode = huffcdic->maxcode_table[code_length];
         }
         bitcount -= code_length;
