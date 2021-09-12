@@ -141,7 +141,10 @@ static MOBI_RET mobi_decompress_huffman_internal(MOBIBuffer *buf_out, MOBIBuffer
         if (!(t1 & 0x80)) {
             /* get offset from mincode, maxcode tables */
             while (code < huffcdic->mincode_table[code_length]) {
-                code_length++;
+                if (code_length < (sizeof(huffcdic->mincode_table) / sizeof(huffcdic->mincode_table[0])) )
+                  code_length++;
+                else
+                  return MOBI_DATA_CORRUPT;
             }
             maxcode = huffcdic->maxcode_table[code_length];
         }
