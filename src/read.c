@@ -589,7 +589,7 @@ MOBI_RET mobi_parse_huff(MOBIHuffCdic *huffcdic, const MOBIPdbRecord *record) {
     /* read 32 mincode-maxcode pairs from data2 big-endian */
     huffcdic->mincode_table[0] = 0;
     huffcdic->maxcode_table[0] = 0xFFFFFFFF;
-    for (int i = 1; i < 33; i++) {
+    for (int i = 1; i < HUFF_CODETABLE_SIZE; i++) {
         const uint32_t mincode = mobi_buffer_get32(buf);
         const uint32_t maxcode = mobi_buffer_get32(buf);
         huffcdic->mincode_table[i] =  mincode << (32 - i);
