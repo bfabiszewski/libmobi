@@ -752,6 +752,10 @@ MOBI_RET mobi_parse_huffdic(const MOBIData *m, MOBIHuffCdic *huffcdic) {
         }
         curr = curr->next;
     }
+    if (huffcdic->index_count != huffcdic->index_read) {
+        debug_print("CDIC: wrong read index count: %zu, total: %zu\n", huffcdic->index_read, huffcdic->index_count);
+        return MOBI_DATA_CORRUPT;
+    }
     return MOBI_SUCCESS;
 }
 
