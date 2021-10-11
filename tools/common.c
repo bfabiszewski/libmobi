@@ -508,7 +508,7 @@ int set_decryption_key(MOBIData *m, const char *serial, const char *pid) {
         mobi_ret = mobi_drm_setkey(m, pid);
         if (mobi_ret != MOBI_SUCCESS) {
             printf("failed (%s)\n", libmobi_msg(mobi_ret));
-            ret = mobi_ret;
+            ret = (int) mobi_ret;
         } else {
             printf("ok\n");
             return SUCCESS;
@@ -520,7 +520,7 @@ int set_decryption_key(MOBIData *m, const char *serial, const char *pid) {
         mobi_ret = mobi_drm_setkey_serial(m, serial);
         if (mobi_ret != MOBI_SUCCESS) {
             printf("failed (%s)\n", libmobi_msg(mobi_ret));
-            ret = mobi_ret;
+            ret = (int) mobi_ret;
         } else {
             printf("ok\n");
             ret = SUCCESS;
