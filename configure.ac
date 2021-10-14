@@ -1,25 +1,25 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([1.10])
+AC_PREREQ([2.62])
 AC_INIT([libmobi], [0.8])
 AC_CONFIG_SRCDIR([src/buffer.c])
 
 # Enable automake
-AM_INIT_AUTOMAKE([-Wall foreign subdir-objects])
+AM_INIT_AUTOMAKE([1.11 -Wall foreign subdir-objects])
 # all defined C macros (HAVE_*) will be saved to this file
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for programs.
-AC_PROG_CC_C99
+AC_PROG_CC
+m4_version_prereq([2.70], [], [AC_PROG_CC_C99])
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 # Init libtool
-#LT_INIT
-AC_PROG_LIBTOOL
+m4_ifdef([LT_INIT], [LT_INIT], [AC_PROG_LIBTOOL])
 
 # Checks for libraries.
 
@@ -61,14 +61,10 @@ if test "x$SUNCC" = "xyes"; then
     # check if we can use -xldscope=hidden
     SAVED_CFLAGS="${CFLAGS}"
     CFLAGS="-xldscope=hidden"
-    AC_TRY_COMPILE([], [],
-                    enable_fvisibility_hidden=yes,
-                    enable_fvisibility_hidden=no)
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], [enable_fvisibility_hidden=yes], [enable_fvisibility_hidden=no])
     CFLAGS="${SAVED_CFLAGS}"
 
-    AS_IF([test "${enable_fvisibility_hidden}" = "yes"], [
-    VISIBILITY_HIDDEN="-xldscope=hidden"
-    ])
+    AS_IF([test "${enable_fvisibility_hidden}" = "yes"], [VISIBILITY_HIDDEN="-xldscope=hidden"])
 else
     case "$host" in
       *-*-mingw*)
@@ -79,14 +75,10 @@ else
         # on other compilers, check if we can do -fvisibility=hidden
         SAVED_CFLAGS="${CFLAGS}"
         CFLAGS="-fvisibility=hidden -Werror"
-        AC_TRY_COMPILE([], [],
-                       enable_fvisibility_hidden=yes,
-                       enable_fvisibility_hidden=no)
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], [enable_fvisibility_hidden=yes], [enable_fvisibility_hidden=no])
         CFLAGS="${SAVED_CFLAGS}"
 
-        AS_IF([test "${enable_fvisibility_hidden}" = "yes"], [
-        VISIBILITY_HIDDEN="-fvisibility=hidden"
-        ])
+        AS_IF([test "${enable_fvisibility_hidden}" = "yes"], [VISIBILITY_HIDDEN="-fvisibility=hidden"])
         ;;
     esac
 fi
@@ -138,25 +130,21 @@ AC_MSG_CHECKING([whether linker supports --allow-multiple-definition flag])
 MOBI_ALLOW_MULTIPLE=
 SAVED_CFLAGS="${CFLAGS}"
 CFLAGS="-Wl,--allow-multiple-definition -Werror"
-AC_TRY_COMPILE([], [],
-def_allow_multiple=yes,
-def_allow_multiple=no)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], [def_allow_multiple=yes], [def_allow_multiple=no])
 CFLAGS="${SAVED_CFLAGS}"
-AS_IF([test "${def_allow_multiple}" = "yes"], [
-MOBI_ALLOW_MULTIPLE="-Wl,--allow-multiple-definition"
-])
+AS_IF([test "${def_allow_multiple}" = "yes"], [MOBI_ALLOW_MULTIPLE="-Wl,--allow-multiple-definition"])
 AC_MSG_RESULT($def_allow_multiple)
 AC_SUBST(MOBI_ALLOW_MULTIPLE)
 
 # Check for non-broken inline under various spellings
 AC_MSG_CHECKING([for inline keyword])
 def_inline=""
-AC_TRY_COMPILE([], [} __inline__ int foo() { return 0; }
-int bar() { return foo();], def_inline="__inline__",
-[AC_TRY_COMPILE(, [} __inline int foo() { return 0; }
-int bar() { return foo();], def_inline="__inline",
-[AC_TRY_COMPILE(, [} inline int foo() { return 0; }
-int bar() { return foo();], def_inline="inline")])])
+for inline_key in inline __inline__ __inline
+do
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
+                      [[} $inline_key int foo() { return 0; } int bar() { return foo();]])],
+                      [def_inline=$inline_key; break])
+done
 AC_MSG_RESULT($def_inline)
 AC_DEFINE_UNQUOTED([MOBI_INLINE], [$def_inline],
 [How to obtain function inlining.])
@@ -174,12 +162,12 @@ XMLWRITER_OPT=""
 AC_MSG_CHECKING([whether enable xmlwriter (for opf support)])
 AC_ARG_ENABLE([xmlwriter],
 AS_HELP_STRING([--enable-xmlwriter],
-                [enable xmlwriter (for opf support) @<:@default=yes@:>@]),
-                [case "${enableval}" in
-                yes) xmlwriter=yes ;;
-                no)  xmlwriter=no ;;
-                *) AC_MSG_ERROR([bad value ${enableval} for --enable-xmlwriter]) ;;
-                esac],[xmlwriter=yes])
+               [enable xmlwriter (for opf support) @<:@default=yes@:>@]),
+               [case "${enableval}" in
+                  yes) xmlwriter=yes ;;
+                  no)  xmlwriter=no ;;
+                  *) AC_MSG_ERROR([bad value ${enableval} for --enable-xmlwriter]) ;;
+                esac], [xmlwriter=yes])
 AC_MSG_RESULT($xmlwriter)
 AM_CONDITIONAL(USE_XMLWRITER,[test x$xmlwriter = xyes])
 if test x$xmlwriter = xyes; then
@@ -188,30 +176,29 @@ if test x$xmlwriter = xyes; then
     # test for --with-libxml2
     AC_MSG_CHECKING([whether compile with libxml2])
     AC_ARG_WITH(libxml2,
-    AC_HELP_STRING([--with-libxml2],[Use libxml2 instead of internal xmlwriter @<:@default=yes@:>@]),
+    AS_HELP_STRING([--with-libxml2], [Use libxml2 instead of internal xmlwriter @<:@default=yes@:>@]),
     [if test "$withval" = yes; then use_libxml2=yes; else use_libxml2=no; fi],
     [use_libxml2=yes])
     AC_MSG_RESULT($use_libxml2)
     if test x$use_libxml2 = xyes; then
-    old_CPPFLAGS=$CPPFLAGS
-    AC_CHECK_PROGS(XML2_CONFIG, xml2-config)
-    if test -n "$XML2_CONFIG"
-    then
-    CPPFLAGS="`$XML2_CONFIG --cflags`"
-    LIBXML2_CFLAGS="`$XML2_CONFIG --cflags`"
-    LIBXML2_LDFLAGS="`$XML2_CONFIG --libs`"
+        old_CPPFLAGS=$CPPFLAGS
+        AC_CHECK_PROGS(XML2_CONFIG, xml2-config)
+        if test -n "$XML2_CONFIG"; then
+            CPPFLAGS="`$XML2_CONFIG --cflags`"
+            LIBXML2_CFLAGS="`$XML2_CONFIG --cflags`"
+            LIBXML2_LDFLAGS="`$XML2_CONFIG --libs`"
+        else
+            CPPFLAGS=-I/usr/include/libxml2
+            LIBXML2_CFLAGS=-I/usr/include/libxml2
+            LIBXML2_LDFLAGS=-lxml2
+        fi
+        AC_CHECK_HEADER([libxml/xmlwriter.h],
+                        [AC_DEFINE(USE_LIBXML2, 1, [Define if you want to use libxml2 library])],
+                        [AC_MSG_ERROR([couldn't find libxml2])])
+        CPPFLAGS=$old_CPPFLAGS
     else
-    CPPFLAGS=-I/usr/include/libxml2
-    LIBXML2_CFLAGS=-I/usr/include/libxml2
-    LIBXML2_LDFLAGS=-lxml2
-    fi
-    AC_CHECK_HEADER([libxml/xmlwriter.h],
-    [AC_DEFINE(USE_LIBXML2, 1, [Define if you want to use libxml2 library])],
-    [AC_MSG_ERROR([couldn't find libxml2])])
-    CPPFLAGS=$old_CPPFLAGS
-    else
-    LIBXML2_LDFLAGS=
-    LIBXML2_CFLAGS=
+        LIBXML2_LDFLAGS=
+        LIBXML2_CFLAGS=
     fi
     AC_SUBST(LIBXML2_LDFLAGS)
     AC_SUBST(LIBXML2_CFLAGS)
@@ -225,18 +212,17 @@ ENCRYPTION_OPT=""
 AC_MSG_CHECKING([whether enable encryption])
 AC_ARG_ENABLE([encryption],
 AS_HELP_STRING([--enable-encryption],
-                [enable encryption @<:@default=yes@:>@]),
-                [case "${enableval}" in
-                yes) encryption=yes ;;
-                no)  encryption=no ;;
-                *) AC_MSG_ERROR([bad value ${enableval} for --enable-encryption]) ;;
-                esac],
-                [encryption=yes])
+               [enable encryption @<:@default=yes@:>@]),
+               [case "${enableval}" in
+                  yes) encryption=yes ;;
+                  no)  encryption=no ;;
+                  *) AC_MSG_ERROR([bad value ${enableval} for --enable-encryption]) ;;
+                esac], [encryption=yes])
 AC_MSG_RESULT($encryption)
 AM_CONDITIONAL(USE_ENCRYPTION,[test x$encryption = xyes])
 if test x$encryption = xyes; then
-AC_DEFINE([USE_ENCRYPTION], 1, [Enable encryption])
-ENCRYPTION_OPT="yes"
+    AC_DEFINE([USE_ENCRYPTION], 1, [Enable encryption])
+    ENCRYPTION_OPT="yes"
 fi
 AC_SUBST(ENCRYPTION_OPT)
 
@@ -249,7 +235,7 @@ AS_HELP_STRING([--enable-debug],
                   yes) debug=yes ;;
                   no)  debug=no ;;
                   *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
-                esac],[debug=no])
+                esac], [debug=no])
 AC_MSG_RESULT($debug)
 
 DEBUG_CFLAGS=
@@ -273,7 +259,7 @@ AS_HELP_STRING([--enable-debug-alloc],
                   yes) debug_alloc=yes ;;
                   no)  debug_alloc=no ;;
                   *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug-alloc]) ;;
-                esac],[debug_alloc=no])
+                esac], [debug_alloc=no])
 AC_MSG_RESULT($debug_alloc)
 
 if test x$debug_alloc = xyes; then
@@ -289,7 +275,7 @@ AS_HELP_STRING([--enable-tools-static],
                   yes) tools_static=yes ;;
                   no)  tools_static=no ;;
                   *) AC_MSG_ERROR([bad value ${enableval} for --enable-tools-static]) ;;
-                esac],[tools_static=no])
+                esac], [tools_static=no])
 AC_MSG_RESULT($tools_static)
 TOOLS_STATIC=
 if test x$tools_static = xyes; then
@@ -300,7 +286,7 @@ AC_SUBST(TOOLS_STATIC)
 # test for --with-zlib
 AC_MSG_CHECKING([whether compile with zlib])
 AC_ARG_WITH(zlib,
-AC_HELP_STRING([--with-zlib],[Use zlib instead of included miniz @<:@default=yes@:>@]),
+AS_HELP_STRING([--with-zlib], [Use zlib instead of included miniz @<:@default=yes@:>@]),
 [if test "$withval" = yes; then use_zlib=yes; else use_zlib=no; fi],
 [use_zlib=yes])
 AC_MSG_RESULT($use_zlib)
@@ -308,15 +294,15 @@ AM_CONDITIONAL(USE_ZLIB,[test x$use_zlib = xyes])
 AM_CONDITIONAL(USE_MINIZ,[test x$use_zlib = xno])
 AM_CONDITIONAL(USE_STATIC,[test x$tools_static = xyes])
 if test x$use_zlib = xyes; then
-AC_CHECK_HEADER([zlib.h],
-[AC_DEFINE(USE_ZLIB, 1, [Define if you want to use system zlib library])
-LIBZ_LDFLAGS=-lz
-MINIZ_CFLAGS=],
-[AC_MSG_ERROR([couldn't find zlib header])])
+    AC_CHECK_HEADER([zlib.h],
+                    [AC_DEFINE(USE_ZLIB, 1, [Define if you want to use system zlib library])
+                    LIBZ_LDFLAGS=-lz
+                    MINIZ_CFLAGS=],
+                    [AC_MSG_ERROR([couldn't find zlib header])])
 else
-AC_DEFINE(USE_MINIZ, 1, [Define if you want to use included miniz library])
-MINIZ_CFLAGS="-D_POSIX_C_SOURCE=200112L"
-LIBZ_LDFLAGS=
+    AC_DEFINE(USE_MINIZ, 1, [Define if you want to use included miniz library])
+    MINIZ_CFLAGS="-D_POSIX_C_SOURCE=200112L"
+    LIBZ_LDFLAGS=
 fi
 AC_SUBST(LIBZ_LDFLAGS)
 AC_SUBST(MINIZ_CFLAGS)
