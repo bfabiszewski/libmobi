@@ -324,9 +324,9 @@ AC_SUBST(MINIZ_CFLAGS)
 
 # Check for md5 or md5sum program, needed for tests
 AC_ARG_VAR([MD5PROG], [md5 hashing program executable])
-AS_IF([test "x$MD5PROG" = "x"], AC_CHECK_PROG([MD5PROG], [md5sum], [md5sum -t]), [])
-AS_IF([test "x$MD5PROG" = "x"], AC_CHECK_PROG([MD5PROG], [md5], [md5 -r]), [])
-AS_IF([test "x$MD5PROG" = "x"], AC_MSG_WARN([md5 hashing program not found, some tests will be skipped]), [])
+AS_IF([test "x$MD5PROG" = "x"], [AC_CHECK_PROG([MD5PROG], [md5sum], [md5sum -t])], [])
+AS_IF([test "x$MD5PROG" = "x"], [AC_CHECK_PROG([MD5PROG], [md5], [md5 -r])], [])
+AS_IF([test "x$MD5PROG" = "x"], [AC_MSG_WARN([md5 hashing program not found, some tests will be skipped])], [])
 
 # List test files
 CR=$'\n'
