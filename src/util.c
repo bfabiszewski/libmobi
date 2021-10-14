@@ -2031,6 +2031,10 @@ MOBIFiletype mobi_determine_flowpart_type(const MOBIRawml *rawml, const size_t p
     if (part_number == 0 || mobi_is_rawml_kf8(rawml) == false) {
         return T_HTML;
     }
+    if (part_number > 9999) {
+        debug_print("Corrupt part number: %zu\n", part_number);
+        return T_UNKNOWN;
+    }
     char target[30];
     snprintf(target, 30, "\"kindle:flow:%04zu?mime=", part_number);
     unsigned char *data_start = rawml->flow->data;
