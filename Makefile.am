@@ -2,7 +2,7 @@
 
 SUBDIRS = src tools tests
 
-EXTRA_DIST = README.md
+EXTRA_DIST = README.md autogen.sh
 
 test: check
 
