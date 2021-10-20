@@ -1,3 +1,23 @@
+2021-10-20: Version 0.9
+2021-10-24: Fix out-of-tree build
+2021-10-22: Fix mingw build, code formatting
+2021-10-14: Fix gcc format truncation warning
+2021-10-14: Include autogen.sh in distribution bundle
+2021-10-14: Create codeql-analysis.yml
+2021-10-14: Fix autoconf 2.70 warnings, clean up
+2021-10-14: Build fails with autoconf 2.70
+2021-10-11: Version 0.8
+2021-10-11: Update Xcode project
+2021-10-11: Fix warnings about changed signedness
+2021-09-18: Fix potential out-of-buffer read while parsing corrupt file, closes #38
+2021-09-18: Fix potential out-of-buffer read while parsing corrupt file, closes #35, #36
+2021-09-09: Version 0.7
+2021-09-09: Merge pull request #33 from occia/public
+2021-09-09: fix oob write bug inside libmobi
+2021-06-07: Merge pull request #30 from codetheweb/patch-1
+2021-06-07: Add reference to brew formula
+2020-09-02: Fix null pointer dereference in case of broken fragment
+2020-08-01: Update changelog
 2020-08-01: Version 0.6
 2020-07-31: Fix typo
 2020-07-31: Add Readme to dist package
