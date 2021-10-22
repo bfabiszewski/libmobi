@@ -13,6 +13,12 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+#ifdef HAVE_GETOPT
+# include <unistd.h>
+#else
+# include "win32/getopt.h"
+#endif
+
 /* return codes */
 #define ERROR 1
 #define SUCCESS 0
@@ -49,7 +55,6 @@
 
 extern const char separator;
 const char * libmobi_msg(const MOBI_RET ret);
-int mt_mkdir(const char *filename);
 void split_fullpath(const char *fullpath, char *dirname, char *basename);
 int make_directory(const char *path);
 int create_subdir(char *newdir, const char *dir, const char *name);

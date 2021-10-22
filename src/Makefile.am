@@ -1,7 +1,7 @@
 # libmobi 
 
 lib_LTLIBRARIES = libmobi.la
-libmobi_la_SOURCES = buffer.c buffer.h compression.c compression.h debug.c debug.h index.c index.h memory.c memory.h \
+libmobi_la_SOURCES = buffer.c buffer.h compression.c compression.h config.h debug.c debug.h index.c index.h memory.c memory.h \
 meta.c meta.h parse_rawml.c parse_rawml.h read.c read.h structure.c structure.h util.c util.h write.c write.h
 
 if USE_XMLWRITER

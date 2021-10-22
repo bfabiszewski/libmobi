@@ -14,12 +14,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#ifdef _WIN32
-#include <direct.h>
-#include "win32/getopt.h"
-#else
-#include <unistd.h>
-#endif
 #include <ctype.h>
 #include <time.h>
 #include <errno.h>

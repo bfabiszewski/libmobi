@@ -19,6 +19,14 @@
 #include <mobi.h>
 #include "common.h"
 
+#ifdef _WIN32
+# include <direct.h>
+# define mkdir(path,flags) _mkdir(path)
+const char separator = '\\';
+#else
+const char separator = '/';
+#endif
+
 /**
  @brief Messages for libmobi return codes
  For reference see enum MOBI_RET in mobi.h
@@ -53,27 +61,6 @@ const char * libmobi_msg(const MOBI_RET ret) {
     } else {
         return "Unknown error";
     }
-}
-
-
-#ifdef _WIN32
-const char separator = '\\';
-#else
-const char separator = '/';
-#endif
-
-/**
- @brief Portable mkdir
- @param[in] filename File name
- */
-int mt_mkdir(const char *filename) {
-    int ret;
-#ifdef _WIN32
-    ret = _mkdir(filename);
-#else
-    ret = mkdir(filename, S_IRWXU);
-#endif
-    return ret;
 }
 
 /**
@@ -118,7 +105,7 @@ void split_fullpath(const char *fullpath, char *dirname, char *basename) {
  */
 int make_directory(const char *path) {
     errno = 0;
-    if (mt_mkdir(path) != 0 && errno != EEXIST) {
+    if (mkdir(path, S_IRWXU) != 0 && errno != EEXIST) {
         int errsv = errno;
         printf("Creating directory \"%s\" failed (%s)\n", path, strerror(errsv));
         return ERROR;

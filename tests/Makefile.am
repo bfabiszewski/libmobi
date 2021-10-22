@@ -10,7 +10,7 @@
 # suffix "_rawml" for rawml checksum and "_markup" for all markup files checksums.
 # Re-run ./configure after adding new samples
 
-# Exclude large samples from dist package 
+# Exclude large samples from dist package
 EXTRA_DIST = md5 \
              samples/embedded-mp3.mobi \
              samples/huffdic.mobi \

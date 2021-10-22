@@ -10,9 +10,13 @@ man_MANS = mobitool.1 mobimeta.1
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
 
+if USE_INTERNAL_GETOPT
+libcommon_a_SOURCES += win32/getopt.c win32/getopt.h
+endif
+
 mobitool_SOURCES = mobitool.c
 mobitool_DEPENDENCIES = $(top_builddir)/src/libmobi.la libcommon.a
-mobitool_LDADD = $(top_builddir)/src/libmobi.la libcommon.a
+mobitool_LDADD = libcommon.a $(top_builddir)/src/libmobi.la
 mobitool_CFLAGS = $(ISO99_SOURCE) $(DEBUG_CFLAGS) -D_POSIX_C_SOURCE=200112L
 mobitool_LDFLAGS = $(TOOLS_STATIC)
 
@@ -32,6 +36,6 @@ endif
 
 mobimeta_SOURCES = mobimeta.c
 mobimeta_DEPENDENCIES = $(top_builddir)/src/libmobi.la libcommon.a
-mobimeta_LDADD = $(top_builddir)/src/libmobi.la libcommon.a
+mobimeta_LDADD = libcommon.a $(top_builddir)/src/libmobi.la
 mobimeta_CFLAGS = $(ISO99_SOURCE) $(DEBUG_CFLAGS) -D_POSIX_C_SOURCE=200112L
 mobimeta_LDFLAGS = $(TOOLS_STATIC)
