@@ -2,7 +2,7 @@
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
-AM_CPPFLAGS = -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src
 
 bin_PROGRAMS = mobitool mobimeta
 man_MANS = mobitool.1 mobimeta.1

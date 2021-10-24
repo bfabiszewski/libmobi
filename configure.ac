@@ -349,18 +349,22 @@ AS_IF([test -z "$MD5PROG"], [AC_CHECK_PROG([MD5PROG], [md5], [md5 -r])], [])
 AS_IF([test -z "$MD5PROG"], [AC_MSG_WARN([md5 hashing program not found, some tests will be skipped])], [])
 
 # List test files
+cur_dir=`pwd`
+cd "$srcdir"/tests
+
 CR=$'\n'
-for f in tests/samples/*.{mobi,fail}
+for sample_path in samples/*.{mobi,fail}
 do
-    PASSLIST="${PASSLIST} ${f#*/} \\${CR}"
+    PASSLIST="${PASSLIST} ${sample_path} \\${CR}"
 done
 AC_SUBST([PASSLIST])
-for f in tests/samples/*.fail
+for sample_path in samples/*.fail
 do
-    FAILLIST="${FAILLIST} ${f#*/} \\${CR}"
+    FAILLIST="${FAILLIST} ${sample_path} \\${CR}"
 done
 AC_SUBST([FAILLIST])
 
+cd $cur_dir
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([libmobi.pc])
