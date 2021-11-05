@@ -12,13 +12,15 @@
 
 # Exclude large samples from dist package
 EXTRA_DIST = md5 \
-             samples/embedded-mp3.mobi \
-             samples/huffdic.mobi \
-             samples/ncx.mobi \
-             samples/obfuscated_fonts.mobi \
-             samples/textread_prc.mobi \
-             samples/windows-1252.mobi \
-             samples/invalid_indx.fail
+             samples/sample-cp1252.mobi \
+             samples/sample-dict-infl2.mobi \
+             samples/sample-multimedia.mobi \
+             samples/sample-ncx.mobi \
+             samples/sample-obfuscated-fonts.mobi \
+             samples/sample-textread.mobi \
+             samples/sample-unicode-huffdic.mobi \
+             samples/sample-unicode-uncompressed.mobi \
+             samples/sample-invalid-indx.fail
 AUTOMAKE_OPTIONS = parallel-tests
 TESTS = @PASSLIST@
 XFAIL_TESTS = @FAILLIST@
