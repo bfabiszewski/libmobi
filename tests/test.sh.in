@@ -50,7 +50,7 @@ die() {
 
 if [[ "${basefile}" == 'drm_pid'* ]]; then
     pid=${basefile:7:10}
-    if [[ "${pid}" =~ [^a-zA-Z0-9] ]]; then
+    if [[ "${pid}" =~ [^a-zA-Z0-9*] ]]; then
         log "Ignoring incorrect pid ${pid}"
     else
         options="${options} -p ${pid}"
