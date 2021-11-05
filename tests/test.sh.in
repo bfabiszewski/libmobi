@@ -91,6 +91,7 @@ if [[ ${do_md5} ]]; then
         log "Checksum correct"
     else
         log "No checksums file: ${md5file_markup}, skipping md5 test"
+        die "Missing markup checksums file" $skip
     fi
 fi
 rm -rf "${tmp_dir}/${markup_dir}"
@@ -110,6 +111,7 @@ if [[ ${do_md5} ]]; then
         log "Checksum correct"
     else
         log "No checksums file: ${md5file_rawml}, skipping md5 test"
+        die "Missing rawml checksums file" $skip
     fi
 fi
 rm -f "${tmp_dir}/${rawml_file}"
