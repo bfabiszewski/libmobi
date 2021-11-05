@@ -1711,17 +1711,29 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
             if (compression_type != RECORD0_HUFF_COMPRESSION) {
                 /* decrypt also multibyte extra data */
                 extra_size = mobi_get_record_extrasize(curr, extra_flags & 0xfffe);
-                if (extra_size == MOBI_NOTSET || extra_size > curr->size) {
-                    free(decompressed);
-                    return MOBI_DATA_CORRUPT;
-                }
             }
-            const size_t decrypt_size = curr->size - extra_size;
-            if (decrypt_size > decompressed_size) {
-                debug_print("Record too large: %zu\n", decrypt_size);
+            if (extra_size == MOBI_NOTSET || extra_size > curr->size) {
                 mobi_free_huffcdic(huffcdic);
                 free(decompressed);
                 return MOBI_DATA_CORRUPT;
+            }
+            const size_t decrypt_size = curr->size - extra_size;
+            if (decrypt_size > decompressed_size) {
+                if (decrypt_size <= curr->size) {
+                    unsigned char *tmp = realloc(decompressed, decrypt_size);
+                    if (tmp == NULL) {
+                        debug_print("%s\n", "Memory allocation failed");
+                        mobi_free_huffcdic(huffcdic);
+                        free(decompressed);
+                        return MOBI_MALLOC_FAILED;
+                    }
+                    decompressed = tmp;
+                } else {
+                    debug_print("Record too large: %zu\n", decrypt_size);
+                    mobi_free_huffcdic(huffcdic);
+                    free(decompressed);
+                    return MOBI_DATA_CORRUPT;
+                }
             }
             if (decrypt_size) {
                 ret = mobi_drm_decrypt_buffer(decompressed, curr->data, decrypt_size, m);
