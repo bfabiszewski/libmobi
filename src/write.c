@@ -73,13 +73,13 @@ MOBI_RET mobi_write_pdbheader(FILE *file, const MOBIData *m) {
     mobi_buffer_addstring(buf, m->ph->creator);
     mobi_buffer_add32(buf, m->ph->uid);
     mobi_buffer_add32(buf, m->ph->next_rec);
-    uint16_t rec_count = mobi_get_records_count(m);
-    if (rec_count == 0) {
+    m->ph->rec_count = mobi_get_records_count(m);
+    if (m->ph->rec_count == 0) {
         mobi_buffer_free(buf);
         debug_print("%s", "Zero records count\n");
         return MOBI_DATA_CORRUPT;
     }
-    mobi_buffer_add16(buf, rec_count);
+    mobi_buffer_add16(buf, m->ph->rec_count);
     if (buf->error != MOBI_SUCCESS) {
         mobi_buffer_free(buf);
         return MOBI_DATA_CORRUPT;
@@ -387,6 +387,7 @@ MOBI_RET mobi_write_records(FILE *file, const MOBIData *m) {
     /* 8 bytes per record meta plus 2 bytes padding */
     offset += 8 * m->ph->rec_count + 2;
     MOBIPdbRecord *curr = m->rec;
+    uint32_t i = 0;
     while (curr) {
         if (offset > UINT32_MAX) {
             return MOBI_DATA_CORRUPT;
@@ -398,6 +399,7 @@ MOBI_RET mobi_write_records(FILE *file, const MOBIData *m) {
         mobi_buffer_add32(buf, (uint32_t) offset);
         offset += curr->size;
         mobi_buffer_add8(buf, curr->attributes);
+        curr->uid = 2 * i++;
         const uint8_t h = (uint8_t) ((curr->uid & 0xff0000U) >> 16);
         const uint16_t l = (uint16_t) (curr->uid & 0xffffU);
         mobi_buffer_add8(buf, h);

@@ -521,7 +521,8 @@ extern "C"
     MOBI_EXPORT struct tm * mobi_pdbtime_to_time(const long pdb_time);
     MOBI_EXPORT const char * mobi_get_locale_string(const uint32_t locale);
     MOBI_EXPORT size_t mobi_get_locale_number(const char *locale_string);
-    
+    MOBI_EXPORT MOBI_RET mobi_remove_hybrid_part(MOBIData *m, const int version);
+
     MOBI_EXPORT bool mobi_exists_mobiheader(const MOBIData *m);
     MOBI_EXPORT bool mobi_exists_fdst(const MOBIData *m);
     MOBI_EXPORT bool mobi_exists_skel_indx(const MOBIData *m);

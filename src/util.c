@@ -1030,6 +1030,172 @@ MOBIPdbRecord * mobi_get_record_by_seqnumber(const MOBIData *m, const size_t num
 }
 
 /**
+ @brief Get palm database record with data header starting with given 4-byte magic string
+ 
+ @param[in] m MOBIData structure with loaded data
+ @param[in] magic Magic header
+ @return Pointer to MOBIPdbRecord record structure, NULL if not found or on failure
+ */
+MOBIPdbRecord * mobi_get_record_by_magic(const MOBIData *m, const unsigned char magic[4]) {
+    if (m == NULL) {
+        debug_print("%s", "Mobi structure not initialized\n");
+        return NULL;
+    }
+
+    MOBIPdbRecord *curr = m->rec;
+    while (curr != NULL) {
+        if (curr->size >= 4 && memcmp(curr->data, magic, 4) != 0) {
+            return curr;
+        }
+        curr = curr->next;
+    }
+    return NULL;
+}
+
+
+/**
+ @brief Extract palm count database records starting with given sequential number from MOBIData structure
+ 
+ Extracted records are removed from palm database.
+ Number of extracted records may be less then given count, if there are not enough records in database.
+ 
+ @param[in,out] m MOBIData structure with loaded data
+ @param[in] num Sequential number
+ @param[in,out] count Records count, updated with number of records effectively extracted
+ @return Pointer to MOBIPdbRecord record structure, NULL if not found or on failure
+ */
+MOBIPdbRecord * mobi_extract_records_by_seqnumber(MOBIData *m, const size_t num, size_t *count) {
+    if (m == NULL) {
+        debug_print("%s", "Mobi structure not initialized\n");
+        return NULL;
+    }
+
+    MOBIPdbRecord *root = NULL;
+    MOBIPdbRecord *prev = NULL;
+    MOBIPdbRecord *curr = NULL;
+    if (num > 0) {
+        root = mobi_get_record_by_seqnumber(m, num - 1);
+        if (root) {
+            curr = root->next;
+        }
+    } else {
+        curr = m->rec;
+    }
+        
+    MOBIPdbRecord *extracted = curr;
+
+    size_t i = 0;
+    while (curr != NULL && i < *count) {
+        i++;
+        prev = curr;
+        curr = curr->next;
+    }
+    
+    if (prev == NULL) {
+        return NULL;
+    }
+    
+    if (root == NULL) {
+        m->rec = prev->next;
+    } else {
+        root->next = prev->next;
+    }
+    prev->next = NULL;
+    
+    *count = i;
+    if (m->ph->rec_count >= i) {
+        m->ph->rec_count -= i;
+    } else {
+        debug_print("%s\n", "Real record count differs from header value");
+        m->ph->rec_count = 0;
+    }
+
+    debug_print("Extracted %zu records starting with index = %zu\n", *count, num);
+
+    return extracted;
+}
+
+
+/**
+ @brief Insert palm database records at given sequential number
+ 
+ @param[in,out] m MOBIData structure with loaded data
+ @param[in,out] record Linked list of records
+ @param[in] num Sequential number
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_insert_records_by_seqnumber(MOBIData *m, MOBIPdbRecord *record, const size_t num) {
+    if (m == NULL || m->rec == NULL) {
+        debug_print("%s", "Mobi structure not initialized\n");
+        return MOBI_INIT_FAILED;
+    }
+    if (record == NULL) {
+        return MOBI_SUCCESS;
+    }
+    
+    MOBIPdbRecord *curr = record;
+    size_t count = 1;
+    while (curr->next != NULL) {
+        curr = curr->next;
+        count++;
+    }
+    
+    if (m->ph->rec_count + count > UINT16_MAX) {
+        debug_print("%s", "Number of records beyond database limit\n");
+        return MOBI_DATA_CORRUPT;
+    }
+    
+    MOBIPdbRecord *next = NULL;
+    if (num == 0) {
+        next = m->rec;
+        m->rec = record;
+    } else {
+        MOBIPdbRecord *prev = mobi_get_record_by_seqnumber(m, num - 1);
+        if (prev == NULL) {
+            debug_print("%s", "Insert point not found\n");
+            return MOBI_DATA_CORRUPT;
+        }
+        next = prev->next;
+        prev->next = record;
+    }
+    curr->next = next;
+    m->ph->rec_count += count;
+
+    debug_print("Inserted %zu records at index = %zu\n", count, num);
+        
+    return MOBI_SUCCESS;
+}
+
+/**
+ @brief Delete palm count database records starting with given sequential number from MOBIData structure
+ 
+ Number of deleted records may be less then given count, if there are not enough records in database.
+ 
+ @param[in,out] m MOBIData structure with loaded data
+ @param[in] num Sequential number
+ @param[in,out] count  Records count, updated wth number of records effectively extracted
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_delete_records_by_seqnumber(MOBIData *m, const size_t num, size_t *count) {
+    
+    // extract records
+    MOBIPdbRecord *curr = mobi_extract_records_by_seqnumber(m, num, count);
+
+    // delete them
+    while (curr != NULL) {
+        MOBIPdbRecord *tmp = curr;
+        curr = curr->next;
+        free(tmp->data);
+        free(tmp);
+        tmp = NULL;
+    }
+    
+    debug_print("Deleted %zu records starting with index = %zu\n", *count, num);
+
+    return MOBI_SUCCESS;
+}
+
+/**
  @brief Delete palm database record with given sequential number from MOBIData structure
  
  @param[in,out] m MOBIData structure with loaded data
@@ -1037,33 +1203,8 @@ MOBIPdbRecord * mobi_get_record_by_seqnumber(const MOBIData *m, const size_t num
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_delete_record_by_seqnumber(MOBIData *m, const size_t num) {
-    if (m == NULL) {
-        debug_print("%s", "Mobi structure not initialized\n");
-        return MOBI_INIT_FAILED;
-    }
-    if (m->rec == NULL) {
-        return MOBI_INIT_FAILED;
-    }
-    size_t i = 0;
-    MOBIPdbRecord *curr = m->rec;
-    MOBIPdbRecord *prev = NULL;
-    while (curr != NULL) {
-        if (i++ == num) {
-            if (prev == NULL) {
-                m->rec = curr->next;
-            } else {
-                prev->next = curr->next;
-            }
-            free(curr->data);
-            curr->data = NULL;
-            free(curr);
-            curr = NULL;
-            return MOBI_SUCCESS;
-        }
-        prev = curr;
-        curr = curr->next;
-    }
-    return MOBI_SUCCESS;
+    size_t count = 1;
+    return mobi_delete_records_by_seqnumber(m, num, &count);
 }
 
 /**
@@ -2926,6 +3067,243 @@ MOBI_RET mobi_parse_kf8(MOBIData *m) {
     }
     m->use_kf8 = true;
     return MOBI_SUCCESS;
+}
+
+/**
+ @brief Remove KF7 version from  hybrid file
+  
+ @param[in,out] m MOBIData structure
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_remove_part_kf7(MOBIData *m) {
+    
+    // move resource records to KF8 part
+    
+    size_t start_kf7 = MOBI_NOTSET;
+    size_t start_kf8 = MOBI_NOTSET;
+    size_t count_kf7 = MOBI_NOTSET;
+    size_t count_kf8 = MOBI_NOTSET;
+    
+    // switch to KF7 data
+    if (m->use_kf8) {
+        mobi_swap_mobidata(m);
+        m->use_kf8 = false;
+    }
+    if (m->mh == NULL) {
+        debug_print("%s\n", "Mobi header for version 7 missing");
+        return MOBI_INIT_FAILED;
+    }
+    if (m->mh->image_index) {
+        start_kf7 = *m->mh->image_index;
+    }
+    MOBIExthHeader *exth = mobi_get_exthrecord_by_tag(m, EXTH_COUNTRESOURCES);
+    if (exth) {
+        count_kf7 = mobi_decode_exthvalue(exth->data, exth->size);
+    }
+
+    // switch back to KF8
+    mobi_swap_mobidata(m);
+    m->use_kf8 = true;
+
+    if (m->mh == NULL || m->kf8_boundary_offset == MOBI_NOTSET) {
+        debug_print("%s\n", "Mobi header for version 8 missing");
+        return MOBI_INIT_FAILED;
+    }
+    
+    if (m->mh->image_index) {
+        start_kf8 = *m->mh->image_index;
+    }
+    
+    MOBIExthHeader *exth_resources = mobi_get_exthrecord_by_tag(m, EXTH_COUNTRESOURCES);
+    if (exth_resources) {
+        count_kf8 = mobi_decode_exthvalue(exth_resources->data, exth_resources->size);
+    }
+    
+    if (start_kf7 == MOBI_NOTSET || start_kf8 == MOBI_NOTSET ||
+        count_kf7 == MOBI_NOTSET || count_kf8 == MOBI_NOTSET ||
+        m->kf8_boundary_offset < count_kf7) {
+        return MOBI_DATA_CORRUPT;
+    }
+            
+    // move resources to KF8 part
+    MOBIPdbRecord *extracted = mobi_extract_records_by_seqnumber(m, start_kf7, &count_kf7);
+
+    m->kf8_boundary_offset -= count_kf7;
+    start_kf8 += m->kf8_boundary_offset + 1;
+
+    MOBI_RET ret = mobi_insert_records_by_seqnumber(m, extracted, start_kf8);
+    if (ret != MOBI_SUCCESS) {
+        return ret;
+    }
+    
+    // delete records from beginning to boundary (inclusive)
+    size_t count = m->kf8_boundary_offset + 1;
+
+    ret = mobi_delete_records_by_seqnumber(m, 0, &count);
+    if (ret != MOBI_SUCCESS) {
+        return ret;
+    }
+    m->kf8_boundary_offset = MOBI_NOTSET;
+    
+    // update EXTH tags
+    
+    // update EXTH Count of Resources tag
+    count_kf8 += count_kf7;
+    if (exth_resources && exth_resources->size == 4 && count_kf8 <= UINT32_MAX) {
+        uint32_t value = (uint32_t) count_kf8;
+        unsigned char *p = exth_resources->data;
+        *p++ = (uint8_t)((uint32_t)(value & 0xff000000U) >> 24);
+        *p++ = (uint8_t)((uint32_t)(value & 0xff0000U) >> 16);
+        *p++ = (uint8_t)((uint32_t)(value & 0xff00U) >> 8);
+        *p = (uint8_t)((uint32_t)(value & 0xffU));
+    }
+    
+    // check that EXTH Start Reading tag points to text, delete otherwise
+    MOBIExthHeader *exth_start = NULL;
+    while ((exth = mobi_next_exthrecord_by_tag(m, EXTH_STARTREADING, &exth_start))) {
+        uint32_t offset = mobi_decode_exthvalue(exth->data, exth->size);
+        if (offset > m->rh->text_record_count) {
+            mobi_delete_exthrecord(m, exth);
+        }
+    }
+    
+    // reset KF8 related EXTH flags
+    if (m->mh->exth_flags) {
+        *m->mh->exth_flags &= 0x7ff;
+        *m->mh->exth_flags |= 0x800;
+    }
+    
+    // adjust record offsets
+    if (m->mh->fdst_index && *m->mh->fdst_index + count_kf7 < UINT32_MAX) {
+        *m->mh->fdst_index += count_kf7;
+    }
+    if (m->mh->fcis_index && *m->mh->fcis_index + count_kf7 < UINT32_MAX) {
+        *m->mh->fcis_index += count_kf7;
+    }
+    if (m->mh->flis_index && *m->mh->flis_index + count_kf7 < UINT32_MAX) {
+        *m->mh->flis_index += count_kf7;
+    }
+    if (m->mh->datp_index && *m->mh->datp_index + count_kf7 < UINT32_MAX) {
+        *m->mh->datp_index += count_kf7;
+    }
+    if (m->mh->datp_rec_index && *m->mh->datp_rec_index + count_kf7 < UINT32_MAX) {
+        *m->mh->datp_rec_index += count_kf7;
+    }
+    
+    return MOBI_SUCCESS;
+}
+
+
+/**
+ @brief Remove KF8 version from  hybrid file
+  
+ @param[in,out] m MOBIData structure
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_remove_part_kf8(MOBIData *m) {
+        
+    if (m->use_kf8) {
+        mobi_swap_mobidata(m);
+        m->use_kf8 = false;
+    }
+    
+    if (m->mh == NULL) {
+        debug_print("%s\n", "Mobi header missing");
+        return MOBI_INIT_FAILED;
+    }
+
+    // delete records from boundary (inclusive) up to last eof (exclusive)
+    size_t start = m->kf8_boundary_offset;
+    size_t count = mobi_get_records_count(m);
+    if (start == MOBI_NOTSET || count <= start) {
+        debug_print("%s\n", "Bad records range data");
+        return MOBI_DATA_CORRUPT;
+    }
+    count -= start + 1;
+    MOBI_RET ret = mobi_delete_records_by_seqnumber(m, start, &count);
+    if (ret != MOBI_SUCCESS) {
+        return ret;
+    }
+    
+    // delete source and logs records
+    if (m->mh->srcs_index && m->mh->srcs_count) {
+        start = *m->mh->srcs_index;
+        count = *m->mh->srcs_count;
+        if (start != MOBI_NOTSET && count != MOBI_NOTSET) {
+            ret = mobi_delete_records_by_seqnumber(m, start, &count);
+            if (ret != MOBI_SUCCESS) {
+                return ret;
+            }
+            *m->mh->srcs_index = MOBI_NOTSET;
+            *m->mh->srcs_count = 0;
+        }
+    }
+    
+    // truncate obsolete FONT, RESC records
+    if (m->mh->image_index && (start = *m->mh->image_index) != MOBI_NOTSET) {
+        MOBIPdbRecord *curr = mobi_get_record_by_seqnumber(m, start);
+        while (curr != NULL) {
+            if (curr->data && curr->size > 4 &&
+                (memcmp(curr->data, FONT_MAGIC, 4) == 0 ||
+                 memcmp(curr->data, RESC_MAGIC, 4) == 0)) {
+                unsigned char *tmp = realloc(curr->data, 4);
+                if (tmp == NULL) {
+                    debug_print("%s\n", "Memory allocation failed");
+                    return MOBI_MALLOC_FAILED;
+                }
+                curr->data = tmp;
+                curr->size = 4;
+            }
+            curr = curr->next;
+        }
+    }
+    
+    // update EXTH tags
+    MOBIExthHeader *exth = mobi_get_exthrecord_by_tag(m, EXTH_KF8BOUNDARY);
+    if (exth != NULL && exth->size == sizeof(uint32_t)) {
+        const uint32_t value = MOBI_NOTSET;
+        memcpy(exth->data, &value, exth->size);
+    }
+    
+    ret = mobi_delete_exthrecord_by_tag(m, EXTH_KF8COVERURI);
+    if (ret != MOBI_SUCCESS) {
+        return ret;
+    }
+    
+    // reset KF8 related EXTH flags
+    if (m->mh->exth_flags){
+        *m->mh->exth_flags &= 0x7ff;
+    }
+    
+    return MOBI_SUCCESS;
+}
+
+/**
+ @brief Remove one version from  hybrid file
+ 
+ Hybrid file contains two document versions: KF7 and KF8.
+ 
+ @param[in,out] m MOBIData structure
+ @param[in,out] version Version to remove: 7 for KF7 or 8 for KF8
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_remove_hybrid_part(MOBIData *m, const int version) {
+    if (m == NULL) {
+        return MOBI_INIT_FAILED;
+    }
+    if (!mobi_is_hybrid(m)) {
+        debug_print("%s\n", "Not a hybrid, skip removing part");
+        return MOBI_SUCCESS;
+    }
+    switch (version) {
+        case 7:
+            return mobi_remove_part_kf7(m);
+            
+        case 8:
+            return mobi_remove_part_kf8(m);
+    }
+    
+    return MOBI_PARAM_ERR;
 }
 
 /**
