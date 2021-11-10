@@ -1235,13 +1235,22 @@ MOBIExthHeader * mobi_delete_exthrecord(MOBIData *m, MOBIExthHeader *record) {
     MOBIExthHeader *next = record->next;
     if (next) {
         /* not last */
+        MOBIExthHeader *curr = m->eh;
+        if (curr == record) {
+            /* first */
+            m->eh = next;
+        } else {
+            /* not first */
+            while (curr) {
+                if (curr->next == record) {
+                    curr->next = next;
+                    break;
+                }
+                curr = curr->next;
+            }
+        }
         free(record->data);
-        record->data = next->data;
-        record->tag = next->tag;
-        record->size = next->size;
-        record->next = next->next;
-        free(next);
-        next = record;
+        free(record);
     } else if (m->eh == record) {
         /* last && first */
         free(m->eh->data);
