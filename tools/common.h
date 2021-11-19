@@ -13,6 +13,10 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+#ifdef HAVE_CONFIG_H
+# include "../config.h"
+#endif
+
 #ifdef HAVE_GETOPT
 # include <unistd.h>
 #else

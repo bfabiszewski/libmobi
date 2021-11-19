@@ -46,6 +46,8 @@ const char *libmobi_messages[] = {
     "Invalid DRM pid",
     "DRM key not found",
     "DRM support not included",
+    "Write failed",
+    "DRM expired"
 };
 
 #define LIBMOBI_MSG_COUNT ARRAYSIZE(libmobi_messages)
@@ -484,13 +486,13 @@ int set_decryption_key(MOBIData *m, const char *serial, const char *pid) {
         printf("\nDocument is not encrypted, ignoring PID/serial\n");
         return SUCCESS;
     }
-    else if (m->rh && m->rh->encryption_type == 1) {
+    else if (m->rh && m->rh->encryption_type == MOBI_ENCRYPTION_V1) {
         printf("\nEncryption type 1, ignoring PID/serial\n");
         return SUCCESS;
     }
     int ret = SUCCESS;
     if (pid) {
-        /* Try to set key for decompression */
+        /* Try to set key for decryption */
         printf("\nVerifying PID... ");
         mobi_ret = mobi_drm_setkey(m, pid);
         if (mobi_ret != MOBI_SUCCESS) {
@@ -502,7 +504,7 @@ int set_decryption_key(MOBIData *m, const char *serial, const char *pid) {
         }
     }
     if (serial) {
-        /* Try to set key for decompression */
+        /* Try to set key for decryption */
         printf("\nVerifying serial... ");
         mobi_ret = mobi_drm_setkey_serial(m, serial);
         if (mobi_ret != MOBI_SUCCESS) {

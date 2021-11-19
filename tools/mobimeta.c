@@ -20,9 +20,6 @@
 #include <mobi.h>
 
 #include "common.h"
-#ifdef HAVE_CONFIG_H
-# include "../config.h"
-#endif
 
 /* encryption */
 #ifdef USE_ENCRYPTION
@@ -183,6 +180,10 @@ int main(int argc, char *argv[]) {
             case 'a':
             case 'd':
             case 's':
+                if (strlen(optarg) == 2 && optarg[0] == '-') {
+                    printf("Option -%c requires an argument.\n", opt);
+                    return ERROR;
+                }
                 subopts = optarg;
                 parse = true;
                 while (parse) {
@@ -222,10 +223,18 @@ int main(int argc, char *argv[]) {
                 break;
 #ifdef USE_ENCRYPTION
             case 'p':
+                if (strlen(optarg) == 2 && optarg[0] == '-') {
+                    printf("Option -%c requires an argument.\n", opt);
+                    return ERROR;
+                }
                 setpid_opt = 1;
                 pid = optarg;
                 break;
             case 'P':
+                if (strlen(optarg) == 2 && optarg[0] == '-') {
+                    printf("Option -%c requires an argument.\n", opt);
+                    return ERROR;
+                }
                 setserial_opt = 1;
                 serial = optarg;
                 break;
@@ -235,12 +244,6 @@ int main(int argc, char *argv[]) {
                 printf("libmobi: %s\n", mobi_version());
                 return 0;
             case '?':
-#ifdef USE_ENCRYPTION
-                if (optopt == 'p') {
-                    printf("Option -%c requires an argument.\n", optopt);
-                }
-                else
-#endif
                 if (isprint(optopt)) {
                     printf("Unknown option `-%c'\n", optopt);
                 }

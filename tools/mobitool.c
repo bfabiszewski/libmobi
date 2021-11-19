@@ -20,9 +20,7 @@
 /* include libmobi header */
 #include <mobi.h>
 #include "common.h"
-#ifdef HAVE_CONFIG_H
-# include "../config.h"
-#endif
+
 /* miniz file is needed for EPUB creation */
 #ifdef USE_XMLWRITER
 # define MINIZ_HEADER_FILE_ONLY
@@ -856,8 +854,8 @@ int main(int argc, char *argv[]) {
     }
     opterr = 0;
     int c;
-    while((c = getopt(argc, argv, "cd" PRINT_EPUB_ARG "imo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "vx7")) != -1)
-        switch(c) {
+    while ((c = getopt(argc, argv, "cd" PRINT_EPUB_ARG "imo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "vx7")) != -1) {
+        switch (c) {
             case 'c':
                 dump_cover_opt = 1;
                 break;
@@ -878,6 +876,10 @@ int main(int argc, char *argv[]) {
             case 'o':
                 outdir_opt = 1;
                 size_t outdir_length = strlen(optarg);
+                if (outdir_length == 2 && optarg[0] == '-') {
+                    printf("Option -%c requires an argument.\n", c);
+                    return ERROR;
+                }
                 if (outdir_length >= FILENAME_MAX - 1) {
                     printf("Output directory name too long\n");
                     return ERROR;
@@ -899,10 +901,18 @@ int main(int argc, char *argv[]) {
                 break;
 #ifdef USE_ENCRYPTION
             case 'p':
+                if (strlen(optarg) == 2 && optarg[0] == '-') {
+                    printf("Option -%c requires an argument.\n", c);
+                    return ERROR;
+                }
                 setpid_opt = 1;
                 pid = optarg;
                 break;
             case 'P':
+                if (strlen(optarg) == 2 && optarg[0] == '-') {
+                    printf("Option -%c requires an argument.\n", c);
+                    return ERROR;
+                }
                 setserial_opt = 1;
                 serial = optarg;
                 break;
@@ -929,12 +939,6 @@ int main(int argc, char *argv[]) {
                 parse_kf7_opt = 1;
                 break;
             case '?':
-#ifdef USE_ENCRYPTION
-                if (optopt == 'p') {
-                    fprintf(stderr, "Option -%c requires an argument.\n", optopt);
-                }
-                else
-#endif
                 if (isprint(optopt)) {
                     fprintf(stderr, "Unknown option `-%c'\n", optopt);
                 }
@@ -945,10 +949,12 @@ int main(int argc, char *argv[]) {
             default:
                 exit_with_usage(argv[0]);
         }
+    }
     if (argc <= optind) {
         printf("Missing filename\n");
         exit_with_usage(argv[0]);
     }
+    
     int ret = 0;
     char filename[FILENAME_MAX];
     strncpy(filename, argv[optind], FILENAME_MAX - 1);
