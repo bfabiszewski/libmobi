@@ -73,7 +73,7 @@ static const unsigned char cp1252_to_utf8[32][3] = {
  */
 const char * mobi_version(void) {
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "0.4"
+# define PACKAGE_VERSION "unknown"
 #endif
     return PACKAGE_VERSION;
 }
@@ -101,9 +101,9 @@ uint8_t mobi_unicode_to_utf8(char *output, const size_t codepoint) {
         return 2;
     }
     if (codepoint < 0x10000) {
-        bytes[2] = (unsigned char) ((2 << 6) | ( codepoint & 0x3f));
+        bytes[2] = (unsigned char) ((2 << 6) | (codepoint & 0x3f));
         bytes[1] = (unsigned char) ((2 << 6) | ((codepoint >> 6) & 0x3f));
-        bytes[0] = (unsigned char) ((14 << 4) |  (codepoint >> 12));
+        bytes[0] = (unsigned char) ((14 << 4) | (codepoint >> 12));
         return 3;
     }
     if (codepoint < 0x11000) {
@@ -1215,6 +1215,7 @@ MOBI_RET mobi_delete_record_by_seqnumber(MOBIData *m, const size_t num) {
  @return Pointer to MOBIExthHeader record structure
  */
 MOBIExthHeader * mobi_get_exthrecord_by_tag(const MOBIData *m, const MOBIExthTag tag) {
+    debug_print("Loading EXTH record with tag %i\n", tag);
     if (m == NULL) {
         debug_print("%s", "Mobi structure not initialized\n");
         return NULL;
@@ -1303,6 +1304,7 @@ MOBI_RET mobi_add_exthrecord(MOBIData *m, const MOBIExthTag tag, const uint32_t 
             return MOBI_MALLOC_FAILED;
         }
         if (meta.type == EXTH_STRING && mobi_is_cp1252(m)) {
+            debug_print("%s\n", "Adding CP1252 string data");
             char *data = malloc(size + 1);
             if (data == NULL) {
                 free(record->data);
@@ -1320,12 +1322,8 @@ MOBI_RET mobi_add_exthrecord(MOBIData *m, const MOBIExthTag tag, const uint32_t 
             memcpy(record->data, data, data_size);
             record->size = (uint32_t) data_size;
             free(data);
-        } else if (meta.name && meta.type == EXTH_NUMERIC) {
-            if (size != sizeof(uint32_t)) {
-                free(record->data);
-                free(record);
-                return MOBI_PARAM_ERR;
-            }
+        } else if (meta.name && meta.type == EXTH_NUMERIC && size == sizeof(uint32_t)) {
+            debug_print("%s\n", "Adding numeric data");
             MOBIBuffer *buf = mobi_buffer_init_null(record->data, size);
             if (buf == NULL) {
                 free(record->data);
@@ -1335,8 +1333,11 @@ MOBI_RET mobi_add_exthrecord(MOBIData *m, const MOBIExthTag tag, const uint32_t 
             mobi_buffer_add32(buf, *(uint32_t *) value);
             mobi_buffer_free_null(buf);
         } else {
+            debug_print("%s\n", "Adding raw data");
             memcpy(record->data, value, size);
         }
+        debug_print("Added record %u (%u bytes)\n", meta.tag, size);
+
         record->next = NULL;
         if (m->eh == NULL) {
             if (m->mh->exth_flags == NULL) {
@@ -1461,7 +1462,7 @@ const MOBIExthMeta mobi_exth_tags[] = {
     {EXTH_CLIPPINGLIMIT, EXTH_NUMERIC, "Clipping limit"},
     {EXTH_PUBLISHERLIMIT, EXTH_NUMERIC, "Publisher limit"},
     {EXTH_TTSDISABLE, EXTH_NUMERIC, "Text to speech disabled"},
-    {EXTH_RENTAL, EXTH_NUMERIC, "Rental indicator"},
+    {EXTH_READFORFREE, EXTH_NUMERIC, "Read for Free"},
     /* strings */
     {EXTH_DRMSERVER, EXTH_STRING, "Drm server id"},
     {EXTH_DRMCOMMERCE, EXTH_STRING, "Drm commerce id"},
@@ -1515,14 +1516,14 @@ const MOBIExthMeta mobi_exth_tags[] = {
     /* binary */
     {EXTH_TAMPERKEYS, EXTH_BINARY, "Tamper proof keys"},
     {EXTH_FONTSIGNATURE, EXTH_BINARY, "Font signature"},
+    {EXTH_RENTAL, EXTH_BINARY, "Rental indicator"}, // uint64_t
     {EXTH_UNK403, EXTH_BINARY, "Unknown (403)"},
-    {EXTH_UNK405, EXTH_BINARY, "Unknown (405)"},
     {EXTH_UNK407, EXTH_BINARY, "Unknown (407)"},
     {EXTH_UNK450, EXTH_BINARY, "Unknown (450)"},
     {EXTH_UNK451, EXTH_BINARY, "Unknown (451)"},
     {EXTH_UNK452, EXTH_BINARY, "Unknown (452)"},
     {EXTH_UNK453, EXTH_BINARY, "Unknown (453)"},
-    /* end */
+ /* end */
     {0, 0, NULL},
 };
 
@@ -1804,7 +1805,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         debug_print("%s", "Mobi structure not initialized\n");
         return MOBI_INIT_FAILED;
     }
-    if (mobi_is_encrypted(m) && m->drm_key == NULL) {
+    if (mobi_is_encrypted(m) && !mobi_has_drmkey(m)) {
         debug_print("%s", "Document is encrypted\n");
         return MOBI_FILE_ENCRYPTED;
     }
@@ -1824,7 +1825,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
     /* get first text record */
     const MOBIPdbRecord *curr = mobi_get_record_by_seqnumber(m, text_rec_index);
     MOBIHuffCdic *huffcdic = NULL;
-    if (compression_type == RECORD0_HUFF_COMPRESSION) {
+    if (compression_type == MOBI_COMPRESSION_HUFFCDIC) {
         /* load huff/cdic tables */
         huffcdic = mobi_init_huffcdic();
         if (huffcdic == NULL) {
@@ -1857,8 +1858,8 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         }
         MOBI_RET ret = MOBI_SUCCESS;
 #ifdef USE_ENCRYPTION
-        if (mobi_is_encrypted(m) && m->drm_key) {
-            if (compression_type != RECORD0_HUFF_COMPRESSION) {
+        if (mobi_is_encrypted(m) && mobi_has_drmkey(m)) {
+            if (compression_type != MOBI_COMPRESSION_HUFFCDIC) {
                 /* decrypt also multibyte extra data */
                 extra_size = mobi_get_record_extrasize(curr, extra_flags & 0xfffe);
             }
@@ -1886,14 +1887,14 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                 }
             }
             if (decrypt_size) {
-                ret = mobi_drm_decrypt_buffer(decompressed, curr->data, decrypt_size, m);
+                ret = mobi_buffer_decrypt(decompressed, curr->data, decrypt_size, m);
                 if (ret != MOBI_SUCCESS) {
                     mobi_free_huffcdic(huffcdic);
                     free(decompressed);
                     return ret;
                 }
                 memcpy(curr->data, decompressed, decrypt_size);
-                if (compression_type != RECORD0_HUFF_COMPRESSION && (extra_flags & 1)) {
+                if (compression_type != MOBI_COMPRESSION_HUFFCDIC && (extra_flags & 1)) {
                     // update multibyte data size after decryption
                     extra_size = mobi_get_record_extrasize(curr, extra_flags);
                     if (extra_size == MOBI_NOTSET) {
@@ -1917,7 +1918,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
         }
         const size_t record_size = curr->size - extra_size;
         switch (compression_type) {
-            case RECORD0_NO_COMPRESSION:
+            case MOBI_COMPRESSION_NONE:
                 /* no compression */
                 if (record_size > decompressed_size) {
                     debug_print("Record too large: %zu\n", record_size);
@@ -1931,7 +1932,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                     mobi_remove_zeros(decompressed, &decompressed_size);
                 }
                 break;
-            case RECORD0_PALMDOC_COMPRESSION:
+            case MOBI_COMPRESSION_PALMDOC:
                 /* palmdoc lz77 compression */
                 ret = mobi_decompress_lz77(decompressed, curr->data, &decompressed_size, record_size);
                 if (ret != MOBI_SUCCESS) {
@@ -1939,7 +1940,7 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                     return ret;
                 }
                 break;
-            case RECORD0_HUFF_COMPRESSION:
+            case MOBI_COMPRESSION_HUFFCDIC:
                 /* mobi huffman compression */
                 ret = mobi_decompress_huffman(decompressed, curr->data, &decompressed_size, record_size, huffcdic);
                 if (ret != MOBI_SUCCESS) {
@@ -2666,6 +2667,24 @@ bool mobi_is_mobipocket(const MOBIData *m) {
 }
 
 /**
+ @brief Check if loaded document is TEXt/REAd format
+ 
+ @param[in] m MOBIData structure with loaded Record(s) 0 headers
+ @return true or false
+ */
+bool mobi_is_textread(const MOBIData *m) {
+    if (m == NULL || m->ph == NULL) {
+        debug_print("%s", "Mobi structure not initialized\n");
+        return false;
+    }
+    if (strcmp(m->ph->type, "TEXt") == 0 &&
+        strcmp(m->ph->creator, "REAd") == 0) {
+        return true;
+    }
+    return false;
+}
+
+/**
  @brief Check if loaded document is dictionary
  
  @param[in] m MOBIData structure with loaded mobi header
@@ -2695,12 +2714,42 @@ bool mobi_is_encrypted(const MOBIData *m) {
         debug_print("%s", "Mobi structure not initialized\n");
         return false;
     }
-    if (mobi_is_mobipocket(m) && m->rh &&
-        (m->rh->encryption_type == RECORD0_OLD_ENCRYPTION ||
-         m->rh->encryption_type == RECORD0_MOBI_ENCRYPTION)) {
+    if ((mobi_is_mobipocket(m) || mobi_is_textread(m)) && m->rh &&
+        (m->rh->encryption_type == MOBI_ENCRYPTION_V1 ||
+         m->rh->encryption_type == MOBI_ENCRYPTION_V2)) {
         return true;
     }
     return false;
+}
+
+/**
+ @brief Check if DRM key is set for the document
+ 
+ @param[in] m MOBIData structure with loaded Record(s) 0 headers
+ @return true or false
+ */
+bool mobi_has_drmkey(const MOBIData *m) {
+    if (m == NULL) {
+        debug_print("%s", "Mobi structure not initialized\n");
+        return false;
+    }
+    MOBIDrm *drm = m->internals;
+    return drm != NULL && drm->key != NULL;
+}
+
+/**
+ @brief Check if DRM cookies are set for the document
+ 
+ @param[in] m MOBIData structure with loaded Record(s) 0 headers
+ @return true or false
+ */
+bool mobi_has_drmcookies(const MOBIData *m) {
+    if (m == NULL) {
+        debug_print("%s", "Mobi structure not initialized\n");
+        return false;
+    }
+    MOBIDrm *drm = m->internals;
+    return drm != NULL && drm->cookies_count > 0;
 }
 
 /**
@@ -2714,7 +2763,7 @@ bool mobi_is_replica(const MOBIData *m) {
         debug_print("%s", "Mobi structure not initialized\n");
         return false;
     }
-    if (m->rec && m->rh && m->rh->compression_type == RECORD0_NO_COMPRESSION) {
+    if (m->rec && m->rh && m->rh->compression_type == MOBI_COMPRESSION_NONE) {
         MOBIPdbRecord *rec = m->rec->next;
         if (rec && rec->size >= sizeof(REPLICA_MAGIC)) {
             return memcmp(rec->data, REPLICA_MAGIC, sizeof(REPLICA_MAGIC) - 1) == 0;
@@ -2884,7 +2933,7 @@ size_t mobi_pow(unsigned base, unsigned exp) {
  */
 MOBI_RET mobi_base32_decode(uint32_t *decoded, const char *encoded) {
     if (!encoded || !decoded) {
-        debug_print("Error, null parameter (decoded: %p, encoded: %p)\n", (void *) decoded, (void *) encoded)
+        debug_print("Error, null parameter (decoded: %p, encoded: %p)\n", (void *) decoded, (void *) encoded);
         return MOBI_PARAM_ERR;
     }
     /* strip leading zeroes */
@@ -2984,6 +3033,31 @@ uint32_t mobi_get_exthsize(const MOBIData *m) {
         /* add padding */
         size += size % 4;
     }
+    if (size > UINT32_MAX) {
+        return 0;
+    } else {
+        return (uint32_t) size;
+    }
+}
+
+/**
+ @brief Get size of serialized DRM data
+ 
+ @param[in] m MOBIData structure
+ @return Size of DRM data, zero on failure
+ */
+uint32_t mobi_get_drmsize(const MOBIData *m) {
+    if (m == NULL || !mobi_is_encrypted(m)) {
+        return 0;
+    }
+    size_t size = 0;
+    
+    if (m->rh->encryption_type == MOBI_ENCRYPTION_V1) {
+        size = 51;
+    } else if (m->mh && m->mh->drm_size && *m->mh->drm_size > 0) {
+        size = *m->mh->drm_size;
+    }
+    
     if (size > UINT32_MAX) {
         return 0;
     } else {
@@ -3144,6 +3218,7 @@ MOBI_RET mobi_remove_part_kf7(MOBIData *m) {
         return ret;
     }
     m->kf8_boundary_offset = MOBI_NOTSET;
+    mobi_free_next(m);
     
     // update EXTH tags
     
@@ -3258,6 +3333,8 @@ MOBI_RET mobi_remove_part_kf8(MOBIData *m) {
         }
     }
     
+    mobi_free_next(m);
+    
     // update EXTH tags
     MOBIExthHeader *exth = mobi_get_exthrecord_by_tag(m, EXTH_KF8BOUNDARY);
     if (exth != NULL && exth->size == sizeof(uint32_t)) {
@@ -3281,13 +3358,13 @@ MOBI_RET mobi_remove_part_kf8(MOBIData *m) {
 /**
  @brief Remove one version from  hybrid file
  
- Hybrid file contains two document versions: KF7 and KF8.
+ Hybrid file contains two document versions: KF8 version for devices that support new format and a version for older devices.
  
  @param[in,out] m MOBIData structure
- @param[in,out] version Version to remove: 7 for KF7 or 8 for KF8
+ @param[in] remove_kf8 Remove new KF8 part if true, old part if false
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-MOBI_RET mobi_remove_hybrid_part(MOBIData *m, const int version) {
+MOBI_RET mobi_remove_hybrid_part(MOBIData *m, const bool remove_kf8) {
     if (m == NULL) {
         return MOBI_INIT_FAILED;
     }
@@ -3295,15 +3372,10 @@ MOBI_RET mobi_remove_hybrid_part(MOBIData *m, const int version) {
         debug_print("%s\n", "Not a hybrid, skip removing part");
         return MOBI_SUCCESS;
     }
-    switch (version) {
-        case 7:
-            return mobi_remove_part_kf7(m);
-            
-        case 8:
-            return mobi_remove_part_kf8(m);
+    if (remove_kf8) {
+        return mobi_remove_part_kf8(m);
     }
-    
-    return MOBI_PARAM_ERR;
+    return mobi_remove_part_kf7(m);
 }
 
 /**
@@ -3346,10 +3418,45 @@ MOBI_RET mobi_swap_mobidata(MOBIData *m) {
  */
 MOBI_RET mobi_drm_setkey_serial(MOBIData *m, const char *serial) {
 #ifdef USE_ENCRYPTION
-    return mobi_drm_setkey_serial_internal(m, serial);
+    return mobi_drmkey_set_serial(m, serial);
 #else
     UNUSED(m);
     UNUSED(serial);
+    debug_print("Libmobi compiled without encryption support%s", "\n");
+    return MOBI_DRM_UNSUPPORTED;
+#endif
+}
+
+/**
+ @brief Add DRM voucher
+ 
+ DRM vouncher will be used to generate pid key which is used to encrypt main encryption key.
+ Pid key is based on device serial number.
+ Optionally it is possible to set validity of the key. The key will be valid only within the period.
+ Optionally the pid key may be generated not only from serial number but also from contents
+ of selected EXTH headers. In such case the headers should be added (@see mobi_add_exthrecord)
+ before calling this function and array of header tags passed as function parameter.
+ 
+ @param[in,out] m MOBIData structure with raw data and metadata
+ @param[in] serial Device serial number
+ @param[in] valid_from DRM validity start time, -1 if not set
+ @param[in] valid_to DRM validity end time, -1 if not set
+ @param[in] tamperkeys Array of EXTH tags to include in PID generation, NULL if none
+ @param[in] tamperkeys_count Count of EXTH tags
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_drm_addvoucher(MOBIData *m, const char *serial, const time_t valid_from, const time_t valid_to,
+                             const MOBIExthTag *tamperkeys, const size_t tamperkeys_count) {
+#ifdef USE_ENCRYPTION
+    return mobi_voucher_add(m, serial, valid_from, valid_to, tamperkeys, tamperkeys_count);
+
+#else
+    UNUSED(m);
+    UNUSED(serial);
+    UNUSED(valid_from);
+    UNUSED(valid_to);
+    UNUSED(tamperkeys);
+    UNUSED(tamperkeys_count);
     debug_print("Libmobi compiled without encryption support%s", "\n");
     return MOBI_DRM_UNSUPPORTED;
 #endif
@@ -3364,7 +3471,7 @@ MOBI_RET mobi_drm_setkey_serial(MOBIData *m, const char *serial) {
  */
 MOBI_RET mobi_drm_setkey(MOBIData *m, const char *pid) {
 #ifdef USE_ENCRYPTION
-    return mobi_drm_setkey_internal(m, pid);
+    return mobi_drmkey_set(m, pid);
 #else
     UNUSED(m);
     UNUSED(pid);
@@ -3381,11 +3488,24 @@ MOBI_RET mobi_drm_setkey(MOBIData *m, const char *pid) {
  */
 MOBI_RET mobi_drm_delkey(MOBIData *m) {
 #ifdef USE_ENCRYPTION
-    return mobi_drm_delkey_internal(m);
+    return mobi_drmkey_delete(m);
 #else
     UNUSED(m);
     debug_print("Libmobi compiled without encryption support%s", "\n");
     return MOBI_DRM_UNSUPPORTED;
+#endif
+}
+
+/**
+ @brief Free internals
+
+ @param[in,out] m MOBIData structure with raw data and metadata
+ */
+void mobi_free_internals(MOBIData *m) {
+#ifdef USE_ENCRYPTION
+    mobi_free_drm(m);
+#else
+    UNUSED(m);
 #endif
 }
 

@@ -850,6 +850,7 @@ char * mobi_get_cncx_string(const MOBIPdbRecord *cncx_record, const uint32_t cnc
  
  @param[in] cncx_record MOBIPdbRecord structure with cncx record
  @param[in] cncx_offset Offset of string entry from the beginning of the record
+ @param[in] cncx_encoding Encoding
  @return Entry string or null if malloc failed
  */
 char * mobi_get_cncx_string_utf8(const MOBIPdbRecord *cncx_record, const uint32_t cncx_offset, MOBIEncoding cncx_encoding) {

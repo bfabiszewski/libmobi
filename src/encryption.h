@@ -14,9 +14,33 @@
 #include "config.h"
 #include "mobi.h"
 
-MOBI_RET mobi_drm_decrypt_buffer(unsigned char *out, const unsigned char *in, const size_t length, const MOBIData *m);
-MOBI_RET mobi_drm_setkey_internal(MOBIData *m, const char *pid);
-MOBI_RET mobi_drm_setkey_serial_internal(MOBIData *m, const char *pid);
-MOBI_RET mobi_drm_delkey_internal(MOBIData *m);
+/**
+ @brief Drm cookie data
+ */
+typedef struct {
+    unsigned char *pid; /**< PIDs for decryption, NULL if not set */
+    uint32_t valid_from; /**< validity period start time, unix time in minutes, 0 if not set */
+    uint32_t valid_to; /**< validity period end time, unix time in minutes, MOBI_NOTSET if not set */
+} MOBICookie;
+
+/**
+ @brief Drm data
+ */
+
+typedef struct {
+    unsigned char *key; /**< key for decryption, NULL if not set */
+    uint32_t cookies_count; /**< Cookies count */
+    MOBICookie **cookies; /**< DRM cookie */
+} MOBIDrm;
+
+void mobi_free_drm(MOBIData *m);
+MOBI_RET mobi_buffer_decrypt(unsigned char *out, const unsigned char *in, const size_t length, const MOBIData *m);
+MOBI_RET mobi_drmkey_set(MOBIData *m, const char *pid);
+MOBI_RET mobi_drmkey_set_serial(MOBIData *m, const char *serial);
+MOBI_RET mobi_drmkey_delete(MOBIData *m);
+MOBI_RET mobi_voucher_add(MOBIData *m, const char *serial, time_t valid_from, time_t valid_to,
+                                             const MOBIExthTag *tamperkeys, const size_t tamperkeys_count);
+MOBI_RET mobi_drm_serialize_v1(MOBIBuffer *buf, const MOBIData *m);
+MOBI_RET mobi_drm_serialize_v2(MOBIBuffer *buf, const MOBIData *m);
 
 #endif /* defined(mobi_encryption_h) */

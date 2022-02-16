@@ -372,6 +372,7 @@ AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([tools/Makefile])
 AC_CONFIG_FILES([tools/mobitool.1])
 AC_CONFIG_FILES([tools/mobimeta.1])
+AC_CONFIG_FILES([tools/mobidrm.1])
 AC_CONFIG_FILES([tests/Makefile])
 AC_CONFIG_FILES([tests/test.sh], [chmod +x tests/test.sh])
 

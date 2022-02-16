@@ -119,6 +119,7 @@ void array_sort(MOBIArray *arr, const bool unique) {
  @brief Get size of the array
  
  @param[in] arr MOBIArray structure
+ @return Array size
  */
 size_t array_size(MOBIArray *arr) {
     return arr->size;

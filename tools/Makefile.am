@@ -39,3 +39,13 @@ mobimeta_DEPENDENCIES = $(top_builddir)/src/libmobi.la libcommon.a
 mobimeta_LDADD = libcommon.a $(top_builddir)/src/libmobi.la
 mobimeta_CFLAGS = $(ISO99_SOURCE) $(DEBUG_CFLAGS) -D_POSIX_C_SOURCE=200112L
 mobimeta_LDFLAGS = $(TOOLS_STATIC)
+
+if USE_ENCRYPTION
+bin_PROGRAMS += mobidrm
+man_MANS += mobidrm.1
+mobidrm_SOURCES = mobidrm.c
+mobidrm_DEPENDENCIES = $(top_builddir)/src/libmobi.la libcommon.a
+mobidrm_LDADD = libcommon.a $(top_builddir)/src/libmobi.la
+mobidrm_CFLAGS = $(ISO99_SOURCE) $(DEBUG_CFLAGS) -D_POSIX_C_SOURCE=200112L
+mobidrm_LDFLAGS = $(TOOLS_STATIC)
+endif

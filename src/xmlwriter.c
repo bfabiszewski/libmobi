@@ -381,8 +381,10 @@ xmlBufferPtr xmlBufferCreate(void) {
 }
 
 /**
- @brief Free xml buffer
-  */
+ @brief Free XML buffer
+ 
+ @param[in,out] buf XML buffer
+ */
 void xmlBufferFree(xmlBufferPtr buf) {
     if (buf == NULL) { return; }
     if (buf->mobibuffer != NULL) {

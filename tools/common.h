@@ -68,5 +68,6 @@ bool dir_exists(const char *path);
 void print_summary(const MOBIData *m);
 void print_exth(const MOBIData *m);
 int set_decryption_key(MOBIData *m, const char *serial, const char *pid);
-
+int set_decryption_pid(MOBIData *m, const char *pid);
+int set_decryption_serial(MOBIData *m, const char *pid);
 #endif /* common_h */

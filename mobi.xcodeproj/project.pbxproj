@@ -13,6 +13,8 @@
 		1504FD861CBE880B002AA042 /* meta.h in Headers */ = {isa = PBXBuildFile; fileRef = 1504FD841CBE880B002AA042 /* meta.h */; };
 		150A318D18E19BF9001A7AD7 /* write.c in Sources */ = {isa = PBXBuildFile; fileRef = 150A318C18E19BF9001A7AD7 /* write.c */; };
 		151A46661909312900FAF3F4 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 151A46651909312900FAF3F4 /* miniz.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		152FD1E6270509A900AF276A /* randombytes.h in Headers */ = {isa = PBXBuildFile; fileRef = 152FD1E4270509A900AF276A /* randombytes.h */; };
+		152FD1E7270509A900AF276A /* randombytes.c in Sources */ = {isa = PBXBuildFile; fileRef = 152FD1E5270509A900AF276A /* randombytes.c */; };
 		153D91DB18E9630000E807B6 /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 153D91DA18E9630000E807B6 /* memory.c */; };
 		1543065B1CB78A45006AB398 /* mobimeta.c in Sources */ = {isa = PBXBuildFile; fileRef = 151185A31CB6C28500201C8A /* mobimeta.c */; };
 		1543065E1CB78BA8006AB398 /* libmobi.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 150039BB18E06BC100D33077 /* libmobi.dylib */; };
@@ -27,6 +29,9 @@
 		1563314718EC36A200D4B858 /* debug.c in Sources */ = {isa = PBXBuildFile; fileRef = 1563314618EC36A200D4B858 /* debug.c */; };
 		156AA65D1C81A3860085335A /* xmlwriter.c in Sources */ = {isa = PBXBuildFile; fileRef = 156AA65B1C81A3860085335A /* xmlwriter.c */; };
 		156AA65E1C81A3860085335A /* xmlwriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 156AA65C1C81A3860085335A /* xmlwriter.h */; };
+		157BEA732747BEDA004984B8 /* libmobi.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 150039BB18E06BC100D33077 /* libmobi.dylib */; };
+		157BEA852747BF13004984B8 /* mobidrm.c in Sources */ = {isa = PBXBuildFile; fileRef = 157BEA6B2747B4EC004984B8 /* mobidrm.c */; };
+		157BEA8A2747BF26004984B8 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 154C2D3E1CC64A170041DD0E /* common.c */; };
 		157DF7AD191A514D00191502 /* index.c in Sources */ = {isa = PBXBuildFile; fileRef = 157DF7AC191A514D00191502 /* index.c */; };
 		15AB2CB419572C2800EB7F74 /* parse_rawml.c in Sources */ = {isa = PBXBuildFile; fileRef = 15AB2CB319572C2800EB7F74 /* parse_rawml.c */; };
 		15EA81DF1A14D5AC00138554 /* structure.c in Sources */ = {isa = PBXBuildFile; fileRef = 15EA81DE1A14D5AC00138554 /* structure.c */; };
@@ -50,6 +55,13 @@
 			remoteGlobalIDString = 150039BA18E06BC100D33077;
 			remoteInfo = mobi;
 		};
+		157BEA6E2747BEDA004984B8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 150039B318E06BC100D33077 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 150039BA18E06BC100D33077;
+			remoteInfo = mobi;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -63,6 +75,15 @@
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 		1553331418E37F7000334E23 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		157BEA742747BEDA004984B8 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1;
@@ -93,6 +114,8 @@
 		152E5D1518F5DECF00B05EC9 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Makefile.am; path = tools/Makefile.am; sourceTree = "<group>"; };
 		152E5D1618F5E22000B05EC9 /* autogen.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = autogen.sh; sourceTree = "<group>"; };
 		152ED797195EFBD900ACD1AD /* ChangeLog */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ChangeLog; sourceTree = "<group>"; };
+		152FD1E4270509A900AF276A /* randombytes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = randombytes.h; path = src/randombytes.h; sourceTree = "<group>"; };
+		152FD1E5270509A900AF276A /* randombytes.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = randombytes.c; path = src/randombytes.c; sourceTree = "<group>"; };
 		153967601907C0AA00EDC923 /* COPYING */ = {isa = PBXFileReference; lastKnownFileType = text; path = COPYING; sourceTree = "<group>"; };
 		153D91DA18E9630000E807B6 /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; name = memory.c; path = src/memory.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		153D91DC18E9633500E807B6 /* memory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = memory.h; path = src/memory.h; sourceTree = "<group>"; };
@@ -116,15 +139,18 @@
 		1563314618EC36A200D4B858 /* debug.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = debug.c; path = src/debug.c; sourceTree = "<group>"; };
 		156AA65B1C81A3860085335A /* xmlwriter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = xmlwriter.c; path = src/xmlwriter.c; sourceTree = "<group>"; };
 		156AA65C1C81A3860085335A /* xmlwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xmlwriter.h; path = src/xmlwriter.h; sourceTree = "<group>"; };
+		157BEA6B2747B4EC004984B8 /* mobidrm.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = mobidrm.c; path = tools/mobidrm.c; sourceTree = SOURCE_ROOT; };
+		157BEA782747BEDA004984B8 /* mobidrm */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mobidrm; sourceTree = BUILT_PRODUCTS_DIR; };
 		157DF7AC191A514D00191502 /* index.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = index.c; path = src/index.c; sourceTree = "<group>"; };
 		157DF7AE191A51A400191502 /* index.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = index.h; path = src/index.h; sourceTree = "<group>"; };
 		15843DFE19215D0400587C89 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		158F44DC191E88010000F44A /* libmobi.pc.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = libmobi.pc.in; sourceTree = "<group>"; };
 		15AB2CB319572C2800EB7F74 /* parse_rawml.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = parse_rawml.c; path = src/parse_rawml.c; sourceTree = "<group>"; };
 		15AB2CB519572C4400EB7F74 /* parse_rawml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = parse_rawml.h; path = src/parse_rawml.h; sourceTree = "<group>"; };
+		15B4311D2767840300B7E6A7 /* mobidrm.1.in */ = {isa = PBXFileReference; explicitFileType = text.man; name = mobidrm.1.in; path = tools/mobidrm.1.in; sourceTree = SOURCE_ROOT; };
 		15D7CFD71A167A3A00F08927 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = tools/README.md; sourceTree = "<group>"; };
-		15E5FAD91CC58B4D00F700D1 /* mobimeta.1.in */ = {isa = PBXFileReference; lastKnownFileType = text; name = mobimeta.1.in; path = tools/mobimeta.1.in; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.man; };
-		15E65B5E1A1DF1DA00B7FBBD /* mobitool.1.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = mobitool.1.in; path = tools/mobitool.1.in; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.man; };
+		15E5FAD91CC58B4D00F700D1 /* mobimeta.1.in */ = {isa = PBXFileReference; explicitFileType = text.man; name = mobimeta.1.in; path = tools/mobimeta.1.in; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.man; };
+		15E65B5E1A1DF1DA00B7FBBD /* mobitool.1.in */ = {isa = PBXFileReference; explicitFileType = text.man; fileEncoding = 4; name = mobitool.1.in; path = tools/mobitool.1.in; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.man; };
 		15E65B5F1A1E0FC100B7FBBD /* .travis.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .travis.yml; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		15EA81DD1A14D58500138554 /* structure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = structure.h; path = src/structure.h; sourceTree = SOURCE_ROOT; };
 		15EA81DE1A14D5AC00138554 /* structure.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = structure.c; path = src/structure.c; sourceTree = "<group>"; };
@@ -158,6 +184,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		157BEA722747BEDA004984B8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				157BEA732747BEDA004984B8 /* libmobi.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -188,6 +222,8 @@
 				1560388A192D2E34002EDB1A /* opf.h */,
 				15AB2CB319572C2800EB7F74 /* parse_rawml.c */,
 				15AB2CB519572C4400EB7F74 /* parse_rawml.h */,
+				152FD1E4270509A900AF276A /* randombytes.h */,
+				152FD1E5270509A900AF276A /* randombytes.c */,
 				1553330018E359AE00334E23 /* read.c */,
 				1553330218E359B900334E23 /* read.h */,
 				1502448D1CD3A18F0075F4EC /* sha1.c */,
@@ -212,6 +248,7 @@
 				150039BB18E06BC100D33077 /* libmobi.dylib */,
 				1553331618E37F7000334E23 /* mobitool */,
 				154306541CB78A3D006AB398 /* mobimeta */,
+				157BEA782747BEDA004984B8 /* mobidrm */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -246,6 +283,7 @@
 				15D7CFD71A167A3A00F08927 /* README.md */,
 				15E65B5F1A1E0FC100B7FBBD /* .travis.yml */,
 				153967601907C0AA00EDC923 /* COPYING */,
+				15B4311D2767840300B7E6A7 /* mobidrm.1.in */,
 				15E65B5E1A1DF1DA00B7FBBD /* mobitool.1.in */,
 				15E5FAD91CC58B4D00F700D1 /* mobimeta.1.in */,
 			);
@@ -261,6 +299,7 @@
 				1542B8051C7FA5E900C5122F /* getopt.h */,
 				154C2D3E1CC64A170041DD0E /* common.c */,
 				154C2D3F1CC64A170041DD0E /* common.h */,
+				157BEA6B2747B4EC004984B8 /* mobidrm.c */,
 			);
 			name = tools;
 			path = test;
@@ -274,6 +313,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				15FB2BB31A1A32970052D5C5 /* encryption.h in Headers */,
+				152FD1E6270509A900AF276A /* randombytes.h in Headers */,
 				150244901CD3A18F0075F4EC /* sha1.h in Headers */,
 				156AA65E1C81A3860085335A /* xmlwriter.h in Headers */,
 				1504FD861CBE880B002AA042 /* meta.h in Headers */,
@@ -336,13 +376,31 @@
 			productReference = 1553331618E37F7000334E23 /* mobitool */;
 			productType = "com.apple.product-type.tool";
 		};
+		157BEA6C2747BEDA004984B8 /* mobidrm */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 157BEA752747BEDA004984B8 /* Build configuration list for PBXNativeTarget "mobidrm" */;
+			buildPhases = (
+				157BEA6F2747BEDA004984B8 /* Sources */,
+				157BEA722747BEDA004984B8 /* Frameworks */,
+				157BEA742747BEDA004984B8 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				157BEA6D2747BEDA004984B8 /* PBXTargetDependency */,
+			);
+			name = mobidrm;
+			productName = test;
+			productReference = 157BEA782747BEDA004984B8 /* mobidrm */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		150039B318E06BC100D33077 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0930;
+				LastUpgradeCheck = 1240;
 				ORGANIZATIONNAME = "Bartek Fabiszewski";
 				TargetAttributes = {
 					154306531CB78A3D006AB398 = {
@@ -352,11 +410,12 @@
 			};
 			buildConfigurationList = 150039B618E06BC100D33077 /* Build configuration list for PBXProject "mobi" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				English,
 				en,
+				Base,
 			);
 			mainGroup = 150039B218E06BC100D33077;
 			productRefGroup = 150039BC18E06BC100D33077 /* Products */;
@@ -366,6 +425,7 @@
 				150039BA18E06BC100D33077 /* mobi */,
 				1553331518E37F7000334E23 /* mobitool */,
 				154306531CB78A3D006AB398 /* mobimeta */,
+				157BEA6C2747BEDA004984B8 /* mobidrm */,
 			);
 		};
 /* End PBXProject section */
@@ -388,6 +448,7 @@
 				153D91DB18E9630000E807B6 /* memory.c in Sources */,
 				156AA65D1C81A3860085335A /* xmlwriter.c in Sources */,
 				15AB2CB419572C2800EB7F74 /* parse_rawml.c in Sources */,
+				152FD1E7270509A900AF276A /* randombytes.c in Sources */,
 				15FB2BB21A1A32970052D5C5 /* encryption.c in Sources */,
 				1504FD851CBE880B002AA042 /* meta.c in Sources */,
 				151A46661909312900FAF3F4 /* miniz.c in Sources */,
@@ -412,6 +473,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		157BEA6F2747BEDA004984B8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				157BEA8A2747BF26004984B8 /* common.c in Sources */,
+				157BEA852747BF13004984B8 /* mobidrm.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -424,6 +494,11 @@
 			isa = PBXTargetDependency;
 			target = 150039BA18E06BC100D33077 /* mobi */;
 			targetProxy = 1553331F18E37FB800334E23 /* PBXContainerItemProxy */;
+		};
+		157BEA6D2747BEDA004984B8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 150039BA18E06BC100D33077 /* mobi */;
+			targetProxy = 157BEA6E2747BEDA004984B8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -454,6 +529,7 @@
 				CLANG_WARN_NULLABLE_TO_NONNULL_CONVERSION = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
@@ -536,6 +612,7 @@
 				CLANG_WARN_NULLABLE_TO_NONNULL_CONVERSION = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
@@ -575,7 +652,7 @@
 					/usr/include/libxml2,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"-DHAVE_CONFIG_H",
 					"-DHAVE_STRDUP",
@@ -675,6 +752,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -682,6 +760,7 @@
 				);
 				HEADER_SEARCH_PATHS = ./src;
 				"HEADER_SEARCH_PATHS[arch=*]" = ./src;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_NAME = mobitool;
 			};
 			name = Debug;
@@ -690,9 +769,38 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = ./src;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_NAME = mobitool;
+			};
+			name = Release;
+		};
+		157BEA762747BEDA004984B8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
+				CODE_SIGN_IDENTITY = "-";
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				HEADER_SEARCH_PATHS = ./src;
+				"HEADER_SEARCH_PATHS[arch=*]" = ./src;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		157BEA772747BEDA004984B8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
+				CODE_SIGN_IDENTITY = "-";
+				FRAMEWORK_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = ./src;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -731,6 +839,15 @@
 			buildConfigurations = (
 				1553331D18E37F7100334E23 /* Debug */,
 				1553331E18E37F7100334E23 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		157BEA752747BEDA004984B8 /* Build configuration list for PBXNativeTarget "mobidrm" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				157BEA762747BEDA004984B8 /* Debug */,
+				157BEA772747BEDA004984B8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

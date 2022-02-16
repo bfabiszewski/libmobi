@@ -1,0 +1,143 @@
+.Dd December 13, 2021
+.Dt mobidrm 1 URM
+.Os Unix
+.Sh NAME
+.Nm mobidrm
+.Nd Utility for decryption and encryption of MOBI format ebook files.
+.Sh SYNOPSIS
+.Nm
+.Fl d
+.Op Fl o Ar dir
+.Op Fl p Ar pid
+.Op Fl s Ar serial
+.Ar file
+.Nm
+.Fl e
+.Op Fl f Ar date
+.Op Fl o Ar dir
+.Op Fl s Ar serial
+.Op Fl t Ar date
+.Ar file
+.Nm
+.Fl v
+.Sh DESCRIPTION
+The program encrypts or decrypts MOBI files with DRM schemes used on eInk devices.
+.Pp
+It may encrypt documents targeting particular device by using its serial number or applying generic
+DRM scheme targeting all supported readers. Encryption may be valid only during chosen period.
+.Pp
+The program also decrypts documents. One must supply device serial number or document PID if DRM was applied for specific device.
+.Pp
+Invoked without arguments prints usage summary and exits.
+.Pp
+A list of flags and their descriptions.
+.Pp
+\fBDecryption flags\fR:
+.Pp
+.Bl -tag -width -indent
+.It Fl d
+Decrypt. This flag must be set in order to decrypt document.
+.It Fl p Ar pid
+Set optional decryption
+.Ar pid
+(may be specified multiple times).
+.It Fl s Ar serial
+Set optional device
+.Ar serial
+number (may be specified multiple times).
+.El
+.Pp
+\fBEncryption flags\fR:
+.Bl -tag -width -indent
+.It Fl e
+Encrypt. This flag must be set in order to encrypt document.
+.It Fl f Ar date
+Set optional validity period \fBfrom\fR
+.Ar date
+formatted as yyyy-mm-dd. Document will not be valid before this date.
+.It Fl s Ar serial
+Set optional device
+.Ar serial
+number. If not set document will be encrypted with generic reader key. This flag may be specified
+multiple times to target multiple devices.
+.It Fl t Ar date
+Set optional validity period \fBto\fR
+.Ar date
+formatted as yyyy-mm-dd. Document will expire after this date.
+.El
+.Pp
+\fBCommon flags\fR:
+.Bl -tag -width -indent
+.It Fl o Ar dir
+Save output to
+.Ar dir
+folder.
+.It Fl v
+Show version and exit.
+.El
+.Pp
+.Sh EXAMPLES
+The following command decrypts document using given serial number. Decrypted output will be saved to /tmp folder.
+.Pp
+.Bl -item -offset indent
+.Nm
+.Fl d
+.Fl s
+B001XXXXXXXXXXXX
+.Fl o
+/tmp example.mobi
+.El
+.Pp
+The following command decrypts document trying multiple PIDs.
+.Pp
+.Bl -item -offset indent
+.Nm
+.Fl d
+.Fl p
+XXXXXXXXX1
+.Fl p
+XXXXXXXXX2 example.mobi
+.El
+.Pp
+The following command encrypts document targeting two devices using their serial numbers. Document will be readable only on those devices.
+.Pp
+.Bl -item -offset indent
+.Nm
+.Fl e
+.Fl s
+B001XXXXXXXXXX01
+.Fl s
+B001XXXXXXXXXX02 example.mobi
+.El
+.Pp
+The following command encrypts document for device wth given serial number. Document will only be valid within given period (inclusive).
+.Pp
+.Bl -item -offset indent
+.Nm
+.Fl e
+.Fl s
+B001XXXXXXXXXX01
+.Fl f
+2021-01-01
+.Fl t
+2021-01-31 example.mobi
+.El
+.Sh RETURN VALUES
+The
+.Nm
+utility returns 0 on success, 1 on error.
+.Sh COPYRIGHT
+Copyright (C) 2021-2022 Bartek Fabiszewski.
+.Pp
+Released under LGPL version 3 or any later (same as libmobi).
+.Sh WEB SITE
+Visit http://www.fabiszewski.net for details.
+.Sh DIAGNOSTICS
+For diagnostics
+.Nm libmobi
+must be configured with
+.Op Fl Fl enable-debug
+option.
+.Sh SEE ALSO
+.Xr mobimeta 1
+.Xr mobitool 1

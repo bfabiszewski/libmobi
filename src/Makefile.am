@@ -11,7 +11,7 @@ libmobi_la_SOURCES += xmlwriter.c xmlwriter.h
 endif
 endif
 if USE_ENCRYPTION
-libmobi_la_SOURCES += encryption.c encryption.h sha1.c sha1.h
+libmobi_la_SOURCES += encryption.c encryption.h randombytes.c randombytes.h sha1.c sha1.h
 endif
 EXTRA_LTLIBRARIES = libminiz.la
 libminiz_la_SOURCES = miniz.c miniz.h

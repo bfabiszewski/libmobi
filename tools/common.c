@@ -55,6 +55,7 @@ const char *libmobi_messages[] = {
 /**
  @brief Return message for given libmobi return code
  @param[in] ret Libmobi return code
+ @return Message string
  */
 const char * libmobi_msg(const MOBI_RET ret) {
     size_t index = ret;
@@ -104,6 +105,7 @@ void split_fullpath(const char *fullpath, char *dirname, char *basename) {
 /**
  * @brief Make directory
  * @param[in] path Path
+ @return SUCCESS or ERROR
  */
 int make_directory(const char *path) {
     errno = 0;
@@ -120,6 +122,7 @@ int make_directory(const char *path) {
  @param[in,out] newdir Path to created subfolder, must have FILENAME_MAX size
  @param[in] dir Directory path
  @param[in] name Subfolder name
+ @return SUCCESS or ERROR
  */
 int create_subdir(char *newdir, const char *dir, const char *name) {
     int n = snprintf(newdir, FILENAME_MAX, "%s%c%s", dir, separator, name);
@@ -139,6 +142,7 @@ int create_subdir(char *newdir, const char *dir, const char *name) {
  @param[in] buffer Buffer
  @param[in] len Buffer length
  @param[in] path File path
+ @return SUCCESS or ERROR
  */
 int write_file(const unsigned char *buffer, const size_t len, const char *path) {
     errno = 0;
@@ -165,6 +169,7 @@ int write_file(const unsigned char *buffer, const size_t len, const char *path) 
  @param[in] name File name
  @param[in] buffer Buffer
  @param[in] len Buffer length
+ @return SUCCESS or ERROR
  */
 int write_to_dir(const char *dir, const char *name, const unsigned char *buffer, const size_t len) {
     char path[FILENAME_MAX];
@@ -183,6 +188,7 @@ int write_to_dir(const char *dir, const char *name, const unsigned char *buffer,
 /**
  @brief Check whether given path exists and is a directory
  @param[in] path Path to be tested
+ @return True if directory exists, false otherwise
  */
 bool dir_exists(const char *path) {
     struct stat sb;
@@ -472,13 +478,48 @@ void print_exth(const MOBIData *m) {
 }
 
 /**
+ @brief Set PID for decryption
+ @param[in,out] m MOBIData structure
+ @param[in] pid Serial number
+ @return SUCCESS or error code
+ */
+int set_decryption_pid(MOBIData *m, const char *pid) {
+    printf("\nVerifying PID %s...", pid);
+    MOBI_RET mobi_ret = mobi_drm_setkey(m, pid);
+    if (mobi_ret != MOBI_SUCCESS) {
+        printf("failed (%s)\n", libmobi_msg(mobi_ret));
+        return (int) mobi_ret;
+    }
+    printf("ok\n");
+    return SUCCESS;
+}
+
+/**
+ @brief Set device serial number for decryption
+ @param[in,out] m MOBIData structure
+ @param[in] serial Serial number
+ @return SUCCESS or error code
+ */
+int set_decryption_serial(MOBIData *m, const char *serial) {
+    printf("\nVerifying serial %s... ", serial);
+    MOBI_RET mobi_ret = mobi_drm_setkey_serial(m, serial);
+    if (mobi_ret != MOBI_SUCCESS) {
+        printf("failed (%s)\n", libmobi_msg(mobi_ret));
+        return (int) mobi_ret;
+    }
+    printf("ok\n");
+    return SUCCESS;
+}
+
+/**
  @brief Set key for decryption. Use user supplied pid or device serial number
  @param[in,out] m MOBIData structure
  @param[in] serial Serial number
  @param[in] pid Pid
+ @return SUCCESS or error code
  */
 int set_decryption_key(MOBIData *m, const char *serial, const char *pid) {
-    MOBI_RET mobi_ret = MOBI_SUCCESS;
+
     if (!pid && !serial) {
         return SUCCESS;
     }
@@ -492,28 +533,12 @@ int set_decryption_key(MOBIData *m, const char *serial, const char *pid) {
     }
     int ret = SUCCESS;
     if (pid) {
-        /* Try to set key for decryption */
-        printf("\nVerifying PID... ");
-        mobi_ret = mobi_drm_setkey(m, pid);
-        if (mobi_ret != MOBI_SUCCESS) {
-            printf("failed (%s)\n", libmobi_msg(mobi_ret));
-            ret = (int) mobi_ret;
-        } else {
-            printf("ok\n");
-            return SUCCESS;
-        }
+        /* Try pid */
+        ret = set_decryption_pid(m, pid);
     }
-    if (serial) {
-        /* Try to set key for decryption */
-        printf("\nVerifying serial... ");
-        mobi_ret = mobi_drm_setkey_serial(m, serial);
-        if (mobi_ret != MOBI_SUCCESS) {
-            printf("failed (%s)\n", libmobi_msg(mobi_ret));
-            ret = (int) mobi_ret;
-        } else {
-            printf("ok\n");
-            ret = SUCCESS;
-        }
+    if (ret != SUCCESS && serial) {
+        /* Try serial */
+        ret = set_decryption_serial(m, serial);
     }
     return ret;
 }

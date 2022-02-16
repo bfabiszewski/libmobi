@@ -19,9 +19,7 @@
 ..
 .Ar file
 .Sh DESCRIPTION
-The program handles .prc, .mobi, .azw; .azw3, .azw4, some .pdb documents. Written as a test case for
-.Nm libmobi
-library.
+The program handles .prc, .mobi, .azw; .azw3, .azw4, some .pdb documents.
 .Pp
 Invoked without arguments prints document metadata and exits.
 .Pp

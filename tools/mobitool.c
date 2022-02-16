@@ -242,6 +242,7 @@ void print_records_meta(const MOBIData *m) {
  @param[out] newpath Created path, buffer must have FILENAME_MAX size
  @param[in] fullpath Input file path
  @param[in] suffix Path name suffix
+ @return SUCCESS or ERROR
  */
 int create_path(char *newpath, const char *fullpath, const char *suffix) {
     char dirname[FILENAME_MAX];
@@ -270,6 +271,7 @@ int create_path(char *newpath, const char *fullpath, const char *suffix) {
  @param[out] newdir Created directory path, buffer must have FILENAME_MAX size
  @param[in] fullpath Input file path
  @param[in] suffix Directory name suffix
+ @return SUCCESS or ERROR
  */
 int create_dir(char *newdir, const char *fullpath, const char *suffix) {
     if (create_path(newdir, fullpath, suffix) == ERROR) {
@@ -282,6 +284,7 @@ int create_dir(char *newdir, const char *fullpath, const char *suffix) {
  @brief Dump each document record to a file into created folder
  @param[in] m MOBIData structure
  @param[in] fullpath File path will be parsed to build basenames of dumped records
+ @return SUCCESS or ERROR
  */
 int dump_records(const MOBIData *m, const char *fullpath) {
     char newdir[FILENAME_MAX];
@@ -308,6 +311,7 @@ int dump_records(const MOBIData *m, const char *fullpath) {
  @brief Dump all text records, decompressed and concatenated, to a single rawml file
  @param[in] m MOBIData structure
  @param[in] fullpath File path will be parsed to create a new name for saved file
+ @return SUCCESS or ERROR
  */
 int dump_rawml(const MOBIData *m, const char *fullpath) {
     char newpath[FILENAME_MAX];
@@ -335,6 +339,7 @@ int dump_rawml(const MOBIData *m, const char *fullpath) {
  @brief Dump cover record
  @param[in] m MOBIData structure
  @param[in] fullpath File path will be parsed to create a new name for saved file
+ @return SUCCESS or ERROR
  */
 int dump_cover(const MOBIData *m, const char *fullpath) {
     
@@ -388,6 +393,7 @@ int dump_cover(const MOBIData *m, const char *fullpath) {
  @brief Dump parsed markup files and resources into created folder
  @param[in] rawml MOBIRawml structure holding parsed records
  @param[in] fullpath File path will be parsed to build basenames of dumped records
+ @return SUCCESS or ERROR
  */
 int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
     if (rawml == NULL) {
@@ -505,6 +511,7 @@ int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
  
  @param[in] rawml MOBIRawml structure holding parsed records
  @param[in] fullpath File path will be parsed to build basenames of dumped records
+ @return SUCCESS or ERROR
  */
 int create_epub(const MOBIRawml *rawml, const char *fullpath) {
     if (rawml == NULL) {
@@ -614,6 +621,7 @@ int create_epub(const MOBIRawml *rawml, const char *fullpath) {
  @brief Dump SRCS record
  @param[in] m MOBIData structure
  @param[in] fullpath Full file path
+ @return SUCCESS or ERROR
  */
 int dump_embedded_source(const MOBIData *m, const char *fullpath) {
     /* Try to get embedded source */
@@ -694,6 +702,7 @@ int dump_embedded_source(const MOBIData *m, const char *fullpath) {
 /**
  @brief Main routine that calls optional subroutines
  @param[in] fullpath Full file path
+ @return SUCCESS or ERROR
  */
 int loadfilename(const char *fullpath) {
     MOBI_RET mobi_ret;
@@ -720,11 +729,6 @@ int loadfilename(const char *fullpath) {
     /* MOBIData structure will be filled with loaded document data and metadata */
     mobi_ret = mobi_load_file(m, file);
     fclose(file);
-    
-    if (create_epub_opt && mobi_is_replica(m)) {
-        create_epub_opt = 0;
-        printf("\nWarning: Can't create EPUB format from Print Replica book (ignoring -e argument)\n\n");
-    }
 
     /* Try to print basic metadata, even if further loading failed */
     /* In case of some unsupported formats it may still print some useful info */
@@ -734,6 +738,11 @@ int loadfilename(const char *fullpath) {
         printf("Error while loading document (%s)\n", libmobi_msg(mobi_ret));
         mobi_free(m);
         return ERROR;
+    }
+    
+    if (create_epub_opt && mobi_is_replica(m)) {
+        create_epub_opt = 0;
+        printf("\nWarning: Can't create EPUB format from Print Replica book (ignoring -e argument)\n\n");
     }
     
     if (!print_extended_meta_opt) {
@@ -847,6 +856,10 @@ void exit_with_usage(const char *progname) {
 
 /**
  @brief Main
+ 
+ @param[in] argc Arguments count
+ @param[in] argv Arguments array
+ @return SUCCESS (0) or ERROR (1)
  */
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -931,7 +944,7 @@ int main(int argc, char *argv[]) {
             case 'v':
                 printf("mobitool build: " __DATE__ " " __TIME__ " (" COMPILER ")\n");
                 printf("libmobi: %s\n", mobi_version());
-                return 0;
+                return SUCCESS;
             case 'x':
                 extract_source_opt = 1;
                 break;
@@ -955,7 +968,7 @@ int main(int argc, char *argv[]) {
         exit_with_usage(argv[0]);
     }
     
-    int ret = 0;
+    int ret = SUCCESS;
     char filename[FILENAME_MAX];
     strncpy(filename, argv[optind], FILENAME_MAX - 1);
     filename[FILENAME_MAX - 1] = '\0';

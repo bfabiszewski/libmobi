@@ -1,3 +1,4 @@
+2022-02-16: Restructure, cleanup encryption related code, add mobidrm tool
 2021-11-19: Improve getopt loop, fix config.h to be accessible from all tools
 2021-11-10: Update xcode project
 2021-11-10: Add functions to split hybrid files

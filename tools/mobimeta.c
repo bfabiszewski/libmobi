@@ -57,6 +57,9 @@ void exit_with_usage(const char *progname);
 typedef MOBI_RET (*MetaFunAdd)(MOBIData *m, const char *string);
 typedef MOBI_RET (*MetaFunDel)(MOBIData *m);
 
+/**
+ @brief Meta functions structure
+ */
 typedef struct {
     const char *name;
     MetaFunAdd function_add;
@@ -104,6 +107,7 @@ void exit_with_usage(const char *progname) {
 /**
  @brief Check whether string is integer
  @param[in] string String
+ @return True if string represents integer
  */
 bool isinteger(const char *string) {
     if (*string == '\0') { return false; }
@@ -119,9 +123,10 @@ bool isinteger(const char *string) {
  @param[in,out] subopts List of suboptions
  @param[in,out] token Will be filled with first found key name or NULL if missing
  @param[in,out] value Will be filled with first found key value or NULL if missing
+ @return True if there are more pairs to parse
  */
 bool parsesubopt(char **subopts, char **token, char **value) {
-    if (!**subopts) { return -1; }
+    if (!**subopts) { return false; }
     *token = NULL;
     *value = NULL;
     char *p = NULL;
@@ -141,7 +146,8 @@ bool parsesubopt(char **subopts, char **token, char **value) {
 
 /**
  @brief Get matching token from meta functions array
- @param[in] token Will be filled with key name or NULL
+ @param[in] token Meta token name
+ @return Index in array,-1 if not found
  */
 int get_meta(const char *token) {
     for (int i = 0; i < (int) META_SIZE; i++) {
@@ -154,6 +160,10 @@ int get_meta(const char *token) {
 
 /**
  @brief Main
+ 
+ @param[in] argc Arguments count
+ @param[in] argv Arguments array
+ @return SUCCESS (0) or ERROR (1)
  */
 int main(int argc, char *argv[]) {
     if (argc < 2) {
