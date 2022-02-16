@@ -829,13 +829,14 @@ int loadfilename(const char *fullpath) {
  @param[in] progname Executed program name
  */
 void exit_with_usage(const char *progname) {
-    printf("usage: %s [-cd" PRINT_EPUB_ARG "imrs" PRINT_RUSAGE_ARG "vx7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
+    printf("usage: %s [-cd" PRINT_EPUB_ARG "himrs" PRINT_RUSAGE_ARG "vx7] [-o dir]" PRINT_ENC_USG " filename\n", progname);
     printf("       without arguments prints document metadata and exits\n");
     printf("       -c        dump cover\n");
     printf("       -d        dump rawml text record\n");
 #ifdef USE_XMLWRITER
     printf("       -e        create EPUB file (with -s will dump EPUB source)\n");
 #endif
+    printf("       -h        show this usage summary and exit\n");
     printf("       -i        print detailed metadata\n");
     printf("       -m        print records metadata\n");
     printf("       -o dir    save output to dir folder\n");
@@ -867,7 +868,7 @@ int main(int argc, char *argv[]) {
     }
     opterr = 0;
     int c;
-    while ((c = getopt(argc, argv, "cd" PRINT_EPUB_ARG "imo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "vx7")) != -1) {
+    while ((c = getopt(argc, argv, "cd" PRINT_EPUB_ARG "himo:" PRINT_ENC_ARG "rs" PRINT_RUSAGE_ARG "vx7")) != -1) {
         switch (c) {
             case 'c':
                 dump_cover_opt = 1;
@@ -959,6 +960,7 @@ int main(int argc, char *argv[]) {
                     fprintf(stderr, "Unknown option character `\\x%x'\n", optopt);
                 }
                 exit_with_usage(argv[0]);
+            case 'h':
             default:
                 exit_with_usage(argv[0]);
         }

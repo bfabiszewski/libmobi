@@ -41,7 +41,7 @@ time_t valid_to = -1;
  @param[in] progname Executed program name
  */
 static void print_usage(const char *progname) {
-    printf("usage: %s [-dev] [-p pid] [-f date] [-t date] [-s serial] [-o dir] filename\n", progname);
+    printf("usage: %s [-d | -e] [-hv] [-p pid] [-f date] [-t date] [-s serial] [-o dir] filename\n", progname);
     printf("       without arguments prints document metadata and exits\n\n");
 
     printf("       Decrypt options:\n");
@@ -57,6 +57,7 @@ static void print_usage(const char *progname) {
     
     printf("       Common options:\n");
     printf("       -o dir    save output to dir folder\n");
+    printf("       -h        show this usage summary and exit\n");
     printf("       -v        show version and exit\n");
 }
 
@@ -110,14 +111,14 @@ static int do_encrypt(MOBIData *m, bool use_kf8) {
     for (size_t i = 0; i < serial_count; i++) {
         mobi_ret = mobi_drm_addvoucher(m, serial[i], valid_from, valid_to, tags, tags_count);
         if (mobi_ret != MOBI_SUCCESS) {
-            printf("Error add encryption voucher (%s)\n", libmobi_msg(mobi_ret));
+            printf("Error adding encryption voucher (%s)\n", libmobi_msg(mobi_ret));
             return ERROR;
         }
     }
     if (serial_count == 0) {
         mobi_ret = mobi_drm_addvoucher(m, NULL, valid_from, valid_to, tags, tags_count);
         if (mobi_ret != MOBI_SUCCESS) {
-            printf("Error add encryption voucher (%s)\n", libmobi_msg(mobi_ret));
+            printf("Error adding encryption voucher (%s)\n", libmobi_msg(mobi_ret));
             return ERROR;
         }
     }
@@ -337,7 +338,7 @@ int main(int argc, char *argv[]) {
     }
     opterr = 0;
     int c;
-    while ((c = getopt(argc, argv, "def:o:p:s:t:vx:")) != -1) {
+    while ((c = getopt(argc, argv, "def:ho:p:s:t:vx:")) != -1) {
         switch(c) {
             case 'd':
                 if (encrypt_opt) {
@@ -440,6 +441,7 @@ int main(int argc, char *argv[]) {
                 }
                 print_usage(argv[0]);
                 return ERROR;
+            case 'h':
             default:
                 print_usage(argv[0]);
                 return SUCCESS;

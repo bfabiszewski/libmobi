@@ -90,7 +90,7 @@ const CB meta_functions[] = {
 void exit_with_usage(const char *progname) {
     char *p = strrchr(progname, separator);
     if (p) { progname = ++p; }
-    printf("usage: %s [-a | -s meta=value[,meta=value,...]] [-d meta[,meta,...]]" PRINT_ENC_USG " [-v] filein [fileout]\n", progname);
+    printf("usage: %s [-a | -s meta=value[,meta=value,...]] [-d meta[,meta,...]]" PRINT_ENC_USG " [-hv] filein [fileout]\n", progname);
     printf("       without arguments prints document metadata and exits\n");
     printf("       -a ?           list valid meta named keys\n");
     printf("       -a meta=value  add metadata\n");
@@ -100,6 +100,7 @@ void exit_with_usage(const char *progname) {
     printf("       -p pid         set pid for decryption\n");
     printf("       -P serial      set device serial for decryption\n");
 #endif
+    printf("       -h             show this usage summary and exit\n");
     printf("       -v             show version and exit\n");
     exit(ERROR);
 }
@@ -185,7 +186,7 @@ int main(int argc, char *argv[]) {
     int opt;
     int subopt;
     bool parse;
-    while ((opt = getopt(argc, argv, "a:d:s:" PRINT_ENC_ARG "v")) != -1) {
+    while ((opt = getopt(argc, argv, "a:d:hs:" PRINT_ENC_ARG "v")) != -1) {
         switch (opt) {
             case 'a':
             case 'd':
@@ -261,6 +262,7 @@ int main(int argc, char *argv[]) {
                     printf("Unknown option character `\\x%x'\n", optopt);
                 }
                 exit_with_usage(argv[0]);
+            case 'h':
             default:
                 exit_with_usage(argv[0]);
         }

@@ -1,4 +1,4 @@
-.Dd June 23, 2020
+.Dd February 16, 2022
 .Dt mobitool 1 URM
 .Os Unix
 .Sh NAME
@@ -7,10 +7,10 @@
 .Sh SYNOPSIS
 .Nm
 .if '@XMLWRITER_OPT@'yes' .ig
-.Op Fl cdimrsuvx7
+.Op Fl cdhimrsuvx7
 ..
 .if !'@XMLWRITER_OPT@'yes' .ig
-.Op Fl cdeimrsuvx7
+.Op Fl cdehimrsuvx7
 ..
 .Op Fl o Ar dir
 .if !'@ENCRYPTION_OPT@'yes' .ig
@@ -33,6 +33,8 @@ dump rawml text record
 .It Fl e
 convert mobi to epub
 ..
+.It Fl h
+show usage summary and exit
 .It Fl i
 print detailed metadata
 .It Fl m
@@ -72,7 +74,7 @@ The
 .Nm mobitool
 utility returns 0 on success, 1 on error.
 .Sh COPYRIGHT
-Copyright (C) 2014-2016 Bartek Fabiszewski.
+Copyright (C) 2014-2022 Bartek Fabiszewski.
 .Pp
 Released under LGPL version 3 or any later (same as libmobi).
 .Sh WEB SITE

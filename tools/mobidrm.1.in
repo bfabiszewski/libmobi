@@ -1,4 +1,4 @@
-.Dd December 13, 2021
+.Dd February 16, 2022
 .Dt mobidrm 1 URM
 .Os Unix
 .Sh NAME
@@ -13,13 +13,13 @@
 .Ar file
 .Nm
 .Fl e
-.Op Fl f Ar date
 .Op Fl o Ar dir
 .Op Fl s Ar serial
+.Op Fl f Ar date
 .Op Fl t Ar date
 .Ar file
 .Nm
-.Fl v
+.Op Fl hv
 .Sh DESCRIPTION
 The program encrypts or decrypts MOBI files with DRM schemes used on eInk devices.
 .Pp
@@ -72,6 +72,8 @@ formatted as yyyy-mm-dd. Document will expire after this date.
 Save output to
 .Ar dir
 folder.
+.It Fl h
+Show usage summary and exit.
 .It Fl v
 Show version and exit.
 .El
