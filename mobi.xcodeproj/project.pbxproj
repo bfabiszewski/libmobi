@@ -107,11 +107,11 @@
 		151A46641909302C00FAF3F4 /* miniz.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = miniz.h; path = src/miniz.h; sourceTree = "<group>"; };
 		151A46651909312900FAF3F4 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = miniz.c; path = src/miniz.c; sourceTree = "<absolute>"; };
 		152D509E1BD79AE400E91C09 /* test.sh.in */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = test.sh.in; path = tests/test.sh.in; sourceTree = "<group>"; };
-		152D50A01BD7A08300E91C09 /* Makefile.am */ = {isa = PBXFileReference; explicitFileType = sourcecode.make; name = Makefile.am; path = tests/Makefile.am; sourceTree = "<group>"; usesTabs = 1; xcLanguageSpecificationIdentifier = xcode.lang.sh; };
+		152D50A01BD7A08300E91C09 /* Makefile.am */ = {isa = PBXFileReference; explicitFileType = sourcecode.make; fileEncoding = 4; name = Makefile.am; path = tests/Makefile.am; sourceTree = "<group>"; usesTabs = 1; xcLanguageSpecificationIdentifier = xcode.lang.sh; };
 		152E5D1218F5DEB100B05EC9 /* configure.ac */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.csh; };
-		152E5D1318F5DEB100B05EC9 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		152E5D1418F5DEC000B05EC9 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Makefile.am; path = src/Makefile.am; sourceTree = "<group>"; };
-		152E5D1518F5DECF00B05EC9 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Makefile.am; path = tools/Makefile.am; sourceTree = "<group>"; };
+		152E5D1318F5DEB100B05EC9 /* Makefile.am */ = {isa = PBXFileReference; explicitFileType = sourcecode.make; fileEncoding = 4; path = Makefile.am; sourceTree = "<group>"; usesTabs = 1; };
+		152E5D1418F5DEC000B05EC9 /* Makefile.am */ = {isa = PBXFileReference; explicitFileType = sourcecode.make; fileEncoding = 4; name = Makefile.am; path = src/Makefile.am; sourceTree = "<group>"; usesTabs = 1; };
+		152E5D1518F5DECF00B05EC9 /* Makefile.am */ = {isa = PBXFileReference; explicitFileType = sourcecode.make; fileEncoding = 4; name = Makefile.am; path = tools/Makefile.am; sourceTree = "<group>"; usesTabs = 1; };
 		152E5D1618F5E22000B05EC9 /* autogen.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = autogen.sh; sourceTree = "<group>"; };
 		152ED797195EFBD900ACD1AD /* ChangeLog */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ChangeLog; sourceTree = "<group>"; };
 		152FD1E4270509A900AF276A /* randombytes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = randombytes.h; path = src/randombytes.h; sourceTree = "<group>"; };

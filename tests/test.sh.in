@@ -48,8 +48,8 @@ die() {
 [[ -f "${testfile}" ]] || die "Missing sample file: ${testfile}" $skip
 [[ -x "${mobitool}" ]] || die "Missing mobitool" $skip
 
-if [[ "${basefile}" == 'drm_pid'* ]]; then
-    pid=${basefile:7:10}
+if [[ "${basefile}" == 'sample-drm_pid'* ]]; then
+    pid=${basefile:14:10}
     if [[ "${pid}" =~ [^a-zA-Z0-9*] ]]; then
         log "Ignoring incorrect pid ${pid}"
     else

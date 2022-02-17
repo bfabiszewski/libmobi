@@ -14,6 +14,8 @@
 EXTRA_DIST = md5 \
              samples/sample-cp1252.mobi \
              samples/sample-dict-infl2.mobi \
+             samples/sample-drm_pidLTKULBB*5V-v2.mobi \
+             samples/sample-drm-v1.mobi \
              samples/sample-multimedia.mobi \
              samples/sample-ncx.mobi \
              samples/sample-obfuscated-fonts.mobi \
