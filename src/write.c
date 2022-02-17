@@ -390,7 +390,9 @@ MOBI_RET mobi_update_record0(MOBIData *m, const size_t seqnumber) {
                 return MOBI_DATA_CORRUPT;
             }
         }
-    } else if (m->rh->encryption_type == MOBI_ENCRYPTION_V1) {
+    }
+#ifdef USE_ENCRYPTION
+    else if (m->rh->encryption_type == MOBI_ENCRYPTION_V1) {
         MOBI_RET ret = mobi_drm_serialize_v1(buf, m);
         if (ret != MOBI_SUCCESS) {
             mobi_buffer_free(buf);
@@ -398,7 +400,8 @@ MOBI_RET mobi_update_record0(MOBIData *m, const size_t seqnumber) {
         }
         mobi_buffer_setpos(buf, 14 + drmsize);
     }
-    
+#endif
+
     mobi_buffer_addzeros(buf, padding);
     if (buf->error) {
         mobi_buffer_free(buf);

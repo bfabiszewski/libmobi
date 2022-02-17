@@ -2729,12 +2729,17 @@ bool mobi_is_encrypted(const MOBIData *m) {
  @return true or false
  */
 bool mobi_has_drmkey(const MOBIData *m) {
+#ifdef USE_ENCRYPTION
     if (m == NULL) {
         debug_print("%s", "Mobi structure not initialized\n");
         return false;
     }
     MOBIDrm *drm = m->internals;
     return drm != NULL && drm->key != NULL;
+#else
+    UNUSED(m);
+    return false;
+#endif
 }
 
 /**
@@ -2744,12 +2749,17 @@ bool mobi_has_drmkey(const MOBIData *m) {
  @return true or false
  */
 bool mobi_has_drmcookies(const MOBIData *m) {
+#ifdef USE_ENCRYPTION
     if (m == NULL) {
         debug_print("%s", "Mobi structure not initialized\n");
         return false;
     }
     MOBIDrm *drm = m->internals;
     return drm != NULL && drm->cookies_count > 0;
+#else
+    UNUSED(m);
+    return false;
+#endif
 }
 
 /**
