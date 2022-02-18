@@ -1085,6 +1085,66 @@ MOBI_RET mobi_drmkey_delete(MOBIData *m) {
 }
 
 /**
+ @brief Mark document as encrypted
+ 
+ @param[in,out] m MOBIData structure with raw data and metadata
+ @param[in] encryption_type  Encryption type
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_drm_set(MOBIData *m, const uint16_t encryption_type) {
+    
+    m->rh->encryption_type = encryption_type;
+
+    if (encryption_type == MOBI_ENCRYPTION_V2) {
+        if (m->mh == NULL) {
+            return MOBI_DATA_CORRUPT;
+        }
+        if (m->mh->drm_size == NULL) {
+            m->mh->drm_size = malloc(sizeof(uint32_t));
+            if (m->mh->drm_size == NULL) {
+                debug_print("Memory allocation failed%s", "\n");
+                return MOBI_MALLOC_FAILED;
+            }
+        }
+        if (m->mh->drm_offset == NULL) {
+            m->mh->drm_offset = malloc(sizeof(uint32_t));
+            if (m->mh->drm_offset == NULL) {
+                debug_print("Memory allocation failed%s", "\n");
+                return MOBI_MALLOC_FAILED;
+            }
+        }
+        if (m->mh->drm_count == NULL) {
+            m->mh->drm_count = malloc(sizeof(uint32_t));
+            if (m->mh->drm_count == NULL) {
+                debug_print("Memory allocation failed%s", "\n");
+                return MOBI_MALLOC_FAILED;
+            }
+        }
+        if (m->mh->drm_flags == NULL) {
+            m->mh->drm_flags = malloc(sizeof(uint32_t));
+            if (m->mh->drm_flags == NULL) {
+                debug_print("Memory allocation failed%s", "\n");
+                return MOBI_MALLOC_FAILED;
+            }
+        }
+        
+        size_t drm_size = VOUCHERS_SIZE_MIN;
+        MOBIDrm *drm = m->internals;
+        if (drm->cookies_count * VOUCHERSIZE > VOUCHERS_SIZE_MIN) {
+            drm_size = drm->cookies_count * VOUCHERSIZE;
+        }
+        *m->mh->drm_size = (uint32_t) drm_size;
+        /* initial offset set to unknown */
+        *m->mh->drm_offset = MOBI_NOTSET;
+        /* flags: b0 = 1 internal key? */
+        *m->mh->drm_flags = 2048;
+        *m->mh->drm_count = drm->cookies_count;
+    }
+        
+    return MOBI_SUCCESS;
+}
+
+/**
  @brief Mark document as decrypted
  
  @param[in,out] m MOBIData structure with raw data and metadata
@@ -1110,6 +1170,74 @@ static void mobi_drm_unset(MOBIData *m) {
 }
 
 /**
+ @brief Decrypt or encrypt records
+ 
+ @param[in,out] m MOBIData structure with raw data and metadata
+ @param[in] is_decryption Should we decrypt or encrypt
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_drm_records(MOBIData *m, const bool is_decryption) {
+ 
+    /* FIXME: hybrid files are not encrypted, are they? */
+    size_t text_rec_index = 1;
+    
+    if (!is_decryption) {
+        const size_t offset = mobi_get_kf8offset(m);
+        if (m->rh == NULL || m->rh->text_record_count == 0) {
+            debug_print("%s", "Text records not found in MOBI header\n");
+            return MOBI_DATA_CORRUPT;
+        }
+        text_rec_index = 1 + offset;
+    }
+    
+    size_t text_rec_count = m->rh->text_record_count;
+    const uint16_t compression_type = m->rh->compression_type;
+    uint16_t extra_flags = 0;
+    if (m->mh && m->mh->extra_flags) {
+        extra_flags = *m->mh->extra_flags;
+    }
+    if (compression_type != MOBI_COMPRESSION_HUFFCDIC) {
+        /* encrypt also multibyte extra data */
+        extra_flags &= 0xfffe;
+    }
+    /* get first text record */
+    const MOBIPdbRecord *curr = mobi_get_record_by_seqnumber(m, text_rec_index);
+    
+    while (text_rec_count-- && curr) {
+        size_t extra_size = 0;
+        if (extra_flags) {
+            extra_size = mobi_get_record_extrasize(curr, extra_flags);
+            if (extra_size == MOBI_NOTSET || extra_size >= curr->size) {
+                return MOBI_DATA_CORRUPT;
+            }
+        }
+        
+        size_t decrypt_size = curr->size - extra_size;;
+        unsigned char *decrypted = malloc(decrypt_size);
+        if (decrypted == NULL) {
+            debug_print("Memory allocation failed%s", "\n");
+            return MOBI_MALLOC_FAILED;
+        }
+        
+        MOBI_RET ret;
+        if (is_decryption) {
+            ret = mobi_buffer_decrypt(decrypted, curr->data, decrypt_size, m);
+        } else {
+            ret = mobi_buffer_encrypt(decrypted, curr->data, decrypt_size, m);
+        }
+        if (ret != MOBI_SUCCESS) {
+            free(decrypted);
+            return ret;
+        }
+        memcpy(curr->data, decrypted, decrypt_size);
+        free(decrypted);
+        curr = curr->next;
+    }
+    
+    return MOBI_SUCCESS;
+}
+
+/**
  @brief Decrypt document.
  
  It is not necessary to call this function in order to parse encrypted document.
@@ -1131,57 +1259,21 @@ MOBI_RET mobi_drm_decrypt(MOBIData *m) {
         debug_print("%s\n", "No records to decrypt");
         return MOBI_SUCCESS;
     }
+    
+    MOBI_RET ret;
     if (!mobi_has_drmkey(m)) {
         /* try to set key */
         debug_print("%s\n", "Trying to set key for encryption without device PID");
-        MOBI_RET ret = mobi_drm_setkey(m, NULL);
+        ret = mobi_drm_setkey(m, NULL);
         if (ret != MOBI_SUCCESS) {
             debug_print("%s\n", "Key setting failed");
             return ret;
         }
-        
     }
 
-    /* FIXME: hybrid files are not encrypted, are they? */
-    const size_t text_rec_index = 1;
-    size_t text_rec_count = m->rh->text_record_count;
-    const uint16_t compression_type = m->rh->compression_type;
-    uint16_t extra_flags = 0;
-    if (m->mh && m->mh->extra_flags) {
-        extra_flags = *m->mh->extra_flags;
-    }
-    /* get first text record */
-    const MOBIPdbRecord *curr = mobi_get_record_by_seqnumber(m, text_rec_index);
-    
-    while (text_rec_count-- && curr) {
-        size_t extra_size = 0;
-        if (extra_flags) {
-            extra_size = mobi_get_record_extrasize(curr, extra_flags);
-            if (extra_size == MOBI_NOTSET || extra_size >= curr->size) {
-                return MOBI_DATA_CORRUPT;
-            }
-        }
-        const size_t record_size = curr->size - extra_size;
-        MOBI_RET ret = MOBI_SUCCESS;
-        size_t decrypt_size = record_size;
-        if (compression_type != MOBI_COMPRESSION_HUFFCDIC) {
-            /* decrypt also multibyte extra data */
-            size_t mb_size = mobi_get_record_mb_extrasize(curr, extra_flags);
-            decrypt_size += mb_size;
-        }
-        unsigned char *decrypted = malloc(decrypt_size);
-        if (decrypted == NULL) {
-            debug_print("Memory allocation failed%s", "\n");
-            return MOBI_MALLOC_FAILED;
-        }
-        ret = mobi_buffer_decrypt(decrypted, curr->data, decrypt_size, m);
-        if (ret != MOBI_SUCCESS) {
-            free(decrypted);
-            return ret;
-        }
-        memcpy(curr->data, decrypted, record_size);
-        free(decrypted);
-        curr = curr->next;
+    ret = mobi_drm_records(m, true);
+    if (ret != MOBI_SUCCESS) {
+        return ret;
     }
     
     mobi_drm_unset(m);
@@ -1390,99 +1482,10 @@ MOBI_RET mobi_drm_encrypt(MOBIData *m) {
         mobi_cookie_add(m, NULL, 0, MOBI_NOTSET);
     }
     
-    const size_t offset = mobi_get_kf8offset(m);
-    if (m->rh == NULL || m->rh->text_record_count == 0) {
-        debug_print("%s", "Text records not found in MOBI header\n");
-        return MOBI_DATA_CORRUPT;
-    }
-    const size_t text_rec_index = 1 + offset;
-    size_t text_rec_count = m->rh->text_record_count;
-    const uint16_t compression_type = m->rh->compression_type;
-    uint16_t extra_flags = 0;
-    if (m->mh && m->mh->extra_flags) {
-        extra_flags = *m->mh->extra_flags;
-    }
-    /* get first text record */
-    const MOBIPdbRecord *curr = mobi_get_record_by_seqnumber(m, text_rec_index);
-    
-    while (text_rec_count-- && curr) {
-        size_t extra_size = 0;
-        if (extra_flags) {
-            extra_size = mobi_get_record_extrasize(curr, extra_flags);
-        }
-        if (compression_type != MOBI_COMPRESSION_HUFFCDIC) {
-            /* encrypt also multibyte extra data */
-            extra_size = mobi_get_record_extrasize(curr, extra_flags & 0xfffe);
-
-        }
-        if (extra_size == MOBI_NOTSET || extra_size > curr->size) {
-            return MOBI_DATA_CORRUPT;
-        }
-        size_t encrypt_size = curr->size - extra_size;
-        unsigned char *encrypted = malloc(encrypt_size);
-        if (encrypted == NULL) {
-            debug_print("Memory allocation failed%s", "\n");
-            return MOBI_MALLOC_FAILED;
-        }
-        ret = mobi_buffer_encrypt(encrypted, curr->data, encrypt_size, m);
-        if (ret != MOBI_SUCCESS) {
-            free(encrypted);
-            return ret;
-        }
-        memcpy(curr->data, encrypted, encrypt_size);
-        free(encrypted);
-        curr = curr->next;
+    ret = mobi_drm_records(m, false);
+    if (ret != MOBI_SUCCESS) {
+        return ret;
     }
     
-    m->rh->encryption_type = encryption_type;
-
-    if (encryption_type == MOBI_ENCRYPTION_V2) {
-        if (m->mh == NULL) {
-            return MOBI_DATA_CORRUPT;
-        }
-        if (m->mh->drm_size == NULL) {
-            m->mh->drm_size = malloc(sizeof(uint32_t));
-            if (m->mh->drm_size == NULL) {
-                debug_print("Memory allocation failed%s", "\n");
-                return MOBI_MALLOC_FAILED;
-            }
-        }
-        if (m->mh->drm_offset == NULL) {
-            m->mh->drm_offset = malloc(sizeof(uint32_t));
-            if (m->mh->drm_offset == NULL) {
-                debug_print("Memory allocation failed%s", "\n");
-                return MOBI_MALLOC_FAILED;
-            }
-        }
-        if (m->mh->drm_count == NULL) {
-            m->mh->drm_count = malloc(sizeof(uint32_t));
-            if (m->mh->drm_count == NULL) {
-                debug_print("Memory allocation failed%s", "\n");
-                return MOBI_MALLOC_FAILED;
-            }
-        }
-        if (m->mh->drm_flags == NULL) {
-            m->mh->drm_flags = malloc(sizeof(uint32_t));
-            if (m->mh->drm_flags == NULL) {
-                debug_print("Memory allocation failed%s", "\n");
-                return MOBI_MALLOC_FAILED;
-            }
-        }
-        
-        size_t drm_size = VOUCHERS_SIZE_MIN;
-        MOBIDrm *drm = m->internals;
-        if (drm->cookies_count * VOUCHERSIZE > VOUCHERS_SIZE_MIN) {
-            drm_size = drm->cookies_count * VOUCHERSIZE;
-        }
-        *m->mh->drm_size = (uint32_t) drm_size;
-        /* initial offset set to unknown */
-        *m->mh->drm_offset = MOBI_NOTSET;
-        /* flags: b0 = 1 internal key? */
-        *m->mh->drm_flags = 2048;
-        *m->mh->drm_count = drm->cookies_count;
-    }
-
-    
-    return MOBI_SUCCESS;
-
+    return mobi_drm_set(m, encryption_type);
 }

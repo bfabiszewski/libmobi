@@ -1894,13 +1894,13 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
                     return ret;
                 }
                 memcpy(curr->data, decompressed, decrypt_size);
-                if (compression_type != MOBI_COMPRESSION_HUFFCDIC && (extra_flags & 1)) {
-                    // update multibyte data size after decryption
-                    extra_size = mobi_get_record_extrasize(curr, extra_flags);
-                    if (extra_size == MOBI_NOTSET) {
-                        free(decompressed);
-                        return MOBI_DATA_CORRUPT;
-                    }
+            }
+            if (compression_type != MOBI_COMPRESSION_HUFFCDIC && (extra_flags & 1)) {
+                // update multibyte data size after decryption
+                extra_size = mobi_get_record_extrasize(curr, extra_flags);
+                if (extra_size == MOBI_NOTSET) {
+                    free(decompressed);
+                    return MOBI_DATA_CORRUPT;
                 }
             }
         }
