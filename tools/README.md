@@ -1,5 +1,5 @@
 ## mobitool
-    usage: mobitool [-cdehimrsuvx7] [-o dir] [-p pid] [-P serial] filename
+    usage: /Users/baf/src/libmobi/tools/.libs/mobitool [-cdehimrstuvx7] [-o dir] [-p pid] [-P serial] filename
         without arguments prints document metadata and exits
         -c        dump cover
         -d        dump rawml text record
@@ -12,6 +12,7 @@
         -P serial set device serial for decryption
         -r        dump raw records
         -s        dump recreated source files
+        -t        split hybrid file into two parts
         -u        show rusage
         -v        show version and exit
         -x        extract conversion source and log (if present)

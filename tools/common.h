@@ -58,6 +58,9 @@
 #define FULLNAME_MAX 1024
 
 extern const char separator;
+extern bool outdir_opt;
+extern char outdir[FILENAME_MAX];
+
 const char * libmobi_msg(const MOBI_RET ret);
 void split_fullpath(const char *fullpath, char *dirname, char *basename);
 int make_directory(const char *path);
@@ -70,4 +73,5 @@ void print_exth(const MOBIData *m);
 int set_decryption_key(MOBIData *m, const char *serial, const char *pid);
 int set_decryption_pid(MOBIData *m, const char *pid);
 int set_decryption_serial(MOBIData *m, const char *pid);
+int save_mobi(MOBIData *m, const char *fullpath, const char *suffix);
 #endif /* common_h */

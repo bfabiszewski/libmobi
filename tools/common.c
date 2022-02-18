@@ -26,6 +26,8 @@ const char separator = '\\';
 #else
 const char separator = '/';
 #endif
+bool outdir_opt = false;
+char outdir[FILENAME_MAX];
 
 /**
  @brief Messages for libmobi return codes
@@ -539,4 +541,50 @@ int set_decryption_key(MOBIData *m, const char *serial, const char *pid) {
         ret = set_decryption_serial(m, serial);
     }
     return ret;
+}
+
+/**
+ @brief Save mobi file
+ 
+ @param[in,out] m MOBIData struicture
+ @param[in] fullpath Full file path
+ @param[in] suffix Suffix appended to file name
+ @return SUCCESS or ERROR
+ */
+int save_mobi(MOBIData *m, const char *fullpath, const char *suffix) {
+    char outfile[FILENAME_MAX];
+    char basename[FILENAME_MAX];
+    char dirname[FILENAME_MAX];
+    split_fullpath(fullpath, dirname, basename);
+    const char *ext = (mobi_get_fileversion(m) >= 8) ? "azw3" : "mobi";
+    int n;
+    if (outdir_opt) {
+        n = snprintf(outfile, sizeof(outfile), "%s%s-%s.%s", outdir, basename, suffix, ext);
+    } else {
+        n = snprintf(outfile, sizeof(outfile), "%s%s-%s.%s", dirname, basename, suffix, ext);
+    }
+    if (n < 0) {
+        printf("Creating file name failed\n");
+        return ERROR;
+    }
+    if ((size_t) n > sizeof(outfile)) {
+        printf("File name too long\n");
+        return ERROR;
+    }
+    
+    /* write */
+    printf("Saving %s...\n", outfile);
+    FILE *file_out = fopen(outfile, "wb");
+    if (file_out == NULL) {
+        int errsv = errno;
+        printf("Error opening file: %s (%s)\n", outfile, strerror(errsv));
+        return ERROR;
+    }
+    MOBI_RET mobi_ret = mobi_write_file(file_out, m);
+    fclose(file_out);
+    if (mobi_ret != MOBI_SUCCESS) {
+        printf("Error writing file (%s)\n", libmobi_msg(mobi_ret));
+        return ERROR;
+    }
+    return SUCCESS;
 }

@@ -7,10 +7,10 @@
 .Sh SYNOPSIS
 .Nm
 .if '@XMLWRITER_OPT@'yes' .ig
-.Op Fl cdhimrsuvx7
+.Op Fl cdhimrstuvx7
 ..
 .if !'@XMLWRITER_OPT@'yes' .ig
-.Op Fl cdehimrsuvx7
+.Op Fl cdehimrstuvx7
 ..
 .Op Fl o Ar dir
 .if !'@ENCRYPTION_OPT@'yes' .ig
@@ -51,6 +51,8 @@ set device serial number for decryption
 dump raw records
 .It Fl s
 dump recreated source files
+.It Fl t
+split hybrid file into two parts: mobi and azw3
 .It Fl u
 show rusage (diagnostics)
 .It Fl v

@@ -23,11 +23,9 @@
 /* command line options */
 bool decrypt_opt = false;
 bool encrypt_opt = false;
-bool outdir_opt = false;
 bool expiry_opt = false;
 
 /* options values */
-char outdir[FILENAME_MAX];
 char *pid[VOUCHERS_COUNT_MAX];
 char *serial[VOUCHERS_COUNT_MAX];
 size_t serial_count = 0;
@@ -70,8 +68,14 @@ static void print_usage(const char *progname) {
  */
 static int do_encrypt(MOBIData *m, bool use_kf8) {
     
+    MOBI_RET mobi_ret;
+    
     if (mobi_is_hybrid(m)) {
-        mobi_remove_hybrid_part(m, !use_kf8);
+        mobi_ret = mobi_remove_hybrid_part(m, !use_kf8);
+        if (mobi_ret != MOBI_SUCCESS) {
+            printf("Error removing hybrid part (%s)\n", libmobi_msg(mobi_ret));
+            return ERROR;
+        }
         printf("\nProcessing file version %zu from hybrid file\n", mobi_get_fileversion(m));
     }
     
@@ -105,8 +109,6 @@ static int do_encrypt(MOBIData *m, bool use_kf8) {
         
         tags = tamperkeys;
     }
-
-    MOBI_RET mobi_ret;
 
     for (size_t i = 0; i < serial_count; i++) {
         mobi_ret = mobi_drm_addvoucher(m, serial[i], valid_from, valid_to, tags, tags_count);
@@ -265,40 +267,9 @@ static int loadfilename(const char *fullpath) {
         suffix = "decrypted";
     }
     
-    char outfile[FILENAME_MAX];
-    char basename[FILENAME_MAX];
-    char dirname[FILENAME_MAX];
-    split_fullpath(fullpath, dirname, basename);
-    const char *ext = (mobi_get_fileversion(m) >= 8) ? "azw3" : "mobi";
-    int n;
-    if (outdir_opt) {
-        n = snprintf(outfile, sizeof(outfile), "%s%s-%s.%s", outdir, basename, suffix, ext);
-    } else {
-        n = snprintf(outfile, sizeof(outfile), "%s%s-%s.%s", dirname, basename, suffix, ext);
-    }
-    if (n < 0) {
-        printf("Creating file name failed\n");
-        return ERROR;
-    }
-    if ((size_t) n > sizeof(outfile)) {
-        printf("File name too long\n");
-        return ERROR;
-    }
-    
-    /* write */
-    printf("Saving %s...\n", outfile);
-    FILE *file_out = fopen(outfile, "wb");
-    if (file_out == NULL) {
+    ret = save_mobi(m, fullpath, suffix);
+    if (ret != SUCCESS) {
         mobi_free(m);
-        int errsv = errno;
-        printf("Error opening file: %s (%s)\n", outfile, strerror(errsv));
-        return ERROR;
-    }
-    mobi_ret = mobi_write_file(file_out, m);
-    fclose(file_out);
-    if (mobi_ret != MOBI_SUCCESS) {
-        mobi_free(m);
-        printf("Error writing file (%s)\n", libmobi_msg(mobi_ret));
         return ERROR;
     }
     
