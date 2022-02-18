@@ -532,12 +532,10 @@ int set_decryption_key(MOBIData *m, const char *serial, const char *pid) {
         return SUCCESS;
     }
     int ret = SUCCESS;
-    if (pid) {
-        /* Try pid */
-        ret = set_decryption_pid(m, pid);
+    if (pid && (ret = set_decryption_pid(m, pid)) == SUCCESS) {
+        return SUCCESS;
     }
-    if (ret != SUCCESS && serial) {
-        /* Try serial */
+    if (serial) {
         ret = set_decryption_serial(m, serial);
     }
     return ret;
