@@ -2,7 +2,8 @@
 
 C library for handling Mobipocket/Kindle (MOBI) ebook format documents.
 
-For examples on how to use the library have a look at tools folder.
+Library comes with several [command line tools](https://github.com/bfabiszewski/libmobi/tree/public/tools) for working with ebooks.
+The tools may also be used as examples on how to use the library.
 
 ## Features:
 - reading and parsing: 

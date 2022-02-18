@@ -25,6 +25,7 @@ The program encrypts or decrypts MOBI files with DRM schemes used on eInk device
 .Pp
 It may encrypt documents targeting particular device by using its serial number or applying generic
 DRM scheme targeting all supported readers. Encryption may be valid only during chosen period.
+In case of hybrid files mobidrm separately encrypts both enclosed parts and produces two files: mobi for legacy format and azw3 for KF8 format.
 .Pp
 The program also decrypts documents. One must supply device serial number or document PID if DRM was applied for specific device.
 .Pp
