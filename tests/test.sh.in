@@ -66,8 +66,6 @@ if [[ "${basefile}" == 'sample-drm'* ]]; then
     fi
 fi
 
-
-
 if [[ -z "${md5prog}" ]]; then
     do_md5=0
     log "Missing md5 tool: ${md5prog}, will skip md5 tests"
@@ -150,26 +148,26 @@ echo "${output}"
 
 if [[ "${status}" -ne "0" ]]; then
     if [[ "${output}" == *"Can't remove DRM from rented documents"* ]]; then
-        log "Exiting as rented document will not be processed"
+        log "Exiting with success as rented document should not be processed"
         exit 0
     else
         die "DRM operation failed, mobidrm error (${status})" ${status}
     fi
 fi
 
-if [[ -f "${tmp_dir}/${drm_file}.mobi" ]]; then
-    drm_file="${drm_file}.mobi"
-elif [[ -f "${tmp_dir}/${drm_file}.azw3" ]]; then
-    drm_file="${drm_file}.azw3"
-else
-    die "DRM operation failed" 1
-fi
+drm_files=()
+
+[[ -f "${tmp_dir}/${drm_file}.mobi" ]] && drm_files+=("${drm_file}.mobi")
+[[ -f "${tmp_dir}/${drm_file}.azw3" ]] && drm_files+=("${drm_file}.azw3")
+
+[[ ${#drm_files[@]} -eq 0 ]] && die "DRM operation failed" 1
 
 # verify
-log "Running ${mobitool} -o \"${tmp_dir}\" ${verify_options} \"${tmp_dir}/${drm_file}\""
-${mobitool} -o "${tmp_dir}" ${verify_options} "${tmp_dir}/${drm_file}" || die "DRM operation produced broken file, mobitool error ($?)" $?
-
-rm -f "${tmp_dir}/${drm_file}"
-rm -rf "${tmp_dir}/${drm_markup}"
+for drm_file in ${drm_files[@]}; do
+    log "Running ${mobitool} -o \"${tmp_dir}\" ${verify_options} \"${tmp_dir}/${drm_file}\""
+    ${mobitool} -o "${tmp_dir}" ${verify_options} "${tmp_dir}/${drm_file}" || die "DRM operation produced broken file, mobitool error ($?)" $?
+    rm -f "${tmp_dir}/${drm_file}"
+    rm -rf "${tmp_dir}/${drm_markup}"
+done
 
 exit 0
