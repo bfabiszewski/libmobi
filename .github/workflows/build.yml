@@ -1,0 +1,52 @@
+name: Build
+
+on:
+  push:
+    branches: [ public ]
+  pull_request:
+    branches: [ public ]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: default build with debug
+            options: --enable-debug
+          - name: bulid with internal libs
+            options: --with-zlib=no --with-libxml2=no
+          - name: build without encryption
+            options: --disable-encryption
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install dependencies
+      run: |
+        if [ "${{ runner.os }}" = "Linux" ]; then
+          sudo apt-get update -qq;
+          sudo apt-get install -y autotools-dev pkg-config automake autoconf libtool;
+          sudo apt-get install -y zlib1g-dev libxml2-dev;
+        elif [ "${{ runner.os }}" = "macOS" ]; then
+          brew update > /dev/null;
+          brew outdated autoconf || brew upgrade autoconf;
+          brew outdated automake || brew upgrade automake;
+          brew outdated libtool || brew upgrade libtool;
+        fi
+    - name: autogen
+      run: ./autogen.sh
+    - name: configure
+      run: ./configure ${{ matrix.config.options }}
+    - name: make
+      run: make -j `nproc`
+    - name: make check
+      run: make -j `nproc` check
+    - name: make distcheck
+      run: make -j `nproc` distcheck
