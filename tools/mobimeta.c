@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
                 parse = true;
                 while (parse) {
                     parse = parsesubopt(&subopts, &token, &value);
-                    if ((subopt = get_meta(token)) >= 0) {
+                    if (token && (subopt = get_meta(token)) >= 0) {
                         if ((value == NULL || strlen(value) == 0) && opt != 'd') {
                             printf("Missing value for suboption '%s'\n\n", meta_functions[subopt].name);
                             exit_with_usage(argv[0]);
@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
                         if (cmd_count < (ACTIONS_SIZE)) {
                             actions[cmd_count++] = (Action) { opt, subopt, value };
                         }
-                    } else if (isinteger(token)) {
+                    } else if (token && isinteger(token)) {
                         if ((value == NULL || strlen(value) == 0) && opt != 'd') {
                             printf("Missing value for suboption '%s'\n\n", token);
                             exit_with_usage(argv[0]);
@@ -217,15 +217,15 @@ int main(int argc, char *argv[]) {
                             actions[cmd_count++] = (Action) { toupper(opt), atoi(token), value };
                         }
                     } else {
-                        if (token[0] != '?') {
-                            printf("Unknown meta: %s\n", token);
+                        if (token == NULL || token[0] != '?') {
+                            printf("Unknown meta: %s\n", token ? token : optarg);
                         }
                         printf("Valid named meta keys:\n");
                         for (size_t i = 0; i < META_SIZE; i++) {
                             printf("   %s\n", meta_functions[i].name);
                         }
                         printf("\n");
-                        if (token[0] != '?') {
+                        if (token == NULL || token[0] != '?') {
                             exit_with_usage(argv[0]);
                         }
                         return SUCCESS;
