@@ -2,13 +2,13 @@
 
 C library for handling Mobipocket/Kindle (MOBI) ebook format documents.
 
-Library comes with several [command line tools](https://github.com/bfabiszewski/libmobi/tree/public/tools) for working with ebooks.
-The tools may also be used as examples on how to use the library.
+Library comes with several [command line tools](https://github.com/bfabiszewski/libmobi/tree/public/tools) for working with mobi ebooks.
+The tools source may also be used as an example on how to use the library.
 
 ## Features:
-- reading and parsing: 
-  - some older text Palmdoc formats (pdb), 
-  - Mobipocket files (prc, mobi), 
+- reading and parsing:
+  - some older text Palmdoc formats (pdb),
+  - Mobipocket files (prc, mobi),
   - newer MOBI files including KF8 format (azw, azw3),
   - Replica Print files (azw4)
 - recreating source files using indices
@@ -18,6 +18,7 @@ The tools may also be used as examples on how to use the library.
 - writing back loaded documents
 - metadata editing
 - handling encrypted documents
+- encrypting documents for use on eInk Kindles
 
 ## Todo:
 - improve writing
@@ -112,7 +113,7 @@ return SUCCESS;
 - zlib (optional, configure --with-zlib=no to use included miniz.c instead)
 - libxml2 (optional, configure --with-libxml2=no to use internal xmlwriter)
 - tested with gcc (>=4.2.4), clang (llvm >=3.4), sun c (>=5.13), MSVC++ (2015)
-- builds on Linux, MacOS X, Windows (MSVC++, MinGW), Android, Solaris
+- builds on Linux, MacOS, Windows (MSVC++, MinGW), Android, Solaris
 - tested architectures: x86, x86-64, arm, ppc
 - works cross-compiled on Kindle :)
 
