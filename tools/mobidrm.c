@@ -9,6 +9,8 @@
  * See <http://www.gnu.org/licenses/>
  */
 
+#define _XOPEN_SOURCE
+#include <time.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
