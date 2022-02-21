@@ -13,6 +13,7 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
@@ -32,8 +33,8 @@
 
 /* command line options */
 #ifdef USE_ENCRYPTION
-int setpid_opt = 0;
-int setserial_opt = 0;
+bool setpid_opt = false;
+bool setserial_opt = false;
 #endif
 
 /* options values */
@@ -46,9 +47,9 @@ char *serial = NULL;
 #define ACTIONS_SIZE ARRAYSIZE(actions)
 
 #if HAVE_ATTRIBUTE_NORETURN 
-void exit_with_usage(const char *progname) __attribute__((noreturn));
+static void exit_with_usage(const char *progname) __attribute__((noreturn));
 #else
-void exit_with_usage(const char *progname);
+static void exit_with_usage(const char *progname);
 #endif
 
 /**
@@ -87,7 +88,7 @@ const CB meta_functions[] = {
  @brief Print usage info
  @param[in] progname Executed program name
  */
-void exit_with_usage(const char *progname) {
+static void exit_with_usage(const char *progname) {
     char *p = strrchr(progname, separator);
     if (p) { progname = ++p; }
     printf("usage: %s [-a | -s meta=value[,meta=value,...]] [-d meta[,meta,...]]" PRINT_ENC_USG " [-hv] filein [fileout]\n", progname);
@@ -110,7 +111,7 @@ void exit_with_usage(const char *progname) {
  @param[in] string String
  @return True if string represents integer
  */
-bool isinteger(const char *string) {
+static bool isinteger(const char *string) {
     if (*string == '\0') { return false; }
     while (*string) {
         if (!isdigit(*string++)) { return false; }
@@ -126,7 +127,7 @@ bool isinteger(const char *string) {
  @param[in,out] value Will be filled with first found key value or NULL if missing
  @return True if there are more pairs to parse
  */
-bool parsesubopt(char **subopts, char **token, char **value) {
+static bool parsesubopt(char **subopts, char **token, char **value) {
     if (!**subopts) { return false; }
     *token = NULL;
     *value = NULL;
@@ -150,7 +151,7 @@ bool parsesubopt(char **subopts, char **token, char **value) {
  @param[in] token Meta token name
  @return Index in array,-1 if not found
  */
-int get_meta(const char *token) {
+static int get_meta(const char *token) {
     for (int i = 0; i < (int) META_SIZE; i++) {
         if (strcmp(token, meta_functions[i].name) == 0) {
             return i;
@@ -238,7 +239,7 @@ int main(int argc, char *argv[]) {
                     printf("Option -%c requires an argument.\n", opt);
                     return ERROR;
                 }
-                setpid_opt = 1;
+                setpid_opt = true;
                 pid = optarg;
                 break;
             case 'P':
@@ -246,7 +247,7 @@ int main(int argc, char *argv[]) {
                     printf("Option -%c requires an argument.\n", opt);
                     return ERROR;
                 }
-                setserial_opt = 1;
+                setserial_opt = true;
                 serial = optarg;
                 break;
 #endif
