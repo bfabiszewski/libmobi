@@ -818,7 +818,8 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
         return MOBI_SUCCESS;
     }
     /* parse skeleton data */
-    size_t i = 0, j = 0;
+    size_t i = 0;
+    size_t j = 0;
     size_t curr_position = 0;
     size_t total_fragments_count = rawml->frag->total_entries_count;
     while (i < rawml->skel->entries_count) {
@@ -1070,7 +1071,8 @@ MOBI_RET mobi_posfid_to_link(char *link, const MOBIRawml *rawml, const char *val
     str_off[10] = '\0';
     
     /* get file number and id value */
-    uint32_t pos_off, pos_fid;
+    uint32_t pos_off;
+    uint32_t pos_fid;
     MOBI_RET ret = mobi_base32_decode(&pos_off, str_off);
     if (ret != MOBI_SUCCESS) {
         return ret;

@@ -25,7 +25,7 @@
 MOBIData * mobi_init(void) {
     MOBIData *m = NULL;
     m = calloc(1, sizeof(MOBIData));
-	if (m == NULL) return NULL;
+	if (m == NULL) { return NULL; }
     m->use_kf8 = true;
     m->kf8_boundary_offset = MOBI_NOTSET;
     m->drm_key = NULL;

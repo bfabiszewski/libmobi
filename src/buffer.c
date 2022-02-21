@@ -246,7 +246,7 @@ uint32_t mobi_buffer_get32(MOBIBuffer *buf) {
  @param[in] direction 1 - read buffer forward, -1 - read buffer backwards
  @return Read value, 0 if end of buffer is encountered
  */
-static uint32_t _buffer_get_varlen(MOBIBuffer *buf, size_t *len, const int direction) {
+static uint32_t mobi_buffer_get_varlen_internal(MOBIBuffer *buf, size_t *len, const int direction) {
     uint32_t val = 0;
     uint8_t byte_count = 0;
     uint8_t byte;
@@ -289,7 +289,7 @@ static uint32_t _buffer_get_varlen(MOBIBuffer *buf, size_t *len, const int direc
  @return Read value, 0 if end of buffer is encountered
  */
 uint32_t mobi_buffer_get_varlen(MOBIBuffer *buf, size_t *len) {
-    return _buffer_get_varlen(buf, len, 1);
+    return mobi_buffer_get_varlen_internal(buf, len, 1);
 }
 
 /**
@@ -302,7 +302,7 @@ uint32_t mobi_buffer_get_varlen(MOBIBuffer *buf, size_t *len) {
  @return Read value, 0 if end of buffer is encountered
  */
 uint32_t mobi_buffer_get_varlen_dec(MOBIBuffer *buf, size_t *len) {
-    return _buffer_get_varlen(buf, len, -1);
+    return mobi_buffer_get_varlen_internal(buf, len, -1);
 }
 
 /**

@@ -35,9 +35,8 @@ MOBI_RET mobi_write_buffer(FILE *file, const MOBIBuffer *buf) {
     if (written != buf->maxlen) {
         debug_print("Writing failed (%s)\n", strerror(errno));
         return MOBI_WRITE_FAILED;
-    } else {
-        return MOBI_SUCCESS;
     }
+    return MOBI_SUCCESS;
 }
 
 /**

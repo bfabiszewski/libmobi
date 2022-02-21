@@ -911,7 +911,8 @@ char * mobi_get_cncx_string_flat(const MOBIPdbRecord *cncx_record, const uint32_
 MOBI_RET mobi_decode_infl(unsigned char *decoded, int *decoded_size, const unsigned char *rule) {
     int pos = *decoded_size;
     char mod = 'i';
-    char dir = '<', olddir;
+    char dir = '<';
+    char olddir;
     unsigned char c;
     while ((c = *rule++)) {
         if (c <= 4) {

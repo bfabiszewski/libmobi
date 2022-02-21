@@ -63,9 +63,8 @@ const char * libmobi_msg(const MOBI_RET ret) {
     size_t index = ret;
     if (index < LIBMOBI_MSG_COUNT) {
         return libmobi_messages[index];
-    } else {
-        return "Unknown error";
     }
+    return "Unknown error";
 }
 
 /**
@@ -122,12 +121,12 @@ int make_directory(const char *path) {
 /**
  @brief Create subfolder in directory
  @param[in,out] newdir Path to created subfolder, must have FILENAME_MAX size
- @param[in] dir Directory path
- @param[in] name Subfolder name
+ @param[in] parent_dir Directory path
+ @param[in] subdir_name Subfolder name
  @return SUCCESS or ERROR
  */
-int create_subdir(char *newdir, const char *dir, const char *name) {
-    int n = snprintf(newdir, FILENAME_MAX, "%s%c%s", dir, separator, name);
+int create_subdir(char *newdir, const char *parent_dir, const char *subdir_name) {
+    int n = snprintf(newdir, FILENAME_MAX, "%s%c%s", parent_dir, separator, subdir_name);
     if (n < 0) {
         printf("Creating file name failed\n");
         return ERROR;
@@ -199,7 +198,7 @@ bool dir_exists(const char *path) {
         printf("Path \"%s\" is not accessible (%s)\n", path, strerror(errsv));
         return false;
     }
-    else if (!S_ISDIR(sb.st_mode)) {
+    if (!S_ISDIR(sb.st_mode)) {
         printf("Path \"%s\" is not a directory\n", path);
         return false;
     }
@@ -529,7 +528,7 @@ int set_decryption_key(MOBIData *m, const char *serial, const char *pid) {
         printf("\nDocument is not encrypted, ignoring PID/serial\n");
         return SUCCESS;
     }
-    else if (m->rh && m->rh->encryption_type == MOBI_ENCRYPTION_V1) {
+    if (m->rh && m->rh->encryption_type == MOBI_ENCRYPTION_V1) {
         printf("\nEncryption type 1, ignoring PID/serial\n");
         return SUCCESS;
     }

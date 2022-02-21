@@ -96,7 +96,8 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
         debug_print("%s\n", "Initialization failed");
         return MOBI_INIT_FAILED;
     }
-    size_t i = 0, j = 0;
+    size_t i = 0;
+    size_t j = 0;
     MOBI_RET ret;
     size_t count = rawml->guide->entries_count;
     if (count == 0) {

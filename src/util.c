@@ -329,32 +329,32 @@ MOBI_RET mobi_utf8_to_cp1252(char *output, const char *input, size_t *outsize, c
  So, instead of parsing header, we use static replacements.
  Invalid control characters are skipped
  
- @param[in] control First byte - control character
- @param[in] c Second byte of the ligature
+ @param[in] byte1 First byte - control character
+ @param[in] byte2 Second byte of the ligature
  @return Ligature in cp1252 encoding, zero if not found
  */
-uint8_t mobi_ligature_to_cp1252(const uint8_t control, const uint8_t c) {
+uint8_t mobi_ligature_to_cp1252(const uint8_t byte1, const uint8_t byte2) {
     uint8_t ligature = 0;
     const uint8_t lig_OE = 0x8c;
     const uint8_t lig_oe = 0x9c;
     const uint8_t lig_AE = 0xc6;
     const uint8_t lig_ae = 0xe6;
     const uint8_t lig_ss = 0xdf;
-    switch (control) {
+    switch (byte1) {
         case 1:
-            if (c == 0x45) { ligature = lig_OE; }
+            if (byte2 == 0x45) { ligature = lig_OE; }
             break;
         case 2:
-            if (c == 0x65) { ligature = lig_oe; }
+            if (byte2 == 0x65) { ligature = lig_oe; }
             break;
         case 3:
-            if (c == 0x45) { ligature = lig_AE; }
+            if (byte2 == 0x45) { ligature = lig_AE; }
             break;
         case 4:
-            if (c == 0x65) { ligature = lig_ae; }
+            if (byte2 == 0x65) { ligature = lig_ae; }
             break;
         case 5:
-            if (c == 0x73) { ligature = lig_ss; }
+            if (byte2 == 0x73) { ligature = lig_ss; }
             break;
     }
     return ligature;
@@ -362,11 +362,11 @@ uint8_t mobi_ligature_to_cp1252(const uint8_t control, const uint8_t c) {
 
 /** @brief Decode ligature to utf-16
  
- @param[in] control First byte - control character, should be <= 5
- @param[in] c Second byte of the ligature
+ @param[in] byte1 First byte - control character, should be <= 5
+ @param[in] byte2 Second byte of the ligature
  @return Ligature in utf-16 encoding, uni_replacement if not found
  */
-uint16_t mobi_ligature_to_utf16(const uint32_t control, const uint32_t c) {
+uint16_t mobi_ligature_to_utf16(const uint32_t byte1, const uint32_t byte2) {
     const uint16_t uni_replacement = 0xfffd;
     uint16_t ligature = uni_replacement;
     const uint16_t lig_OE = 0x152;
@@ -374,21 +374,21 @@ uint16_t mobi_ligature_to_utf16(const uint32_t control, const uint32_t c) {
     const uint16_t lig_AE = 0xc6;
     const uint16_t lig_ae = 0xe6;
     const uint16_t lig_ss = 0xdf;
-    switch (control) {
+    switch (byte1) {
         case 1:
-            if (c == 0x45) { ligature = lig_OE; }
+            if (byte2 == 0x45) { ligature = lig_OE; }
             break;
         case 2:
-            if (c == 0x65) { ligature = lig_oe; }
+            if (byte2 == 0x65) { ligature = lig_oe; }
             break;
         case 3:
-            if (c == 0x45) { ligature = lig_AE; }
+            if (byte2 == 0x45) { ligature = lig_AE; }
             break;
         case 4:
-            if (c == 0x65) { ligature = lig_ae; }
+            if (byte2 == 0x65) { ligature = lig_ae; }
             break;
         case 5:
-            if (c == 0x73) { ligature = lig_ss; }
+            if (byte2 == 0x73) { ligature = lig_ss; }
             break;
     }
     return ligature;
@@ -642,7 +642,7 @@ static const char *mobi_locale[MOBI_LANG_MAX][MOBI_REGION_MAX] = {
  @return Pointer to locale string in mobi_locale array
  */
 const char * mobi_get_locale_string(const uint32_t locale_number) {
-    uint8_t lang_code = locale_number & 0xffu;
+    uint8_t lang_code = locale_number & 0xffU;
     uint32_t region_code = (locale_number >> 8) / 4;
     if (lang_code >= MOBI_LANG_MAX || region_code >= MOBI_REGION_MAX) {
         return NULL;
@@ -1710,9 +1710,8 @@ char * mobi_decode_exthstring(const MOBIData *m, const unsigned char *data, cons
     if (exth_decoded != NULL) {
         free(exth_string);
         return exth_decoded;
-    } else {
-        return exth_string;
     }
+    return exth_string;
 }
 
 /**
@@ -1910,7 +1909,8 @@ static MOBI_RET mobi_decompress_content(const MOBIData *m, char *text, FILE *fil
             mobi_free_huffcdic(huffcdic);
             free(decompressed);
             return MOBI_DATA_CORRUPT;
-        } else if (extra_size == curr->size) {
+        }
+        if (extra_size == curr->size) {
             debug_print("Skipping empty record%s", "\n");
             free(decompressed);
             curr = curr->next;
@@ -2207,7 +2207,8 @@ MOBIFiletype mobi_determine_flowpart_type(const MOBIRawml *rawml, const size_t p
     if (ret == MOBI_SUCCESS && result.start) {
         if (strstr(result.value, "text/css")) {
             return T_CSS;
-        } else if (strstr(result.value, "image/svg+xml")) {
+        }
+        if (strstr(result.value, "image/svg+xml")) {
             return T_SVG;
         }
     }
@@ -2229,9 +2230,11 @@ MOBIFiletype mobi_determine_font_type(const unsigned char *font_data, const size
     if (font_size >= 4) {
         if (memcmp(font_data, otf_magic, 4) == 0) {
             return T_OTF;
-        } else if (memcmp(font_data, ttf_magic, 4) == 0) {
+        }
+        if (memcmp(font_data, ttf_magic, 4) == 0) {
             return T_TTF;
-        } else if (memcmp(font_data, ttf2_magic, 4) == 0) {
+        }
+        if (memcmp(font_data, ttf2_magic, 4) == 0) {
             return T_TTF;
         }
     }
@@ -2608,17 +2611,23 @@ MOBIFiletype mobi_determine_resource_type(const MOBIPdbRecord *record) {
     const unsigned char eof_magic[] = EOF_MAGIC;
     if (memcmp(record->data, jpg_magic, 3) == 0) {
         return T_JPG;
-    } else if (memcmp(record->data, gif_magic, 4) == 0) {
+    }
+    if (memcmp(record->data, gif_magic, 4) == 0) {
         return T_GIF;
-    } else if (record->size >= 8 && memcmp(record->data, png_magic, 8) == 0) {
+    }
+    if (record->size >= 8 && memcmp(record->data, png_magic, 8) == 0) {
         return T_PNG;
-    } else if (memcmp(record->data, font_magic, 4) == 0) {
+    }
+    if (memcmp(record->data, font_magic, 4) == 0) {
         return T_FONT;
-    } else if (record->size >= 8 && memcmp(record->data, boundary_magic, 8) == 0) {
+    }
+    if (record->size >= 8 && memcmp(record->data, boundary_magic, 8) == 0) {
         return T_BREAK;
-    } else if (memcmp(record->data, eof_magic, 4) == 0) {
+    }
+    if (memcmp(record->data, eof_magic, 4) == 0) {
         return T_BREAK;
-    } else if (record->size >= 6 && memcmp(record->data, bmp_magic, 2) == 0) {
+    }
+    if (record->size >= 6 && memcmp(record->data, bmp_magic, 2) == 0) {
         const size_t bmp_size = mobi_get32le(&record->data[2]);
         if (record->size == bmp_size) {
             return T_BMP;
@@ -3045,9 +3054,8 @@ uint32_t mobi_get_exthsize(const MOBIData *m) {
     }
     if (size > UINT32_MAX) {
         return 0;
-    } else {
-        return (uint32_t) size;
     }
+    return (uint32_t) size;
 }
 
 /**
@@ -3070,9 +3078,8 @@ uint32_t mobi_get_drmsize(const MOBIData *m) {
     
     if (size > UINT32_MAX) {
         return 0;
-    } else {
-        return (uint32_t) size;
     }
+    return (uint32_t) size;
 }
 
 /**
@@ -3092,9 +3099,8 @@ uint16_t mobi_get_records_count(const MOBIData *m) {
     }
     if (count > UINT16_MAX) {
         return 0;
-    } else {
-        return (uint16_t) count;
     }
+    return (uint16_t) count;
 }
 
 /**

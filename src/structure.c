@@ -103,7 +103,8 @@ void array_sort(MOBIArray *arr, const bool unique) {
     }
     qsort(arr->data, arr->size, sizeof(*arr->data), array_compare);
     if (unique) {
-        size_t i = 1, j = 1;
+        size_t i = 1;
+        size_t j = 1;
         while (i < arr->size) {
             if (arr->data[j - 1] == arr->data[i]) {
                 i++;
@@ -226,9 +227,8 @@ static MOBITrie * mobi_trie_insert_char(MOBITrie *node, char c, char *value) {
         /* terminal node */
         if (mobi_trie_addvalue(node, value) == MOBI_SUCCESS) {
             return node;
-        } else {
-            return NULL;
         }
+        return NULL;
     }
     if (node->children == NULL) {
         node->children = mobi_trie_mknode();

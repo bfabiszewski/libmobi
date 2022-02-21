@@ -44,7 +44,7 @@
 #define VOUCHERSIZE 48
 #define VOUCHERS_COUNT_MAX 1024
 #define VOUCHERS_SIZE_MIN 288
-#define pk1_swap(a, b) { uint16_t tmp = a; a = b; b = tmp; }
+#define pk1_swap(a, b) { uint16_t tmp = a; (a) = b; (b) = tmp; }
 
 /**
  @brief Structure for PK1 routines
