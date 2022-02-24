@@ -6,14 +6,13 @@ on:
   pull_request:
     branches: [ public ]
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
-  build:
+  unix-build:
 
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     
     strategy:
       fail-fast: false
@@ -50,3 +49,37 @@ jobs:
       run: make -j `nproc` check
     - name: make distcheck
       run: make -j `nproc` distcheck
+
+  win64-build:
+
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - name: setup-msys2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        path-type: minimal
+        update: true
+        install: >-
+          git
+          base-devel
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-libtool
+          mingw-w64-x86_64-libxml2
+          mingw-w64-x86_64-zlib
+    - run: reg add "HKLM\Software\Microsoft\Windows\Windows Error Reporting" /f /v DontShowUI /d 1
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: autogen
+      run: sh ./autogen.sh
+    - name: configure
+      run: ./configure --enable-debug
+    - name: make
+      run: make -j$(nproc)
+    - name: make check
+      run: make -j$(nproc) check
+    - name: make distcheck
+      run: make -j$(nproc) distcheck
