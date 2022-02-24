@@ -57,9 +57,10 @@ if [[ "${basefile}" == 'sample-drm'* ]]; then
     
     if [[ "${basefile}" == 'sample-drm_pid'* ]]; then
         pid=${basefile:14:10}
-        if [[ "${pid}" =~ [^a-zA-Z0-9*] ]]; then
+        if [[ "${pid}" =~ [^a-zA-Z0-9^] ]]; then
             log "Ignoring incorrect pid ${pid}"
         else
+            pid=${pid//^/*}
             options="${options} -p ${pid}"
             log "Using pid ${pid}"
         fi
