@@ -19,7 +19,9 @@
 ..
 .Ar file
 .Sh DESCRIPTION
-The program handles .prc, .mobi, .azw; .azw3, .azw4, some .pdb documents.
+The program handles .prc, .mobi, .azw, .azw3, .azw4, some .pdb documents. It is powered by
+.Nm libmobi
+library.
 .Pp
 Invoked without arguments prints document metadata and exits.
 .Pp
@@ -66,11 +68,13 @@ parse KF7 part of hybrid file (by default KF8 part is parsed)
 .Sh EXAMPLES
 The following command decompiles given mobi document. The output folder will be created in /tmp.
 .Pp
-.Dl "mobitool -s -o /tmp example.mobi"
+.Dl % mobitool -s -o /tmp example.mobi
 .Pp
+.if !'@XMLWRITER_OPT@'yes' .ig
 The following command converts mobi document to epub format.
 .Pp
-.Dl "mobitool -e example.mobi"
+.Dl % mobitool -e example.mobi
+..
 .Sh RETURN VALUES
 The
 .Nm mobitool
@@ -78,14 +82,17 @@ utility returns 0 on success, 1 on error.
 .Sh COPYRIGHT
 Copyright (C) 2014-2022 Bartek Fabiszewski.
 .Pp
-Released under LGPL version 3 or any later (same as libmobi).
+Released under LGPL version 3 or any later (same as
+.Nm libmobi Ns
+).
 .Sh WEB SITE
 Visit http://www.fabiszewski.net for details.
 .Sh DIAGNOSTICS
 For diagnostics
 .Nm libmobi
 must be configured with
-.Op Fl Fl enable-debug
+.Fl Fl enable-debug
 option.
 .Sh SEE ALSO
 .Xr mobimeta 1
+.Xr mobidrm 1

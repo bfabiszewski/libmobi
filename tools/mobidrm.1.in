@@ -21,10 +21,16 @@
 .Nm
 .Op Fl hv
 .Sh DESCRIPTION
-The program encrypts or decrypts MOBI files with DRM schemes used on eInk devices.
+The program encrypts or decrypts MOBI files with DRM schemes used on eInk devices. It is powered by
+.Nm libmobi
+library.
 .Pp
-It may encrypt documents targeting particular device by using its serial number or applying generic
-DRM scheme targeting all supported readers. Encryption may be valid only during chosen period.
+It may encrypt documents targeting particular device by using its serial number or applying generic DRM scheme targeting all supported readers.
+.Pp
+Optionally encryption may be valid only during chosen period. Kindles require both start and end date to be set.
+This tool allows to specify only one date (start or end).
+In such case the other date will be automatically set to respectively lowest (1970-01-01) or largest (10136-02-16) valid value.
+.Pp
 In case of hybrid files mobidrm separately encrypts both enclosed parts and produces two files: mobi for legacy format and azw3 for KF8 format.
 .Pp
 The program also decrypts documents. One must supply device serial number or document PID if DRM was applied for specific device.
@@ -82,49 +88,19 @@ Show version and exit.
 .Sh EXAMPLES
 The following command decrypts document using given serial number. Decrypted output will be saved to /tmp folder.
 .Pp
-.Bl -item -offset indent
-.Nm
-.Fl d
-.Fl s
-B001XXXXXXXXXXXX
-.Fl o
-/tmp example.mobi
-.El
+.Dl % mobidrm -d -s B001XXXXXXXXXXXX -o /tmp example.mobi
 .Pp
 The following command decrypts document trying multiple PIDs.
 .Pp
-.Bl -item -offset indent
-.Nm
-.Fl d
-.Fl p
-XXXXXXXXX1
-.Fl p
-XXXXXXXXX2 example.mobi
-.El
+.Dl % mobidrm -d -p XXXXXXXXX1 -p XXXXXXXXX2 example.mobi
 .Pp
 The following command encrypts document targeting two devices using their serial numbers. Document will be readable only on those devices.
 .Pp
-.Bl -item -offset indent
-.Nm
-.Fl e
-.Fl s
-B001XXXXXXXXXX01
-.Fl s
-B001XXXXXXXXXX02 example.mobi
-.El
+.Dl % mobidrm -e -s B001XXXXXXXXXX01 -s B001XXXXXXXXXX02 example.mobi
 .Pp
 The following command encrypts document for device wth given serial number. Document will only be valid within given period (inclusive).
 .Pp
-.Bl -item -offset indent
-.Nm
-.Fl e
-.Fl s
-B001XXXXXXXXXX01
-.Fl f
-2021-01-01
-.Fl t
-2021-01-31 example.mobi
-.El
+.Dl % mobidrm -e -s B001XXXXXXXXXX01 -f 2021-01-01 -t 2021-01-31 example.mobi
 .Sh RETURN VALUES
 The
 .Nm
@@ -132,14 +108,16 @@ utility returns 0 on success, 1 on error.
 .Sh COPYRIGHT
 Copyright (C) 2021-2022 Bartek Fabiszewski.
 .Pp
-Released under LGPL version 3 or any later (same as libmobi).
+Released under LGPL version 3 or any later (same as
+.Nm libmobi Ns
+).
 .Sh WEB SITE
 Visit http://www.fabiszewski.net for details.
 .Sh DIAGNOSTICS
 For diagnostics
 .Nm libmobi
 must be configured with
-.Op Fl Fl enable-debug
+.Fl Fl enable-debug
 option.
 .Sh SEE ALSO
 .Xr mobimeta 1

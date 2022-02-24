@@ -6,9 +6,9 @@
 .Nd Utility for modifying metadata of MOBI format ebook files.
 .Sh SYNOPSIS
 .Nm
-.Op Fl a Ar meta=value Ns Op Ar ,meta=value,...
-.Op Fl d Ar meta Ns Op Ar ,meta,...
-.Op Fl s Ar meta=value Ns Op Ar ,meta=value,...
+.Op Fl a Ar meta Ns = Ns Ar value Ns Oo , Ns Ar meta Ns = Ns Ar value Ns , Ns Ar ... Oc
+.Op Fl d Ar meta Ns Oo , Ns Ar meta Ns , Ns Ar ... Oc
+.Op Fl s Ar meta Ns = Ns Ar value Ns Oo , Ns Ar meta Ns = Ns Ar value Ns , Ns Ar ... Oc
 .if !'@ENCRYPTION_OPT@'yes' .ig
 .Op Fl p Ar pid
 .Op Fl P Ar serial
@@ -17,7 +17,7 @@
 .Ar filein
 .Op Ar fileout
 .Sh DESCRIPTION
-The program handles .prc, .mobi, .azw; .azw3, .azw4, some .pdb documents. Written as a test case for
+The program handles .prc, .mobi, .azw, .azw3, .azw4, some .pdb documents. It is powered by
 .Nm libmobi
 library.
 .Pp
@@ -29,16 +29,15 @@ will be modified.
 .Pp
 A list of flags and their descriptions:
 .Bl -tag -width -indent
-.It Fl a Ar meta=value Ns Op Ar ,meta=value,...
+.It Fl a Ar meta Ns = Ns Ar value Ns Oo , Ns Ar meta Ns = Ns Ar value Ns , Ns Ar ... Oc
 add (append) metadata
-.It Fl d Ar meta Ns Op Ar ,meta,...
+.It Fl d Ar meta Ns Oo , Ns Ar meta Ns , Ns Ar ... Oc
 delete metadata
-.It Fl s Ar meta=value Ns Op Ar ,meta=value,...
+.It Fl s Ar meta Ns = Ns Ar value Ns Oo , Ns Ar meta Ns = Ns Ar value Ns , Ns Ar ... Oc
 set (replace) metadata
 .It Ar meta
 for a list of valid named meta keys try
-.Nm mobimeta Bro Fl a | Fl d | Fl s Brc
-.Ar \&? .
+.Nm Bro Fl a | Fl d | Fl s Brc Ar \&? .
 If meta is an integer it will be treated as a numeric EXTH record key (expert usage).
 .It Ar value
 new value that will be set for a given meta key
@@ -57,44 +56,37 @@ show version and exit
 .Sh EXAMPLES
 The following command will set new title, new author and will delete all publisher metadata (if any).
 .Pp
-.Bd -filled -offset indent
-.Nm mobimeta
-.Fl s
-title="My title",author="My name"
-.Fl d
-publisher example.mobi
-.Ed
+.Dl % mobimeta -s title="My title",author="My name" -d publisher example.mobi
 .Pp
 The following command appends EXTH record identified by its numeric key 204 with numeric value 201.
 .Pp
-.Bd -filled -offset indent
-.Nm mobimeta
-.Fl a
-204=201 example.mobi
-.Ed
+.Dl % mobimeta -a 204=201 example.mobi
 .Pp
 The following command will list valid meta named keys.
 .Pp
-.Bd -filled -offset indent
-.Nm mobimeta
-.Fl a
-?
-.Ed
+.Dl % mobimeta -a \&?\&
+.Pp
+Or in case your shell expands quotation mark:
+.Pp
+.Dl % mobimeta -a \&"?"\&
 .Sh RETURN VALUES
 The
-.Nm mobimeta
+.Nm
 utility returns 0 on success, 1 on error.
 .Sh COPYRIGHT
 Copyright (C) 2014-2022 Bartek Fabiszewski.
 .Pp
-Released under LGPL version 3 or any later (same as libmobi).
+Released under LGPL version 3 or any later (same as
+.Nm libmobi Ns
+).
 .Sh WEB SITE
 Visit http://www.fabiszewski.net for details.
 .Sh DIAGNOSTICS
 For diagnostics
 .Nm libmobi
 must be configured with
-.Op Fl Fl enable-debug
+.Fl Fl enable-debug
 option.
 .Sh SEE ALSO
 .Xr mobitool 1
+.Xr mobidrm 1
