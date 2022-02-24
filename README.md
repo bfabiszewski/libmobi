@@ -118,6 +118,7 @@ return SUCCESS;
 - works cross-compiled on Kindle :)
 
 ## Tests
+- [![Github Action status](https://github.com/bfabiszewski/libmobi/actions/workflows/build.yml/badge.svg)](https://github.com/bfabiszewski/libmobi/actions)
 - [![Travis status](https://travis-ci.com/bfabiszewski/libmobi.svg?branch=public)](https://travis-ci.com/bfabiszewski/libmobi)
 - [![Coverity status](https://scan.coverity.com/projects/3521/badge.svg)](https://scan.coverity.com/projects/3521)
 

@@ -70,7 +70,6 @@ jobs:
           mingw-w64-x86_64-libtool
           mingw-w64-x86_64-libxml2
           mingw-w64-x86_64-zlib
-    - run: reg add "HKLM\Software\Microsoft\Windows\Windows Error Reporting" /f /v DontShowUI /d 1
     - name: checkout
       uses: actions/checkout@v2
     - name: autogen
