@@ -72,8 +72,8 @@ if [[ -z "${md5prog}" ]]; then
 else
     testfile_md5=$(${md5prog} "${testfile}")
     testfile_md5=${testfile_md5%% *}
-    md5file_markup="md5/${testfile_md5}_markup.md5"
-    md5file_rawml="md5/${testfile_md5}_rawml.md5"
+    md5file_markup="@srcdir@/md5/${testfile_md5}_markup.md5"
+    md5file_rawml="@srcdir@/md5/${testfile_md5}_rawml.md5"
 fi
 
 # create tmp dir
