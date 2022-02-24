@@ -366,7 +366,7 @@ static bool mobi_drm_is_expired(const uint32_t from, const uint32_t to) {
 #endif
     size_t current_minutes = (size_t) time(NULL) / 60;
     if (current_minutes >= UINT32_MAX) {
-        debug_print("Drm cannot be checked, current time outside valid range: %ld\n", current_minutes);
+        debug_print("Drm cannot be checked, current time outside valid range: %zu\n", current_minutes);
         return false;
     }
     if (current_minutes < from || current_minutes > to) {
