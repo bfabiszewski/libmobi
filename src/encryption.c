@@ -359,17 +359,17 @@ static bool mobi_drm_is_expired(const uint32_t from, const uint32_t to) {
         return false;
     }
 #if (MOBI_DEBUG)
-    time_t debug_from = from * 60;
-    time_t debug_to = to * 60;
+    time_t debug_from = (time_t) from * 60;
+    time_t debug_to = (time_t) to * 60;
     debug_print("Drm validity period from %s", ctime(&debug_from));
     debug_print("                      to %s", ctime(&debug_to));
 #endif
-    time_t now = time(NULL) / 60;
-    if (now < 0 || now > UINT32_MAX) {
-        debug_print("Drm cannot be checked, current time outside valid range: %ld\n", now);
+    size_t current_minutes = (size_t) time(NULL) / 60;
+    if (current_minutes >= UINT32_MAX) {
+        debug_print("Drm cannot be checked, current time outside valid range: %ld\n", current_minutes);
         return false;
     }
-    if ((uint32_t) now < from || (uint32_t) now > to) {
+    if (current_minutes < from || current_minutes > to) {
         debug_print("%s\n", "Drm expired");
         return true;
     }
@@ -1008,6 +1008,15 @@ MOBI_RET mobi_voucher_add(MOBIData *m, const char *serial, const time_t valid_fr
     uint32_t to = MOBI_NOTSET;
     if (valid_to >= 0 && valid_to / 60 <= UINT32_MAX) {
         to = (uint32_t) (valid_to / 60);
+    }
+    
+    // Verification on Kindles requires both dates to be set but we allow users to set just one.
+    // Set missing range limit if necessary.
+    if (from != 0 && to == MOBI_NOTSET) {
+        to = UINT32_MAX - 1;
+    }
+    if (to != MOBI_NOTSET && from == 0) {
+        from = 1;
     }
     
     return mobi_cookie_add(m, pid, from, to);
