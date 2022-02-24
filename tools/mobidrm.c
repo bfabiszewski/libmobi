@@ -9,8 +9,6 @@
  * See <http://www.gnu.org/licenses/>
  */
 
-#define _XOPEN_SOURCE
-#include <time.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -136,6 +134,12 @@ static int do_encrypt(MOBIData *m, bool use_kf8) {
     printf("Encrypting with encryption type %u\n", m->rh->encryption_type);
     if (m->rh->encryption_type == MOBI_ENCRYPTION_V1 && serial_count) {
         printf("Warning! Encryption with device serial number is not supported with this encryption scheme. Skipping serial...\n");
+    }
+    if (valid_from != -1) {
+        printf("Drm validity period from %s", ctime(&valid_from));
+    }
+    if (valid_to != -1) {
+        printf("Drm validity period to %s", ctime(&valid_to));
     }
     return SUCCESS;
 }
@@ -290,11 +294,26 @@ static int loadfilename(const char *fullpath) {
  
  @param[in,out] tm Structure to be filled
  @param[in] date_str Input date string
- @return Pointer to position after last parsed character in string or NULL on error
+ @return SUCCESS or ERROR
  */
-const char * parse_date(struct tm *tm, const char *date_str) {
+static int parse_date(struct tm *tm, const char *date_str) {
     memset(tm, '\0', sizeof(*tm));
-    return strptime(date_str, "%Y-%m-%d", tm);
+    int year;
+    int month;
+    int day;
+    if (sscanf(date_str, "%5d-%2d-%2d", &year, &month, &day) != 3) {
+        return ERROR;
+    }
+    if (year < 1000 || month < 1 || month > 12 || day < 1 || day > 31) {
+        return ERROR;
+    }
+    
+    tm->tm_year = year - 1900;
+    tm->tm_mon = month - 1;
+    tm->tm_mday = day;
+    tm->tm_isdst = -1;
+    
+    return SUCCESS;
 }
 
 /**
@@ -333,11 +352,15 @@ int main(int argc, char *argv[]) {
                     return ERROR;
                 }
                 struct tm from;
-                if (parse_date(&from, optarg) == NULL) {
+                if (parse_date(&from, optarg) != SUCCESS) {
                     printf("Wrong valid from date format, use ISO 8601 yyyy-mm-dd\n");
                     return ERROR;
                 }
                 valid_from = mktime(&from);
+                if (valid_from == -1) {
+                    printf("Unparsable valid from date format, use ISO 8601 yyyy-mm-dd\n");
+                    return ERROR;  
+                }
                 expiry_opt = true;
                 break;
             case 'o':
@@ -394,11 +417,18 @@ int main(int argc, char *argv[]) {
                     return ERROR;
                 }
                 struct tm to;
-                if (parse_date(&to, optarg) == NULL) {
+                if (parse_date(&to, optarg) != SUCCESS) {
                     printf("Wrong valid to date format, use ISO 8601 yyyy-mm-dd\n");
                     return ERROR;
                 }
+                to.tm_hour = 23;
+                to.tm_min = 59;
+                to.tm_sec = 59;
                 valid_to = mktime(&to);
+                if (valid_to == -1) {
+                    printf("Unparsable valid to date format, use ISO 8601 yyyy-mm-dd\n");
+                    return ERROR;  
+                }
                 expiry_opt = true;
                 break;
             case 'v':
