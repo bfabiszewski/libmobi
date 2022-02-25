@@ -1,3 +1,44 @@
+2022-02-25: Remove obsolete changelog
+2022-02-25: Fix md5sum output on Windows
+2022-02-25: Fix inconsistent separators in path on Windows builds
+2022-02-25: GHA: fix log paths
+2022-02-25: GHA: fix workflow syntax
+2022-02-25: GHA: upload test logs on failure
+2022-02-24: Fix printf format specifier
+2022-02-24: Fix sample path in Makefile
+2022-02-24: Missing autotools in mingw workflow
+2022-02-24: Windows doesn't accept asterisk in file names
+2022-02-24: Update workflow, add badge
+2022-02-24: Add mingw workflow
+2022-02-24: Fix tests in out-of-tree build
+2022-02-24: Update man pages
+2022-02-24: Replace non-portable strptime
+2022-02-24: Make sure both validity period dates are set
+2022-02-21: Fix strptime not found on linux build
+2022-02-21: Add build github action
+2022-02-21: Update README
+2022-02-21: Minor code cleanups
+2022-02-21: Unify boolean and static usage in tools
+2022-02-21: mobimeta: fix null pointer dereference when parsing malformed option
+2022-02-18: Add  hybrid spit option to mobitool
+2022-02-18: Update documentation
+2022-02-18: Test both encrypted hybrid parts
+2022-02-18: Fix: fast decryption routine fails for non-huffman compression
+2022-02-18: Fix mobitool serial decryption
+2022-02-18: Add DRM tests
+2022-02-17: Fix build with encryption disabled
+2022-02-17: Update tests samples
+2022-02-16: Add -h option to tools, update man pages
+2022-02-16: Update Xcode settings
+2022-02-16: Restructure, cleanup encryption related code, add mobidrm tool
+2021-11-19: Improve getopt loop, fix config.h to be accessible from all tools
+2021-11-10: Update xcode project
+2021-11-10: Add functions to split hybrid files
+2021-11-10: Avoid modifying existing records, as caller may keep reference to them
+2021-11-05: Fix: tests fail if pid contains asterisk
+2021-11-05: Fix: decryption may fail for some records with standard compression
+2021-11-05: Replace test samples with self-generated smaller ones
+2021-11-05: Skip test in case of missing checksums
 2021-10-20: Version 0.9
 2021-10-24: Fix out-of-tree build
 2021-10-22: Fix mingw build, code formatting
@@ -12,9 +53,7 @@
 2021-09-18: Fix potential out-of-buffer read while parsing corrupt file, closes #38
 2021-09-18: Fix potential out-of-buffer read while parsing corrupt file, closes #35, #36
 2021-09-09: Version 0.7
-2021-09-09: Merge pull request #33 from occia/public
 2021-09-09: fix oob write bug inside libmobi
-2021-06-07: Merge pull request #30 from codetheweb/patch-1
 2021-06-07: Add reference to brew formula
 2020-09-02: Fix null pointer dereference in case of broken fragment
 2020-08-01: Update changelog
@@ -68,7 +107,6 @@
 2016-06-10: Fix: out of bounds read in corrupt font resource
 2016-06-10: Prevent memory leak in case of corrupt font resources
 2016-06-10: Calculate deobfuscation buffer limit from key length
-2016-06-10: Merge branch 'public' of ssh://fabiszewski.net/home/git/libmobi into public
 2016-06-10: Fix: USE_LIBXML2 macro was not included from config.h
 2016-06-10: Fix: USE_LIBXML2 macro was not included from config.h
 2016-06-09: Fix: memory leak in tools
@@ -125,7 +163,6 @@
 2016-04-04: Fix potential buffer overflow, closes #2
 2016-04-04: Fix potential null pointer dereference
 2016-03-23: Fix signedness warnings
-2016-03-22: Merge branch 'public'
 2016-03-22: Fix: _mkdir needs direct.h on MinGW
 2016-03-22: Fix tests on Windows
 2016-03-22: Fix: palmdoc decompression may fail with zero byte in input buffer
@@ -233,14 +270,12 @@
 2014-11-14: feature: support encoded ligatures in index entry labels
 2014-11-14: readme
 2014-11-14: update changelog
-2014-11-13: Merge remote-tracking branch 'origin/public' into public
 2014-11-13: feature: support for older inflections scheme
 2014-11-13: bug: files with short tagx header won't open
 2014-11-13: cleanup unneeded include
 2014-11-13: use strdup on linux/glibc
 2014-11-13: debugging cleanup
 2014-11-13: reorganize source files
-2014-11-13: Merge branch 'public' of /home/baf/libmobi into public
 2014-11-13: use strdup on linux/glibc
 2014-11-11: update changelog
 2014-11-11: update changeling
@@ -249,7 +284,6 @@
 2014-11-11: debug: add functions for debugging indices
 2014-11-11: cleanup
 2014-11-11: fix: variable length value wrongly calculated when going backwards
-2014-11-08: Merge remote-tracking branch 'origin/public' into public
 2014-11-08: update documentation
 2014-11-08: update changelog
 2014-11-08: add support for reconstructing inflections index entries
