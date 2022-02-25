@@ -13,24 +13,23 @@ if [[ $# < 1 ]]; then
     die "Wrong number of input parameters: $#" 1
 fi
 
-testfile="$1"
+if [[ "x@WIN32@" == "xyes" ]]; then
+    testfile="${1//\//\\}"
+    separator=\\
+else
+    testfile="${1}"
+    separator=\/
+fi
+basefile="${testfile##*[/\\]}"
 testfile_md5=
 md5file_markup=
 md5file_rawml=
-basefile="${testfile##*/}"
 shift
 options="$@"
 markup_dir="${basefile%.*}_markup"
 tmp_dir="tmp"
 rawml_file="${basefile%.*}.rawml"
 md5prog="@MD5PROG@"
-separator=\/
-if [[ "x@WIN32@" == "xyes" ]]; then
-    runfile=${testfile//\//\\}
-    separator=\\
-else
-    runfile=${testfile}
-fi
 mobitool="..${separator}tools${separator}mobitool"
 mobidrm="..${separator}tools${separator}mobidrm"
 pid=
@@ -73,7 +72,7 @@ if [[ -z "${md5prog}" ]]; then
     do_md5=0
     log "Missing md5 tool: ${md5prog}, will skip md5 tests"
 else
-    testfile_md5=$(${md5prog} "${testfile}")
+    testfile_md5=$(${md5prog} "${testfile//\\/\/}")
     testfile_md5=${testfile_md5%% *}
     md5file_markup="@srcdir@${separator}md5${separator}${testfile_md5}_markup.md5"
     md5file_rawml="@srcdir@${separator}md5${separator}${testfile_md5}_rawml.md5"
@@ -84,8 +83,8 @@ mkdir -p "${tmp_dir}"
 
 # recreate source files
 rm -rf "${tmp_dir}/${markup_dir}"
-log "Running ${mobitool} -o \"${tmp_dir}\" -s ${options} \"${runfile}\""
-${mobitool} -o "${tmp_dir}" -s ${options} "${runfile}" || die "Recreating source failed, mobitool error ($?)" $?
+log "Running ${mobitool} -o \"${tmp_dir}\" -s ${options} \"${testfile}\""
+${mobitool} -o "${tmp_dir}" -s ${options} "${testfile}" || die "Recreating source failed, mobitool error ($?)" $?
 [[ -d "${tmp_dir}${separator}${markup_dir}" ]] || die "Recreating source failed" 1
 
 # verify checksums
@@ -108,15 +107,15 @@ rm -rf "${tmp_dir}${separator}${markup_dir}"
 
 # dump rawml
 rm -f "${tmp_dir}${separator}${rawml_file}"
-log "Running ${mobitool} -o \"${tmp_dir}\" -d ${options} \"${runfile}\""
-${mobitool} -o "${tmp_dir}" -d ${options} "${runfile}" || die "Dumping rawml failed, mobitool error ($?)" $?
+log "Running ${mobitool} -o \"${tmp_dir}\" -d ${options} \"${testfile}\""
+${mobitool} -o "${tmp_dir}" -d ${options} "${testfile}" || die "Dumping rawml failed, mobitool error ($?)" $?
 [[ -f "${tmp_dir}${separator}${rawml_file}" ]] || die "Dumping rawml failed" 1
 
 # verify checksum
 if [[ "${do_md5}" -eq "1" ]]; then
     if [[ -f "${md5file_rawml}" ]]; then
         md5_1=$(cat ${md5file_rawml})
-        md5_2=$(${md5prog} "${tmp_dir}${separator}${rawml_file}")
+        md5_2=$(${md5prog} "${tmp_dir}/${rawml_file}")
         [[ "${md5_1%% *}" == "${md5_2%% *}" ]] || die "Wrong md5 checksum for ${rawml_file} (${md5_1%% *} != ${md5_2%% *})" 1
         log "Checksum correct"
     else
@@ -144,8 +143,8 @@ drm_markup="${drm_file}_markup"
 
 rm -f "${tmp_dir}${separator}${drm_file}."*
 
-log "Running ${mobidrm} -o \"${tmp_dir}\" ${options} \"${runfile}\""
-output="$(${mobidrm} -o "${tmp_dir}" ${options} "${runfile}" 2>&1)"
+log "Running ${mobidrm} -o \"${tmp_dir}\" ${options} \"${testfile}\""
+output="$(${mobidrm} -o "${tmp_dir}" ${options} "${testfile}" 2>&1)"
 status=$?
 echo "${output}"
 
