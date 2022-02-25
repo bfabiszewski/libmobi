@@ -49,6 +49,14 @@ jobs:
       run: make -j `nproc` check
     - name: make distcheck
       run: make -j `nproc` distcheck
+    - name: upload debug artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-logs
+        path:
+          - '**/test-suite.log'
+          - '**/samples/*.log'
+      if: ${{ failure() }}
 
   win64-build:
 
@@ -83,3 +91,11 @@ jobs:
       run: make -j$(nproc) check
     - name: make distcheck
       run: make -j$(nproc) distcheck
+    - name: upload debug artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-logs
+        path:
+          - '**/test-suite.log'
+          - '**/samples/*.log'
+      if: ${{ failure() }}
