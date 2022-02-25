@@ -965,6 +965,7 @@ int main(int argc, char *argv[]) {
                     return ERROR;
                 }
                 strncpy(outdir, optarg, FILENAME_MAX - 1);
+                normalize_path(outdir);
                 if (!dir_exists(outdir)) {
                     printf("Output directory is not valid\n");
                     return ERROR;
@@ -1043,6 +1044,8 @@ int main(int argc, char *argv[]) {
     char filename[FILENAME_MAX];
     strncpy(filename, argv[optind], FILENAME_MAX - 1);
     filename[FILENAME_MAX - 1] = '\0';
+    normalize_path(filename);
+    
     ret = loadfilename(filename);
     if (split_opt) {
         printf("\nSplitting hybrid file...\n");

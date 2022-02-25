@@ -24,13 +24,15 @@ markup_dir="${basefile%.*}_markup"
 tmp_dir="tmp"
 rawml_file="${basefile%.*}.rawml"
 md5prog="@MD5PROG@"
-mobitool="../tools/mobitool"
-mobidrm="../tools/mobidrm"
+separator=\/
 if [[ "x@WIN32@" == "xyes" ]]; then
     runfile=${testfile//\//\\}
+    separator=\\
 else
     runfile=${testfile}
 fi
+mobitool="..${separator}tools${separator}mobitool"
+mobidrm="..${separator}tools${separator}mobidrm"
 pid=
 do_md5=1
 is_encrypted=0
@@ -73,8 +75,8 @@ if [[ -z "${md5prog}" ]]; then
 else
     testfile_md5=$(${md5prog} "${testfile}")
     testfile_md5=${testfile_md5%% *}
-    md5file_markup="@srcdir@/md5/${testfile_md5}_markup.md5"
-    md5file_rawml="@srcdir@/md5/${testfile_md5}_rawml.md5"
+    md5file_markup="@srcdir@${separator}md5${separator}${testfile_md5}_markup.md5"
+    md5file_rawml="@srcdir@${separator}md5${separator}${testfile_md5}_rawml.md5"
 fi
 
 # create tmp dir
@@ -84,17 +86,17 @@ mkdir -p "${tmp_dir}"
 rm -rf "${tmp_dir}/${markup_dir}"
 log "Running ${mobitool} -o \"${tmp_dir}\" -s ${options} \"${runfile}\""
 ${mobitool} -o "${tmp_dir}" -s ${options} "${runfile}" || die "Recreating source failed, mobitool error ($?)" $?
-[[ -d "${tmp_dir}/${markup_dir}" ]] || die "Recreating source failed" 1
+[[ -d "${tmp_dir}${separator}${markup_dir}" ]] || die "Recreating source failed" 1
 
 # verify checksums
 if [[ "${do_md5}" -eq "1" ]]; then
     if [[ -f "${md5file_markup}" ]]; then
         (
-            cd "${tmp_dir}/${markup_dir}" || die "Could not change directory to ${tmp_dir}/${markup_dir}" $?
-            rm -f "../${testfile_md5}.md5"
-            ${md5prog} * > "../${testfile_md5}.md5"
-            diff -w "../${testfile_md5}.md5" "../../${md5file_markup}" || die "Wrong md5 checksum in ${markup_dir}" $?
-            rm -f "../${testfile_md5}.md5"
+            cd "${tmp_dir}${separator}${markup_dir}" || die "Could not change directory to ${tmp_dir}${separator}${markup_dir}" $?
+            rm -f "..${separator}${testfile_md5}.md5"
+            ${md5prog} * > "..${separator}${testfile_md5}.md5"
+            diff -w "..${separator}${testfile_md5}.md5" "..${separator}..${separator}${md5file_markup}" || die "Wrong md5 checksum in ${markup_dir}" $?
+            rm -f "..${separator}${testfile_md5}.md5"
         ) || exit $?
         log "Checksum correct"
     else
@@ -102,19 +104,19 @@ if [[ "${do_md5}" -eq "1" ]]; then
         die "Missing markup checksums file" $skip
     fi
 fi
-rm -rf "${tmp_dir}/${markup_dir}"
+rm -rf "${tmp_dir}${separator}${markup_dir}"
 
 # dump rawml
-rm -f "${tmp_dir}/${rawml_file}"
+rm -f "${tmp_dir}${separator}${rawml_file}"
 log "Running ${mobitool} -o \"${tmp_dir}\" -d ${options} \"${runfile}\""
 ${mobitool} -o "${tmp_dir}" -d ${options} "${runfile}" || die "Dumping rawml failed, mobitool error ($?)" $?
-[[ -f "${tmp_dir}/${rawml_file}" ]] || die "Dumping rawml failed" 1
+[[ -f "${tmp_dir}${separator}${rawml_file}" ]] || die "Dumping rawml failed" 1
 
 # verify checksum
 if [[ "${do_md5}" -eq "1" ]]; then
     if [[ -f "${md5file_rawml}" ]]; then
         md5_1=$(cat ${md5file_rawml})
-        md5_2=$(${md5prog} "${tmp_dir}/${rawml_file}")
+        md5_2=$(${md5prog} "${tmp_dir}${separator}${rawml_file}")
         [[ "${md5_1%% *}" == "${md5_2%% *}" ]] || die "Wrong md5 checksum for ${rawml_file} (${md5_1%% *} != ${md5_2%% *})" 1
         log "Checksum correct"
     else
@@ -122,7 +124,7 @@ if [[ "${do_md5}" -eq "1" ]]; then
         die "Missing rawml checksums file" $skip
     fi
 fi
-rm -f "${tmp_dir}/${rawml_file}"
+rm -f "${tmp_dir}${separator}${rawml_file}"
 
 # test encryption / decryption
 [[ "x@ENCRYPTION_OPT@" == "xyes" ]] || exit 0
@@ -140,7 +142,7 @@ fi
 drm_file="${basefile%.*}-${suffix}"
 drm_markup="${drm_file}_markup"
 
-rm -f "${tmp_dir}/${drm_file}."*
+rm -f "${tmp_dir}${separator}${drm_file}."*
 
 log "Running ${mobidrm} -o \"${tmp_dir}\" ${options} \"${runfile}\""
 output="$(${mobidrm} -o "${tmp_dir}" ${options} "${runfile}" 2>&1)"
@@ -158,17 +160,17 @@ fi
 
 drm_files=()
 
-[[ -f "${tmp_dir}/${drm_file}.mobi" ]] && drm_files+=("${drm_file}.mobi")
-[[ -f "${tmp_dir}/${drm_file}.azw3" ]] && drm_files+=("${drm_file}.azw3")
+[[ -f "${tmp_dir}${separator}${drm_file}.mobi" ]] && drm_files+=("${drm_file}.mobi")
+[[ -f "${tmp_dir}${separator}${drm_file}.azw3" ]] && drm_files+=("${drm_file}.azw3")
 
 [[ ${#drm_files[@]} -eq 0 ]] && die "DRM operation failed" 1
 
 # verify
 for drm_file in ${drm_files[@]}; do
-    log "Running ${mobitool} -o \"${tmp_dir}\" ${verify_options} \"${tmp_dir}/${drm_file}\""
-    ${mobitool} -o "${tmp_dir}" ${verify_options} "${tmp_dir}/${drm_file}" || die "DRM operation produced broken file, mobitool error ($?)" $?
-    rm -f "${tmp_dir}/${drm_file}"
-    rm -rf "${tmp_dir}/${drm_markup}"
+    log "Running ${mobitool} -o \"${tmp_dir}\" ${verify_options} \"${tmp_dir}${separator}${drm_file}\""
+    ${mobitool} -o "${tmp_dir}" ${verify_options} "${tmp_dir}${separator}${drm_file}" || die "DRM operation produced broken file, mobitool error ($?)" $?
+    rm -f "${tmp_dir}${separator}${drm_file}"
+    rm -rf "${tmp_dir}${separator}${drm_markup}"
 done
 
 exit 0

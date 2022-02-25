@@ -29,6 +29,8 @@ const char separator = '/';
 bool outdir_opt = false;
 char outdir[FILENAME_MAX];
 
+#define UNUSED(x) (void)(x)
+
 /**
  @brief Messages for libmobi return codes
  For reference see enum MOBI_RET in mobi.h
@@ -203,6 +205,24 @@ bool dir_exists(const char *path) {
         return false;
     }
     return true;
+}
+
+/**
+ @brief Make sure we use consistent separators on Windows builds
+ @param[in,out] path Path to be fixed
+ */
+void normalize_path(char *path) {
+#ifdef _WIN32
+    if (path != NULL) {
+        for (size_t i = 0; i <= strlen(path); i++) {
+            if (path[i] == '/') {
+                path[i] = separator;
+            }
+        }
+    }
+#else
+    UNUSED(path);
+#endif
 }
 
 
