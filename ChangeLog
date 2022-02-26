@@ -1,3 +1,4 @@
+2022-02-26: Add coverity scan workflow
 2022-02-25: Remove obsolete changelog
 2022-02-25: Fix md5sum output on Windows
 2022-02-25: Fix inconsistent separators in path on Windows builds
