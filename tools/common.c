@@ -31,6 +31,10 @@ char outdir[FILENAME_MAX];
 
 #define UNUSED(x) (void)(x)
 
+#ifndef min
+# define min(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
 /**
  @brief Messages for libmobi return codes
  For reference see enum MOBI_RET in mobi.h
@@ -72,21 +76,26 @@ const char * libmobi_msg(const MOBI_RET ret) {
 /**
  @brief Parse file name into file path and base name.
         Dirname or basename can be skipped by setting to null.
-        All buffers must have FILENAME_MAX size.
  @param[in] fullpath Full file path
  @param[in,out] dirname Will be set to full dirname
  @param[in,out] basename Will be set to file basename
+ @param[in] buf_len Size of each ouput buffer: dirname and basename
  */
-void split_fullpath(const char *fullpath, char *dirname, char *basename) {
+void split_fullpath(const char *fullpath, char *dirname, char *basename, const size_t buf_len) {
+    if (buf_len == 0) {
+        return;
+    }
     char *p = strrchr(fullpath, separator);
     if (p) {
         p += 1;
         if (dirname) {
-            strncpy(dirname, fullpath, (unsigned long)(p - fullpath));
-            dirname[p - fullpath] = '\0';
+            size_t dirlen = min(buf_len - 1, (size_t) (p - fullpath));
+            strncpy(dirname, fullpath, dirlen);
+            dirname[dirlen] = '\0';
         }
         if (basename) {
-            strcpy(basename, p);
+            strncpy(basename, p, buf_len - 1);
+            basename[buf_len - 1] = '\0';
         }
     }
     else {
@@ -94,7 +103,8 @@ void split_fullpath(const char *fullpath, char *dirname, char *basename) {
             dirname[0] = '\0';
         }
         if (basename) {
-            strcpy(basename, fullpath);
+            strncpy(basename, fullpath, buf_len - 1);
+            basename[buf_len - 1] = '\0';
         }
     }
     if (basename) {
@@ -106,8 +116,8 @@ void split_fullpath(const char *fullpath, char *dirname, char *basename) {
 }
 
 /**
- * @brief Make directory
- * @param[in] path Path
+ @brief Make directory
+ @param[in] path Path
  @return SUCCESS or ERROR
  */
 int make_directory(const char *path) {
@@ -122,18 +132,19 @@ int make_directory(const char *path) {
 
 /**
  @brief Create subfolder in directory
- @param[in,out] newdir Path to created subfolder, must have FILENAME_MAX size
+ @param[in,out] newdir Path to created subfolder
+ @param[in] buf_len Buffer size fo created subfolder
  @param[in] parent_dir Directory path
  @param[in] subdir_name Subfolder name
  @return SUCCESS or ERROR
  */
-int create_subdir(char *newdir, const char *parent_dir, const char *subdir_name) {
-    int n = snprintf(newdir, FILENAME_MAX, "%s%c%s", parent_dir, separator, subdir_name);
+int create_subdir(char *newdir, const size_t buf_len, const char *parent_dir, const char *subdir_name) {
+    int n = snprintf(newdir, buf_len, "%s%c%s", parent_dir, separator, subdir_name);
     if (n < 0) {
         printf("Creating file name failed\n");
         return ERROR;
     }
-    if ((size_t) n > FILENAME_MAX) {
+    if ((size_t) n >= buf_len) {
         printf("File name too long: %s\n", newdir);
         return ERROR;
     }
@@ -181,7 +192,7 @@ int write_to_dir(const char *dir, const char *name, const unsigned char *buffer,
         printf("Creating file name failed\n");
         return ERROR;
     }
-    if ((size_t) n > sizeof(path)) {
+    if ((size_t) n >= sizeof(path)) {
         printf("File name too long\n");
         return ERROR;
     }
@@ -574,7 +585,7 @@ int save_mobi(MOBIData *m, const char *fullpath, const char *suffix) {
     char outfile[FILENAME_MAX];
     char basename[FILENAME_MAX];
     char dirname[FILENAME_MAX];
-    split_fullpath(fullpath, dirname, basename);
+    split_fullpath(fullpath, dirname, basename, FILENAME_MAX);
     const char *ext = (mobi_get_fileversion(m) >= 8) ? "azw3" : "mobi";
     int n;
     if (outdir_opt) {
@@ -586,7 +597,7 @@ int save_mobi(MOBIData *m, const char *fullpath, const char *suffix) {
         printf("Creating file name failed\n");
         return ERROR;
     }
-    if ((size_t) n > sizeof(outfile)) {
+    if ((size_t) n >= sizeof(outfile)) {
         printf("File name too long\n");
         return ERROR;
     }

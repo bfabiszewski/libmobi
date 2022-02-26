@@ -199,7 +199,7 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
         }
         debug_print("<reference type=\"%s\" title=\"%s\" href=\"part%05u.html\" />", ref_type, ref_title, file_number);
         char href[FILENAME_MAX + 1];
-        snprintf(href, FILENAME_MAX, "part%05u.html", file_number);
+        snprintf(href, sizeof(href), "part%05u.html", file_number);
         char *ref_href = strdup(href);
         reference[j] = calloc(1, sizeof(OPFreference));
         *reference[j] = (OPFreference) { ref_type, ref_title, ref_href };

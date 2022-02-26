@@ -239,26 +239,27 @@ static void print_records_meta(const MOBIData *m) {
 /**
  @brief Create new path. Name is derived from input file path.
         [dirname]/[basename][suffix]
- @param[out] newpath Created path, buffer must have FILENAME_MAX size
+ @param[out] newpath Created path
+ @param[in] buf_len Created path buffer size
  @param[in] fullpath Input file path
  @param[in] suffix Path name suffix
  @return SUCCESS or ERROR
  */
-static int create_path(char *newpath, const char *fullpath, const char *suffix) {
+static int create_path(char *newpath, const size_t buf_len, const char *fullpath, const char *suffix) {
     char dirname[FILENAME_MAX];
     char basename[FILENAME_MAX];
-    split_fullpath(fullpath, dirname, basename);
+    split_fullpath(fullpath, dirname, basename, FILENAME_MAX);
     int n;
     if (outdir_opt) {
-        n = snprintf(newpath, FILENAME_MAX, "%s%s%s", outdir, basename, suffix);
+        n = snprintf(newpath, buf_len, "%s%s%s", outdir, basename, suffix);
     } else {
-        n = snprintf(newpath, FILENAME_MAX, "%s%s%s", dirname, basename, suffix);
+        n = snprintf(newpath, buf_len, "%s%s%s", dirname, basename, suffix);
     }
     if (n < 0) {
         printf("Creating file name failed\n");
         return ERROR;
     }
-    if ((size_t) n > FILENAME_MAX) {
+    if ((size_t) n >= buf_len) {
         printf("File name too long\n");
         return ERROR;
     }
@@ -268,13 +269,14 @@ static int create_path(char *newpath, const char *fullpath, const char *suffix) 
 /**
  @brief Create directory. Path is derived from input file path.
         [dirname]/[basename][suffix]
- @param[out] newdir Created directory path, buffer must have FILENAME_MAX size
+ @param[out] newdir Created directory path
+ @param[in] buf_len Created directory buffer size
  @param[in] fullpath Input file path
  @param[in] suffix Directory name suffix
  @return SUCCESS or ERROR
  */
-static int create_dir(char *newdir, const char *fullpath, const char *suffix) {
-    if (create_path(newdir, fullpath, suffix) == ERROR) {
+static int create_dir(char *newdir, const size_t buf_len, const char *fullpath, const char *suffix) {
+    if (create_path(newdir, buf_len, fullpath, suffix) == ERROR) {
         return ERROR;
     }
     return make_directory(newdir);
@@ -288,7 +290,7 @@ static int create_dir(char *newdir, const char *fullpath, const char *suffix) {
  */
 static int dump_records(const MOBIData *m, const char *fullpath) {
     char newdir[FILENAME_MAX];
-    if (create_dir(newdir, fullpath, "_records") == ERROR) {
+    if (create_dir(newdir, sizeof(newdir), fullpath, "_records") == ERROR) {
         return ERROR;
     }
     printf("Saving records to %s\n", newdir);
@@ -315,7 +317,7 @@ static int dump_records(const MOBIData *m, const char *fullpath) {
  */
 static int dump_rawml(const MOBIData *m, const char *fullpath) {
     char newpath[FILENAME_MAX];
-    if (create_path(newpath, fullpath, ".rawml") == ERROR) {
+    if (create_path(newpath, sizeof(newpath), fullpath, ".rawml") == ERROR) {
         return ERROR;
     }
     printf("Saving rawml to %s\n", newpath);
@@ -380,7 +382,7 @@ static int dump_cover(const MOBIData *m, const char *fullpath) {
     snprintf(suffix, sizeof(suffix), "_cover.%s", ext);
 
     char cover_path[FILENAME_MAX];
-    if (create_path(cover_path, fullpath, suffix) == ERROR) {
+    if (create_path(cover_path, sizeof(cover_path), fullpath, suffix) == ERROR) {
         return ERROR;
     }
     
@@ -402,7 +404,7 @@ static int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
     }
 
     char newdir[FILENAME_MAX];
-    if (create_dir(newdir, fullpath, "_markup") == ERROR) {
+    if (create_dir(newdir, sizeof(newdir), fullpath, "_markup") == ERROR) {
         return ERROR;
     }
     printf("Saving markup to %s\n", newdir);
@@ -410,7 +412,7 @@ static int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
     if (create_epub_opt) {
         /* create META_INF directory */
         char opfdir[FILENAME_MAX];
-        if (create_subdir(opfdir, newdir, "META-INF") == ERROR) {
+        if (create_subdir(opfdir, sizeof(opfdir), newdir, "META-INF") == ERROR) {
             return ERROR;
         }
 
@@ -425,7 +427,7 @@ static int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
         }
 
         /* create OEBPS directory */
-        if (create_subdir(opfdir, newdir, "OEBPS") == ERROR) {
+        if (create_subdir(opfdir, sizeof(opfdir), newdir, "OEBPS") == ERROR) {
             return ERROR;
         }
 
@@ -478,7 +480,7 @@ static int dump_rawml_parts(const MOBIRawml *rawml, const char *fullpath) {
                     printf("Creating file name failed\n");
                     return ERROR;
                 }
-                if ((size_t) n > sizeof(partname)) {
+                if ((size_t) n >= sizeof(partname)) {
                     printf("File name too long: %s\n", partname);
                     return ERROR;
                 }
@@ -520,7 +522,7 @@ static int create_epub(const MOBIRawml *rawml, const char *fullpath) {
     }
 
     char zipfile[FILENAME_MAX];
-    if (create_path(zipfile, fullpath, ".epub") == ERROR) {
+    if (create_path(zipfile, sizeof(zipfile), fullpath, ".epub") == ERROR) {
         return ERROR;
     }
     printf("Saving EPUB to %s\n", zipfile);
@@ -638,7 +640,7 @@ static int dump_embedded_source(const MOBIData *m, const char *fullpath) {
     }
 
     char newdir[FILENAME_MAX];
-    if (create_dir(newdir, fullpath, "_source") == ERROR) {
+    if (create_dir(newdir, sizeof(newdir), fullpath, "_source") == ERROR) {
         return ERROR;
     }
 
@@ -654,13 +656,13 @@ static int dump_embedded_source(const MOBIData *m, const char *fullpath) {
 
     char srcsname[FILENAME_MAX];
     char basename[FILENAME_MAX];
-    split_fullpath(fullpath, NULL, basename);
+    split_fullpath(fullpath, NULL, basename, FILENAME_MAX);
     int n = snprintf(srcsname, sizeof(srcsname), "%s_source.%s", basename, ext);
     if (n < 0) {
         printf("Creating file name failed\n");
         return ERROR;
     }
-    if ((size_t) n > sizeof(srcsname)) {
+    if ((size_t) n >= sizeof(srcsname)) {
         printf("File name too long\n");
         return ERROR;
     }
@@ -687,7 +689,7 @@ static int dump_embedded_source(const MOBIData *m, const char *fullpath) {
         printf("Creating file name failed\n");
         return ERROR;
     }
-    if ((size_t) n > sizeof(srcsname)) {
+    if ((size_t) n >= sizeof(srcsname)) {
         printf("File name too long\n");
         return ERROR;
     }

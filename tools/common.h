@@ -62,9 +62,9 @@ extern bool outdir_opt;
 extern char outdir[FILENAME_MAX];
 
 const char * libmobi_msg(const MOBI_RET ret);
-void split_fullpath(const char *fullpath, char *dirname, char *basename);
+void split_fullpath(const char *fullpath, char *dirname, char *basename, const size_t buf_len);
 int make_directory(const char *path);
-int create_subdir(char *newdir, const char *parent_dir, const char *subdir_name);
+int create_subdir(char *newdir, const size_t buf_len, const char *parent_dir, const char *subdir_name);
 int write_file(const unsigned char *buffer, const size_t len, const char *path);
 int write_to_dir(const char *dir, const char *name, const unsigned char *buffer, const size_t len);
 bool dir_exists(const char *path);
