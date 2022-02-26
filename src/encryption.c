@@ -947,11 +947,15 @@ static MOBI_RET mobi_tamperkeys_add(MOBIData *m, const MOBIExthTag *tamperkeys, 
         return MOBI_PARAM_ERR;
     }
     MOBIBuffer *buf = mobi_buffer_init(record_size);
+    if (buf == NULL) {
+        return MOBI_MALLOC_FAILED;
+    }
     
     for (size_t i = 0; i < tamperkeys_count; i++) {
         MOBIExthHeader *tag = mobi_get_exthrecord_by_tag(m, tamperkeys[i]);
         if (tag == NULL) {
             debug_print("Missing EXTH record with tag %u\n", tamperkeys[i]);
+            mobi_buffer_free(buf);
             return MOBI_PARAM_ERR;
         }
         MOBIExthMeta meta = mobi_get_exthtagmeta_by_tag(tamperkeys[i]);
@@ -1400,7 +1404,6 @@ MOBI_RET mobi_drm_serialize_v1(MOBIBuffer *buf, const MOBIData *m) {
     if (mobi_version > 1) {
         /* offset mobi header + record 0 header (+ 12 in newer files) */
         if (m->mh == NULL || m->mh->header_length == NULL) {
-            mobi_buffer_free_null(buf);
             return MOBI_DATA_CORRUPT;
         }
         size_t offset = 0;
