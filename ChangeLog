@@ -1,3 +1,4 @@
+2022-02-26: GHA: fetch tags with checkout
 2022-02-26: Minor refactoring of file path manipulation function
 2022-02-26: Fix memory handling issues
 2022-02-26: Add coverity scan workflow
