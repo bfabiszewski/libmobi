@@ -44,7 +44,9 @@ The tools source may also be used as an example on how to use the library.
 
 On macOS, you can install via [Homebrew](https://brew.sh/) with `brew install libmobi`.
 
-## Optionally provided Xcode and MSVC++ project files
+## Alternative build systems
+- The supported way of building project is by using autotools.
+- Optionally project provides basic support for CMake, Xcode and MSVC++ systems. However these alternative configurations are not covering all options of autotools project. They are also not tested and not updated regularly. 
 
 ## Usage
 - single include file: `#include <mobi.h>`
