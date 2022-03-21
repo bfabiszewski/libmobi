@@ -1,3 +1,4 @@
+2022-03-21: Add functions for retrieving orthographic index entries
 2022-02-27: Add basic CMake support
 2022-02-26: GHA: fetch tags with checkout
 2022-02-26: Minor refactoring of file path manipulation function

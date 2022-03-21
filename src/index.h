@@ -41,8 +41,8 @@
 #define INDX_TAG_FRAG_POSITION (unsigned[]) {6, 0} /**< Frag position */
 #define INDX_TAG_FRAG_LENGTH (unsigned[]) {6, 1} /**< Frag length */
 
-#define INDX_TAG_ORTH_STARTPOS (unsigned[]) {1, 0} /**< Orth entry start position */
-#define INDX_TAG_ORTH_ENDPOS (unsigned[]) {2, 0} /**< Orth entry end position */
+#define INDX_TAG_ORTH_POSITION (unsigned[]) {1, 0} /**< Orth entry start position */
+#define INDX_TAG_ORTH_LENGTH (unsigned[]) {2, 0} /**< Orth entry end position */
 
 #define INDX_TAGARR_ORTH_INFL 42 /**< Inflection groups for orth entry */
 #define INDX_TAGARR_INFL_GROUPS 5 /**< Inflection groups in infl index */

@@ -796,6 +796,38 @@ size_t mobi_get_indxentry_tagarray(uint32_t **tagarr, const MOBIIndexEntry *entr
 }
 
 /**
+ @brief Get entry start offset for the orth entry
+ @param[in] entry MOBIIndexEntry structure
+ @return Start offset, MOBI_NOTSET on failure
+ */
+uint32_t mobi_get_orth_entry_offset(const MOBIIndexEntry *entry) {
+
+    uint32_t entry_startpos;
+    MOBI_RET ret = mobi_get_indxentry_tagvalue(&entry_startpos, entry, INDX_TAG_ORTH_POSITION);
+    if (ret != MOBI_SUCCESS) {
+        return MOBI_NOTSET;
+    }
+    
+    return entry_startpos;
+}
+
+/**
+ @brief Get text length for the orth entry
+ @param[in] entry MOBIIndexEntry structure
+ @return Text length, MOBI_NOTSET on failure
+ */
+uint32_t mobi_get_orth_entry_length(const MOBIIndexEntry *entry) {
+
+    uint32_t entry_textlen;
+    MOBI_RET ret = mobi_get_indxentry_tagvalue(&entry_textlen, entry, INDX_TAG_ORTH_LENGTH);
+    if (ret != MOBI_SUCCESS) {
+        return MOBI_NOTSET;
+    }
+
+    return entry_textlen;
+}
+
+/**
  @brief Check if given tagid is present in the index
  
  @param[in] indx Index MOBIIndx structure

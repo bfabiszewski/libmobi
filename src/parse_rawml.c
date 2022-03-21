@@ -1527,14 +1527,14 @@ MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size
         const MOBIIndexEntry *orth_entry = &rawml->orth->entries[i];
         const char *label = orth_entry->label;
         uint32_t entry_startpos;
-        MOBI_RET ret = mobi_get_indxentry_tagvalue(&entry_startpos, orth_entry, INDX_TAG_ORTH_STARTPOS);
+        MOBI_RET ret = mobi_get_indxentry_tagvalue(&entry_startpos, orth_entry, INDX_TAG_ORTH_POSITION);
         if (ret != MOBI_SUCCESS) {
             i++;
             continue;
         }
         size_t entry_length = 0;
         uint32_t entry_textlen = 0;
-        mobi_get_indxentry_tagvalue(&entry_textlen, orth_entry, INDX_TAG_ORTH_ENDPOS);
+        mobi_get_indxentry_tagvalue(&entry_textlen, orth_entry, INDX_TAG_ORTH_LENGTH);
         char *start_tag;
         if (entry_textlen == 0) {
             entry_length += start_tag1_len + strlen(label);
