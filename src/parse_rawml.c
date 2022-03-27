@@ -1466,9 +1466,13 @@ MOBI_RET mobi_reconstruct_infl_v1(char *outstring, MOBITrie * const infl_tree, c
             free(decoded);
             continue;
         }
-        snprintf(infl_tag, INDX_INFLBUF_SIZEMAX, iform_tag, decoded);
+        int n = snprintf(infl_tag, INDX_INFLBUF_SIZEMAX, iform_tag, decoded);
         /* allocated in mobi_trie_get_inflgroups() */
         free(decoded);
+        if (n > INDX_INFLBUF_SIZEMAX) {
+            debug_print("Skipping too long tag: %s\n", infl_tag);
+            continue;
+        }
         outlen += strlen(infl_tag);
         if (outlen > INDX_INFLTAG_SIZEMAX) {
             debug_print("Inflections text in %s too long (%zu)\n", label, outlen);

@@ -1,3 +1,4 @@
+2022-03-27: Fix format truncation warning
 2022-03-21: Version 0.10
 2022-03-21: Update Xcode project [skip ci]
 2022-03-21: Add functions for retrieving orthographic index entries
