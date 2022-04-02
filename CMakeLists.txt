@@ -86,5 +86,30 @@ if(HAVE_GETOPT)
     add_definitions(-DHAVE_GETOPT)
 endif(HAVE_GETOPT)
 
+check_function_exists(strdup HAVE_STRDUP)
+if(HAVE_STRDUP)
+    add_definitions(-DHAVE_STRDUP)
+endif(HAVE_STRDUP)
+
+check_include_file(sys/resource.h HAVE_SYS_RESOURCE_H)
+if(HAVE_SYS_RESOURCE_H)
+    add_definitions(-DHAVE_SYS_RESOURCE_H)
+endif(HAVE_SYS_RESOURCE_H)
+
+
+include(CheckCSourceCompiles)
+foreach(keyword "inline" "__inline__" "__inline")
+    check_c_source_compiles("${keyword} void func(); void func() { } int main() { func(); return 0; }" HAVE_INLINE)
+    if(HAVE_INLINE)
+        add_definitions(-DMOBI_INLINE=${keyword})
+        break()
+    endif(HAVE_INLINE)
+endforeach(keyword)
+
+check_c_source_compiles("void func() { } __attribute__((noreturn)); int main() { func(); return 0; }" HAVE_ATTRIBUTE_NORETURN)
+if(HAVE_ATTRIBUTE_NORETURN)
+    add_definitions(-DHAVE_ATTRIBUTE_NORETURN)
+endif(HAVE_ATTRIBUTE_NORETURN)
+
 add_subdirectory(src)
 add_subdirectory(tools)

@@ -1,3 +1,4 @@
+2022-04-02: Check for inline, noreturn support in CMake
 2022-03-27: Fix format truncation warning
 2022-03-21: Version 0.10
 2022-03-21: Update Xcode project [skip ci]
