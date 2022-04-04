@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="NoDependenciesDebug|Win32">
+      <Configuration>NoDependenciesDebug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="NoDependenciesDebug|x64">
+      <Configuration>NoDependenciesDebug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="NoDependenciesRelease|Win32">
+      <Configuration>NoDependenciesRelease</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="NoDependenciesRelease|x64">
+      <Configuration>NoDependenciesRelease</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{A48F597C-ADBC-499E-B282-0F8A2B1A4B5F}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <Linkage-libxml2>static</Linkage-libxml2>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <Linkage-libxml2>static</Linkage-libxml2>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <Linkage-libxml2>static</Linkage-libxml2>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <Linkage-libxml2>static</Linkage-libxml2>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Linkage-libxml2>static</Linkage-libxml2>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Linkage-libxml2>static</Linkage-libxml2>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|x64'">
+    <Linkage-libxml2>static</Linkage-libxml2>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|x64'">
+    <Linkage-libxml2>static</Linkage-libxml2>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;USE_XMLWRITER;USE_ENCRYPTION;MOBI_DEBUG=1;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ProjectReference />
+    <ProjectReference />
+    <PreBuildEvent>
+      <Command>for /f "tokens=4 delims=[]" %%a in ('type "$(SolutionDir)..\configure.ac" ^| find "AC_INIT"') do (
+  set version=%%a
+)
+echo Compiling libmobi version %version%
+echo #define PACKAGE_VERSION "%version%" &gt;  "$(SolutionDir)..\config.h"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;USE_XMLWRITER;USE_ENCRYPTION;MOBI_DEBUG=1;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ProjectReference />
+    <ProjectReference />
+    <PreBuildEvent>
+      <Command>for /f "tokens=4 delims=[]" %%a in ('type "$(SolutionDir)..\configure.ac" ^| find "AC_INIT"') do (
+  set version=%%a
+)
+echo Compiling libmobi version %version%
+echo #define PACKAGE_VERSION "%version%" &gt;  "$(SolutionDir)..\config.h"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;USE_XMLWRITER;USE_ENCRYPTION;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>MaxSpeed</Optimization>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ProjectReference />
+    <ProjectReference />
+    <PreBuildEvent>
+      <Command>for /f "tokens=4 delims=[]" %%a in ('type "$(SolutionDir)..\configure.ac" ^| find "AC_INIT"') do (
+  set version=%%a
+)
+echo Compiling libmobi version %version%
+echo #define PACKAGE_VERSION "%version%" &gt;  "$(SolutionDir)..\config.h"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;USE_XMLWRITER;USE_ENCRYPTION;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <ProjectReference />
+    <ProjectReference />
+    <PreBuildEvent>
+      <Command>for /f "tokens=4 delims=[]" %%a in ('type "$(SolutionDir)..\configure.ac" ^| find "AC_INIT"') do (
+  set version=%%a
+)
+echo Compiling libmobi version %version%
+echo #define PACKAGE_VERSION "%version%" &gt;  "$(SolutionDir)..\config.h"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ProjectReference />
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;USE_XMLWRITER;USE_ENCRYPTION;MOBI_DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ProjectReference />
+    <ProjectReference />
+    <PreBuildEvent>
+      <Command>for /f "tokens=4 delims=[]" %%a in ('type "$(SolutionDir)..\configure.ac" ^| find "AC_INIT"') do (
+  set version=%%a
+)
+echo Compiling libmobi version %version%
+echo #define PACKAGE_VERSION "%version%" &gt;  "$(SolutionDir)..\config.h"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|x64'">
+    <ProjectReference />
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;USE_XMLWRITER;USE_ENCRYPTION;MOBI_DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ProjectReference />
+    <ProjectReference />
+    <PreBuildEvent>
+      <Command>for /f "tokens=4 delims=[]" %%a in ('type "$(SolutionDir)..\configure.ac" ^| find "AC_INIT"') do (
+  set version=%%a
+)
+echo Compiling libmobi version %version%
+echo #define PACKAGE_VERSION "%version%" &gt;  "$(SolutionDir)..\config.h"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|x64'">
+    <ProjectReference />
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;USE_XMLWRITER;USE_ENCRYPTION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>MaxSpeed</Optimization>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <ProjectReference />
+    <ProjectReference />
+    <PreBuildEvent>
+      <Command>for /f "tokens=4 delims=[]" %%a in ('type "$(SolutionDir)..\configure.ac" ^| find "AC_INIT"') do (
+  set version=%%a
+)
+echo Compiling libmobi version %version%
+echo #define PACKAGE_VERSION "%version%" &gt;  "$(SolutionDir)..\config.h"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ProjectReference />
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;USE_XMLWRITER;USE_ENCRYPTION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ProjectReference />
+    <ProjectReference />
+    <PreBuildEvent>
+      <Command>for /f "tokens=4 delims=[]" %%a in ('type "$(SolutionDir)..\configure.ac" ^| find "AC_INIT"') do (
+  set version=%%a
+)
+echo Compiling libmobi version %version%
+echo #define PACKAGE_VERSION "%version%" &gt;  "$(SolutionDir)..\config.h"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\buffer.c" />
+    <ClCompile Include="..\src\compression.c" />
+    <ClCompile Include="..\src\debug.c" />
+    <ClCompile Include="..\src\encryption.c" />
+    <ClCompile Include="..\src\index.c" />
+    <ClCompile Include="..\src\memory.c" />
+    <ClCompile Include="..\src\meta.c" />
+    <ClCompile Include="..\src\miniz.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\src\opf.c" />
+    <ClCompile Include="..\src\parse_rawml.c" />
+    <ClCompile Include="..\src\randombytes.c" />
+    <ClCompile Include="..\src\read.c" />
+    <ClCompile Include="..\src\sha1.c" />
+    <ClCompile Include="..\src\structure.c" />
+    <ClCompile Include="..\src\util.c" />
+    <ClCompile Include="..\src\write.c" />
+    <ClCompile Include="..\src\xmlwriter.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\buffer.h" />
+    <ClInclude Include="..\src\compression.h" />
+    <ClInclude Include="..\src\config.h" />
+    <ClInclude Include="..\src\debug.h" />
+    <ClInclude Include="..\src\encryption.h" />
+    <ClInclude Include="..\src\index.h" />
+    <ClInclude Include="..\src\memory.h" />
+    <ClInclude Include="..\src\meta.h" />
+    <ClInclude Include="..\src\miniz.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\src\mobi.h" />
+    <ClInclude Include="..\src\opf.h" />
+    <ClInclude Include="..\src\parse_rawml.h" />
+    <ClInclude Include="..\src\randombytes.h" />
+    <ClInclude Include="..\src\read.h" />
+    <ClInclude Include="..\src\sha1.h" />
+    <ClInclude Include="..\src\structure.h" />
+    <ClInclude Include="..\src\util.h" />
+    <ClInclude Include="..\src\write.h" />
+    <ClInclude Include="..\src\xmlwriter.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesDebug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NoDependenciesRelease|x64'">true</ExcludedFromBuild>
+    </None>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\zlib128-vc140-static-32_64.1.2.8\build\native\zlib128-vc140-static-32_64.targets" Condition="Exists('packages\zlib128-vc140-static-32_64.1.2.8\build\native\zlib128-vc140-static-32_64.targets')" />
+    <Import Project="packages\libxml2-vc140-static-32_64.2.9.4.1\build\native\libxml2-vc140-static-32_64.targets" Condition="Exists('packages\libxml2-vc140-static-32_64.2.9.4.1\build\native\libxml2-vc140-static-32_64.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\zlib128-vc140-static-32_64.1.2.8\build\native\zlib128-vc140-static-32_64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib128-vc140-static-32_64.1.2.8\build\native\zlib128-vc140-static-32_64.targets'))" />
+    <Error Condition="!Exists('packages\libxml2-vc140-static-32_64.2.9.4.1\build\native\libxml2-vc140-static-32_64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libxml2-vc140-static-32_64.2.9.4.1\build\native\libxml2-vc140-static-32_64.targets'))" />
+  </Target>
+</Project>
