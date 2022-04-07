@@ -1,391 +1,396 @@
-/*
- The MIT License
- 
- Copyright (c) 2017 Daan Sprenkels <hello@dsprenkels.com>
- 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
- 
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
- 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
- */
-
-
-// In the case that are compiling on linux, we need to define _GNU_SOURCE
-// *before* randombytes.h is included. Otherwise SYS_getrandom will not be
-// declared.
-#if defined(__linux__) || defined(__GNU__)
-# define _GNU_SOURCE
-#endif /* defined(__linux__) || defined(__GNU__) */
-
-#include "randombytes.h"
-
-// RANDOMBYTES_INFO to easily turn off pragma messages
-#ifdef RANDOMBYTES_DEBUG
-# if defined(__clang__) || defined(__GNUC__)
-#  define PRAGMA(x) _Pragma(#x)
-# elif defined(_MSC_VER)
-#  define PRAGMA(x) __pragma(x)
-# endif
-# define RANDOMBYTES_INFO(msg) PRAGMA(message(msg))
-#else
-# define RANDOMBYTES_INFO(msg)
-#endif
-
-#if defined(_WIN32)
-/* Windows */
-# include <windows.h>
-# include <wincrypt.h> /* CryptAcquireContext, CryptGenRandom */
-#endif /* defined(_WIN32) */
-
-/* wasi */
-#if defined(__wasi__)
-#include <stdlib.h>
-#endif
-
-/* kFreeBSD */
-#if defined(__FreeBSD_kernel__) && defined(__GLIBC__)
-# define GNU_KFREEBSD
-#endif
-
-#if defined(__linux__) || defined(__GNU__) || defined(GNU_KFREEBSD)
-/* Linux */
-// We would need to include <linux/random.h>, but not every target has access
-// to the linux headers. We only need RNDGETENTCNT, so we instead inline it.
-// RNDGETENTCNT is originally defined in `include/uapi/linux/random.h` in the
-// linux repo.
-# define RNDGETENTCNT 0x80045200
-
-# include <assert.h>
-# include <errno.h>
-# include <fcntl.h>
-# include <poll.h>
-# include <stdint.h>
-# include <stdio.h>
-# include <sys/ioctl.h>
-# if (defined(__linux__) || defined(__GNU__)) && defined(__GLIBC__) && ((__GLIBC__ > 2) || (__GLIBC_MINOR__ > 24))
-#  define USE_GLIBC
-#  include <sys/random.h>
-# endif /* (defined(__linux__) || defined(__GNU__)) && defined(__GLIBC__) && ((__GLIBC__ > 2) || (__GLIBC_MINOR__ > 24)) */
-# include <sys/stat.h>
-# include <sys/syscall.h>
-# include <sys/types.h>
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <stdint.h>
+#include <string.h>
+#ifndef _WIN32
 # include <unistd.h>
+#endif
+#include <stdlib.h>
 
-// We need SSIZE_MAX as the maximum read len from /dev/urandom
-# if !defined(SSIZE_MAX)
-#  define SSIZE_MAX (SIZE_MAX / 2 - 1)
-# endif /* defined(SSIZE_MAX) */
-
-#endif /* defined(__linux__) || defined(__GNU__) || defined(GNU_KFREEBSD) */
-
-
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-/* Dragonfly, FreeBSD, NetBSD, OpenBSD (has arc4random) */
-# include <sys/param.h>
-# if defined(BSD)
-#  include <stdlib.h>
+#include <sys/types.h>
+#ifndef _WIN32
+# include <sys/stat.h>
+# include <sys/time.h>
+#endif
+#ifdef __linux__
+# define _LINUX_SOURCE
+#endif
+#ifdef HAVE_SYS_RANDOM_H
+# include <sys/random.h>
+#endif
+#ifdef __linux__
+# ifdef HAVE_GETRANDOM
+#  define HAVE_LINUX_COMPATIBLE_GETRANDOM
+# else
+#  include <sys/syscall.h>
+#  if defined(SYS_getrandom) && defined(__NR_getrandom)
+#   define getrandom(B, S, F) syscall(SYS_getrandom, (B), (int) (S), (F))
+#   define HAVE_LINUX_COMPATIBLE_GETRANDOM
+#  endif
 # endif
-/* GNU/Hurd defines BSD in sys/param.h which causes problems later */
-# if defined(__GNU__)
-#  undef BSD
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
+# include <sys/param.h>
+# if (defined(__FreeBSD_version) && __FreeBSD_version >= 1200000) || \
+     (defined(__DragonFly_version) && __DragonFly_version >= 500700)
+#  define HAVE_LINUX_COMPATIBLE_GETRANDOM
 # endif
 #endif
+#if !defined(NO_BLOCKING_RANDOM_POLL) && defined(__linux__)
+# define BLOCK_ON_DEV_RANDOM
+#endif
+#ifdef BLOCK_ON_DEV_RANDOM
+# include <poll.h>
+#endif
 
-#if defined(__EMSCRIPTEN__)
-# include <assert.h>
-# include <emscripten.h>
-# include <errno.h>
-# include <stdbool.h>
-#endif /* defined(__EMSCRIPTEN__) */
+#include "core.h"
+#include "private/common.h"
+#include "randombytes.h"
+#include "randombytes_sysrandom.h"
+#include "utils.h"
 
-
-#if defined(_WIN32)
-static int randombytes_win32_randombytes(void* buf, const size_t n)
-{
-    HCRYPTPROV ctx;
-    BOOL tmp;
-    
-    tmp = CryptAcquireContext(&ctx, NULL, NULL, PROV_RSA_FULL,
-                              CRYPT_VERIFYCONTEXT);
-    if (tmp == FALSE) return -1;
-    
-    tmp = CryptGenRandom(ctx, n, (BYTE*) buf);
-    if (tmp == FALSE) return -1;
-    
-    tmp = CryptReleaseContext(ctx, 0);
-    if (tmp == FALSE) return -1;
-    
-    return 0;
-}
-#endif /* defined(_WIN32) */
-
-#if defined(__wasi__)
-static int randombytes_wasi_randombytes(void *buf, size_t n) {
-    arc4random_buf(buf, n);
-    return 0;
-}
-#endif /* defined(__wasi__) */
-
-#if (defined(__linux__) || defined(__GNU__)) && (defined(USE_GLIBC) || defined(SYS_getrandom))
-# if defined(USE_GLIBC)
-// getrandom is declared in glibc.
-# elif defined(SYS_getrandom)
-static ssize_t getrandom(void *buf, size_t buflen, unsigned int flags) {
-    return syscall(SYS_getrandom, buf, buflen, flags);
-}
+#ifdef _WIN32
+/* `RtlGenRandom` is used over `CryptGenRandom` on Microsoft Windows based systems:
+ *  - `CryptGenRandom` requires pulling in `CryptoAPI` which causes unnecessary
+ *     memory overhead if this API is not being used for other purposes
+ *  - `RtlGenRandom` is thus called directly instead. A detailed explanation
+ *     can be found here: https://blogs.msdn.microsoft.com/michael_howard/2005/01/14/cryptographically-secure-random-number-on-windows-without-using-cryptoapi/
+ *
+ * In spite of the disclaimer on the `RtlGenRandom` documentation page that was
+ * written back in the Windows XP days, this function is here to stay. The CRT
+ * function `rand_s()` directly depends on it, so touching it would break many
+ * applications released since Windows XP.
+ *
+ * Also note that Rust, Firefox and BoringSSL (thus, Google Chrome and everything
+ * based on Chromium) also depend on it, and that libsodium allows the RNG to be
+ * replaced without patching nor recompiling the library.
+ */
+# include <windows.h>
+# define RtlGenRandom SystemFunction036
+# if defined(__cplusplus)
+extern "C"
 # endif
+BOOLEAN NTAPI RtlGenRandom(PVOID RandomBuffer, ULONG RandomBufferLength);
+# pragma comment(lib, "advapi32.lib")
+#endif
 
-static int randombytes_linux_randombytes_getrandom(void *buf, size_t n)
+#if defined(__OpenBSD__) || defined(__CloudABI__) || defined(__wasi__)
+# define HAVE_SAFE_ARC4RANDOM 1
+#endif
+
+#ifndef SSIZE_MAX
+# define SSIZE_MAX (SIZE_MAX / 2 - 1)
+#endif
+
+#ifdef HAVE_SAFE_ARC4RANDOM
+
+static uint32_t
+randombytes_sysrandom(void)
 {
-    /* I have thought about using a separate PRF, seeded by getrandom, but
-     * it turns out that the performance of getrandom is good enough
-     * (250 MB/s on my laptop).
-     */
-    size_t offset = 0, chunk;
-    int ret;
-    while (n > 0) {
-        /* getrandom does not allow chunks larger than 33554431 */
-        chunk = n <= 33554431 ? n : 33554431;
-        do {
-            ret = getrandom((char *)buf + offset, chunk, 0);
-        } while (ret == -1 && errno == EINTR);
-        if (ret < 0) return ret;
-        offset += ret;
-        n -= ret;
-    }
-    assert(n == 0);
+    return arc4random();
+}
+
+static void
+randombytes_sysrandom_stir(void)
+{
+}
+
+static void
+randombytes_sysrandom_buf(void * const buf, const size_t size)
+{
+    arc4random_buf(buf, size);
+}
+
+static int
+randombytes_sysrandom_close(void)
+{
     return 0;
 }
-#endif /* (defined(__linux__) || defined(__GNU__)) && (defined(USE_GLIBC) || defined(SYS_getrandom)) */
 
+#else /* HAVE_SAFE_ARC4RANDOM */
 
-#if (defined(__linux__) || defined(GNU_KFREEBSD)) && !defined(SYS_getrandom)
+typedef struct SysRandom_ {
+    int random_data_source_fd;
+    int initialized;
+    int getrandom_available;
+} SysRandom;
 
-# if defined(__linux__)
-static int randombytes_linux_read_entropy_ioctl(int device, int *entropy)
+static SysRandom stream = {
+    SODIUM_C99(.random_data_source_fd =) -1,
+    SODIUM_C99(.initialized =) 0,
+    SODIUM_C99(.getrandom_available =) 0
+};
+
+# ifndef _WIN32
+static ssize_t
+safe_read(const int fd, void * const buf_, size_t size)
 {
-    return ioctl(device, RNDGETENTCNT, entropy);
-}
+    unsigned char *buf = (unsigned char *) buf_;
+    ssize_t        readnb;
 
-static int randombytes_linux_read_entropy_proc(FILE *stream, int *entropy)
-{
-    int retcode;
+    assert(size > (size_t) 0U);
+    assert(size <= SSIZE_MAX);
     do {
-        rewind(stream);
-        retcode = fscanf(stream, "%d", entropy);
-    } while (retcode != 1 && errno == EINTR);
-    if (retcode != 1) {
-        return -1;
-    }
-    return 0;
+        while ((readnb = read(fd, buf, size)) < (ssize_t) 0 &&
+               (errno == EINTR || errno == EAGAIN)); /* LCOV_EXCL_LINE */
+        if (readnb < (ssize_t) 0) {
+            return readnb; /* LCOV_EXCL_LINE */
+        }
+        if (readnb == (ssize_t) 0) {
+            break; /* LCOV_EXCL_LINE */
+        }
+        size -= (size_t) readnb;
+        buf += readnb;
+    } while (size > (ssize_t) 0);
+
+    return (ssize_t) (buf - (unsigned char *) buf_);
 }
 
-static int randombytes_linux_wait_for_entropy(int device)
+#  ifdef BLOCK_ON_DEV_RANDOM
+static int
+randombytes_block_on_dev_random(void)
 {
-    /* We will block on /dev/random, because any increase in the OS' entropy
-     * level will unblock the request. I use poll here (as does libsodium),
-     * because we don't *actually* want to read from the device. */
-    enum { IOCTL, PROC } strategy = IOCTL;
-    const int bits = 128;
     struct pollfd pfd;
-    int fd;
-    FILE *proc_file;
-    int retcode, retcode_error = 0; // Used as return codes throughout this function
-    int entropy = 0;
-    
-    /* If the device has enough entropy already, we will want to return early */
-    retcode = randombytes_linux_read_entropy_ioctl(device, &entropy);
-    // printf("errno: %d (%s)\n", errno, strerror(errno));
-    if (retcode != 0 && (errno == ENOTTY || errno == ENOSYS)) {
-        // The ioctl call on /dev/urandom has failed due to a
-        //   - ENOTTY (unsupported action), or
-        //   - ENOSYS (invalid ioctl; this happens on MIPS, see #22).
-        //
-        // We will fall back to reading from
-        // `/proc/sys/kernel/random/entropy_avail`.  This less ideal,
-        // because it allocates a file descriptor, and it may not work
-        // in a chroot.  But at this point it seems we have no better
-        // options left.
-        strategy = PROC;
-        // Open the entropy count file
-        proc_file = fopen("/proc/sys/kernel/random/entropy_avail", "r");
-        if (proc_file == NULL) {
-            return -1;
-        }
-    } else if (retcode != 0) {
-        // Unrecoverable ioctl error
-        return -1;
-    }
-    if (entropy >= bits) {
+    int           fd;
+    int           pret;
+
+    fd = open("/dev/random", O_RDONLY);
+    if (fd == -1) {
         return 0;
     }
-    
-    do {
-        fd = open("/dev/random", O_RDONLY);
-    } while (fd == -1 && errno == EINTR); /* EAGAIN will not occur */
-    if (fd == -1) {
-        /* Unrecoverable IO error */
-        return -1;
-    }
-    
     pfd.fd = fd;
     pfd.events = POLLIN;
-    for (;;) {
-        retcode = poll(&pfd, 1, -1);
-        if (retcode == -1 && (errno == EINTR || errno == EAGAIN)) {
-            continue;
-        } else if (retcode == 1) {
-            if (strategy == IOCTL) {
-                retcode = randombytes_linux_read_entropy_ioctl(device, &entropy);
-            } else if (strategy == PROC) {
-                retcode = randombytes_linux_read_entropy_proc(proc_file, &entropy);
-            } else {
-                return -1; // Unreachable
-            }
-            
-            if (retcode != 0) {
-                // Unrecoverable I/O error
-                retcode_error = retcode;
-                break;
-            }
-            if (entropy >= bits) {
-                break;
-            }
-        } else {
-            // Unreachable: poll() should only return -1 or 1
-            retcode_error = -1;
-            break;
-        }
-    }
+    pfd.revents = 0;
     do {
-        retcode = close(fd);
-    } while (retcode == -1 && errno == EINTR);
-    if (strategy == PROC) {
-        do {
-            retcode = fclose(proc_file);
-        } while (retcode == -1 && errno == EINTR);
+        pret = poll(&pfd, 1, -1);
+    } while (pret < 0 && (errno == EINTR || errno == EAGAIN));
+    if (pret != 1) {
+        (void) close(fd);
+        errno = EIO;
+        return -1;
     }
-    if (retcode_error != 0) {
-        return retcode_error;
-    }
-    return retcode;
+    return close(fd);
 }
-# endif /* defined(__linux__) */
+#  endif /* BLOCK_ON_DEV_RANDOM */
 
-static int randombytes_linux_randombytes_urandom(void *buf, size_t n)
+static int
+randombytes_sysrandom_random_dev_open(void)
 {
-    int fd;
-    size_t offset = 0, count;
-    ssize_t tmp;
+/* LCOV_EXCL_START */
+    struct stat        st;
+    static const char *devices[] = {
+#  ifndef USE_BLOCKING_RANDOM
+        "/dev/urandom",
+#  endif
+        "/dev/random", NULL
+    };
+    const char       **device = devices;
+    int                fd;
+
+#  ifdef BLOCK_ON_DEV_RANDOM
+    if (randombytes_block_on_dev_random() != 0) {
+        return -1;
+    }
+#  endif
     do {
-        fd = open("/dev/urandom", O_RDONLY);
-    } while (fd == -1 && errno == EINTR);
-    if (fd == -1) return -1;
-# if defined(__linux__)
-    if (randombytes_linux_wait_for_entropy(fd) == -1) return -1;
-# endif
-    while (n > 0) {
-        count = n <= SSIZE_MAX ? n : SSIZE_MAX;
-        tmp = read(fd, (char *)buf + offset, count);
-        if (tmp == -1 && (errno == EAGAIN || errno == EINTR)) {
+        fd = open(*device, O_RDONLY);
+        if (fd != -1) {
+            if (fstat(fd, &st) == 0 &&
+#  ifdef __COMPCERT__
+                1
+#  elif defined(S_ISNAM)
+                (S_ISNAM(st.st_mode) || S_ISCHR(st.st_mode))
+#  else
+                S_ISCHR(st.st_mode)
+#  endif
+               ) {
+#  if defined(F_SETFD) && defined(FD_CLOEXEC)
+                (void) fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
+#  endif
+                return fd;
+            }
+            (void) close(fd);
+        } else if (errno == EINTR) {
             continue;
         }
-        if (tmp == -1) return -1; /* Unrecoverable IO error */
-        offset += tmp;
-        n -= tmp;
-    }
-    close(fd);
-    assert(n == 0);
+        device++;
+    } while (*device != NULL);
+
+    errno = EIO;
+    return -1;
+/* LCOV_EXCL_STOP */
+}
+
+#  ifdef HAVE_LINUX_COMPATIBLE_GETRANDOM
+static int
+_randombytes_linux_getrandom(void * const buf, const size_t size)
+{
+    int readnb;
+
+    assert(size <= 256U);
+    do {
+        readnb = getrandom(buf, size, 0);
+    } while (readnb < 0 && (errno == EINTR || errno == EAGAIN));
+
+    return (readnb == (int) size) - 1;
+}
+
+static int
+randombytes_linux_getrandom(void * const buf_, size_t size)
+{
+    unsigned char *buf = (unsigned char *) buf_;
+    size_t         chunk_size = 256U;
+
+    do {
+        if (size < chunk_size) {
+            chunk_size = size;
+            assert(chunk_size > (size_t) 0U);
+        }
+        if (_randombytes_linux_getrandom(buf, chunk_size) != 0) {
+            return -1;
+        }
+        size -= chunk_size;
+        buf += chunk_size;
+    } while (size > (size_t) 0U);
+
     return 0;
 }
-#endif /* defined(__linux__) && !defined(SYS_getrandom) */
+#  endif /* HAVE_LINUX_COMPATIBLE_GETRANDOM */
 
-
-#if defined(BSD)
-static int randombytes_bsd_randombytes(void *buf, size_t n)
+static void
+randombytes_sysrandom_init(void)
 {
-    arc4random_buf(buf, n);
-    return 0;
-}
-#endif /* defined(BSD) */
+    const int     errno_save = errno;
 
+#  ifdef HAVE_LINUX_COMPATIBLE_GETRANDOM
+    {
+        unsigned char fodder[16];
 
-#if defined(__EMSCRIPTEN__)
-static int randombytes_js_randombytes_nodejs(void *buf, size_t n) {
-    const int ret = EM_ASM_INT({
-        var crypto;
-        try {
-            crypto = require('crypto');
-        } catch (error) {
-            return -2;
+        if (randombytes_linux_getrandom(fodder, sizeof fodder) == 0) {
+            stream.getrandom_available = 1;
+            errno = errno_save;
+            return;
         }
-        try {
-            writeArrayToMemory(crypto.randomBytes($1), $0);
-            return 0;
-        } catch (error) {
-            return -1;
-        }
-    }, buf, n);
-    switch (ret) {
-        case 0:
-            return 0;
-        case -1:
-            errno = EINVAL;
-            return -1;
-        case -2:
-            errno = ENOSYS;
-            return -1;
+        stream.getrandom_available = 0;
     }
-    assert(false); // Unreachable
+#  endif
+
+    if ((stream.random_data_source_fd =
+         randombytes_sysrandom_random_dev_open()) == -1) {
+        sodium_misuse(); /* LCOV_EXCL_LINE */
+    }
+    errno = errno_save;
 }
-#endif /* defined(__EMSCRIPTEN__) */
 
+# else /* _WIN32 */
 
-int randombytes(void *buf, size_t n)
+static void
+randombytes_sysrandom_init(void)
 {
-#if defined(__EMSCRIPTEN__)
-RANDOMBYTES_INFO("Using crypto api from NodeJS")
-    return randombytes_js_randombytes_nodejs(buf, n);
-#elif defined(__linux__) || defined(__GNU__) || defined(GNU_KFREEBSD)
-# if defined(USE_GLIBC)
-RANDOMBYTES_INFO("Using getrandom function call")
-    /* Use getrandom system call */
-    return randombytes_linux_randombytes_getrandom(buf, n);
-# elif defined(SYS_getrandom)
-RANDOMBYTES_INFO("Using getrandom system call")
-    /* Use getrandom system call */
-    return randombytes_linux_randombytes_getrandom(buf, n);
-# else
-RANDOMBYTES_INFO("Using /dev/urandom device")
-    /* When we have enough entropy, we can read from /dev/urandom */
-    return randombytes_linux_randombytes_urandom(buf, n);
+}
+# endif /* _WIN32 */
+
+static void
+randombytes_sysrandom_stir(void)
+{
+    if (stream.initialized == 0) {
+        randombytes_sysrandom_init();
+        stream.initialized = 1;
+    }
+}
+
+static void
+randombytes_sysrandom_stir_if_needed(void)
+{
+    if (stream.initialized == 0) {
+        randombytes_sysrandom_stir();
+    }
+}
+
+static int
+randombytes_sysrandom_close(void)
+{
+    int ret = -1;
+
+# ifndef _WIN32
+    if (stream.random_data_source_fd != -1 &&
+        close(stream.random_data_source_fd) == 0) {
+        stream.random_data_source_fd = -1;
+        stream.initialized = 0;
+        ret = 0;
+    }
+#  ifdef HAVE_LINUX_COMPATIBLE_GETRANDOM
+    if (stream.getrandom_available != 0) {
+        ret = 0;
+    }
+#  endif
+# else /* _WIN32 */
+    if (stream.initialized != 0) {
+        stream.initialized = 0;
+        ret = 0;
+    }
+# endif /* _WIN32 */
+    return ret;
+}
+
+static void
+randombytes_sysrandom_buf(void * const buf, const size_t size)
+{
+    randombytes_sysrandom_stir_if_needed();
+# if defined(ULLONG_MAX) && defined(SIZE_MAX)
+#  if SIZE_MAX > ULLONG_MAX
+    /* coverity[result_independent_of_operands] */
+    assert(size <= ULLONG_MAX);
+#  endif
 # endif
-#elif defined(BSD)
-RANDOMBYTES_INFO("Using arc4random system call")
-    /* Use arc4random system call */
-    return randombytes_bsd_randombytes(buf, n);
-#elif defined(_WIN32)
-RANDOMBYTES_INFO("Using Windows cryptographic API")
-    /* Use windows API */
-    return randombytes_win32_randombytes(buf, n);
-#elif defined(__wasi__)
-RANDOMBYTES_INFO("Using WASI arc4random_buf system call")
-    /* Use WASI */
-    return randombytes_wasi_randombytes(buf, n);
-#else
-# error "randombytes(...) is not supported on this platform"
-#endif
+# ifndef _WIN32
+#  ifdef HAVE_LINUX_COMPATIBLE_GETRANDOM
+    if (stream.getrandom_available != 0) {
+        if (randombytes_linux_getrandom(buf, size) != 0) {
+            sodium_misuse(); /* LCOV_EXCL_LINE */
+        }
+        return;
+    }
+#  endif
+    if (stream.random_data_source_fd == -1 ||
+        safe_read(stream.random_data_source_fd, buf, size) != (ssize_t) size) {
+        sodium_misuse(); /* LCOV_EXCL_LINE */
+    }
+# else /* _WIN32 */
+    COMPILER_ASSERT(randombytes_BYTES_MAX <= 0xffffffffUL);
+    if (size > (size_t) 0xffffffffUL) {
+        sodium_misuse(); /* LCOV_EXCL_LINE */
+    }
+    if (! RtlGenRandom((PVOID) buf, (ULONG) size)) {
+        sodium_misuse(); /* LCOV_EXCL_LINE */
+    }
+# endif /* _WIN32 */
 }
+
+static uint32_t
+randombytes_sysrandom(void)
+{
+    uint32_t r;
+
+    randombytes_sysrandom_buf(&r, sizeof r);
+
+    return r;
+}
+
+#endif /* HAVE_SAFE_ARC4RANDOM */
+
+static const char *
+randombytes_sysrandom_implementation_name(void)
+{
+    return "sysrandom";
+}
+
+struct randombytes_implementation randombytes_sysrandom_implementation = {
+    SODIUM_C99(.implementation_name =) randombytes_sysrandom_implementation_name,
+    SODIUM_C99(.random =) randombytes_sysrandom,
+    SODIUM_C99(.stir =) randombytes_sysrandom_stir,
+    SODIUM_C99(.uniform =) NULL,
+    SODIUM_C99(.buf =) randombytes_sysrandom_buf,
+    SODIUM_C99(.close =) randombytes_sysrandom_close
+};
