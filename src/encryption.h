@@ -38,8 +38,8 @@ MOBI_RET mobi_buffer_decrypt(unsigned char *out, const unsigned char *in, const 
 MOBI_RET mobi_drmkey_set(MOBIData *m, const char *pid);
 MOBI_RET mobi_drmkey_set_serial(MOBIData *m, const char *serial);
 MOBI_RET mobi_drmkey_delete(MOBIData *m);
-MOBI_RET mobi_voucher_add(MOBIData *m, const char *serial, time_t valid_from, time_t valid_to,
-                                             const MOBIExthTag *tamperkeys, const size_t tamperkeys_count);
+MOBI_RET mobi_voucher_add(MOBIData *m, const char *serial, const time_t valid_from, const time_t valid_to,
+                          const MOBIExthTag *tamperkeys, const size_t tamperkeys_count);
 MOBI_RET mobi_drm_serialize_v1(MOBIBuffer *buf, const MOBIData *m);
 MOBI_RET mobi_drm_serialize_v2(MOBIBuffer *buf, const MOBIData *m);
 
