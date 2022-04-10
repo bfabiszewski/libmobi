@@ -169,10 +169,10 @@ static MOBI_RET mobi_randombytes_block_on_dev_random() {
     if (pret != 1) {
         (void) close(fd);
         errno = EIO;
-        return MOBI_ERROR;
+        return MOBI_DRM_RANDOM_ERR;
     }
     if (close(fd) != 0) {
-        return MOBI_ERROR;
+        return MOBI_DRM_RANDOM_ERR;
     }
     return MOBI_SUCCESS;
 }
@@ -246,7 +246,7 @@ static MOBI_RET mobi_randombytes_linux_getrandom(void *buf, const size_t size) {
 
     if (readnb != (int) size) {
         debug_print("Getrandom failed (%s)\n", strerror(errno));
-        return MOBI_ERROR;
+        return MOBI_DRM_RANDOM_ERR;
     }
     return MOBI_SUCCESS;
 }
@@ -278,7 +278,7 @@ static MOBI_RET mobi_randombytes_sysrandom_init(MOBIRandom *handle) {
 
     if ((handle->random_data_source_fd = mobi_randombytes_sysrandom_random_dev_open()) == -1) {
         debug_print("Couldn't open random device (%s)\n", strerror(errno));
-        return MOBI_ERROR;
+        return MOBI_DRM_RANDOM_ERR;
     }
     errno = errno_save;
     return MOBI_SUCCESS;
@@ -292,7 +292,7 @@ static MOBI_RET mobi_randombytes_sysrandom_init(MOBIRandom *handle) {
  */
 static MOBI_RET mobi_randombytes_sysrandom_close(MOBIRandom *handle) {
 #  define NEEDS_CLOSE
-    MOBI_RET ret = MOBI_ERROR;
+    MOBI_RET ret = MOBI_DRM_RANDOM_ERR;
     if (handle->random_data_source_fd != -1 && close(handle->random_data_source_fd) == 0) {
         handle->random_data_source_fd = -1;
         ret = MOBI_SUCCESS;
@@ -324,12 +324,12 @@ static MOBI_RET mobi_randombytes_sysrandom_buf(MOBIRandom *handle, void *buf, co
 #  endif
     if (handle->random_data_source_fd == -1 ||
         mobi_safe_read(handle->random_data_source_fd, buf, size) != (ssize_t) size) {
-        return MOBI_ERROR;
+        return MOBI_DRM_RANDOM_ERR;
     }
 # else /* _WIN32 */
     UNUSED(handle);
     if (! RtlGenRandom((PVOID) buf, (ULONG) size)) {
-        return MOBI_ERROR;
+        return MOBI_DRM_RANDOM_ERR;
     }
 # endif /* _WIN32 */
     return MOBI_SUCCESS;

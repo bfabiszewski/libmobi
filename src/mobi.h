@@ -72,7 +72,8 @@ extern "C"
         MOBI_DRM_KEYNOTFOUND = 12,  /**< Key not found */
         MOBI_DRM_UNSUPPORTED = 13, /**< DRM support not included */
         MOBI_WRITE_FAILED = 14, /**< Writing to file failed */
-        MOBI_DRM_EXPIRED = 15 /**< DRM expired */
+        MOBI_DRM_EXPIRED = 15, /**< DRM expired */
+        MOBI_DRM_RANDOM_ERR = 16 /**< DRM random bytes generation failed */
     } MOBI_RET;
     
     /**
