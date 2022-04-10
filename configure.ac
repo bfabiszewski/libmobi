@@ -261,6 +261,26 @@ AM_CONDITIONAL([USE_ENCRYPTION], [test x$encryption = xyes])
 if test x$encryption = xyes; then
     AC_DEFINE([USE_ENCRYPTION], [1], [Enable encryption])
     ENCRYPTION_OPT="yes"
+
+    AC_CHECK_HEADERS([sys/random.h])
+    AC_MSG_CHECKING([for getrandom with a standard API])
+    AC_LINK_IFELSE(
+        [AC_LANG_PROGRAM(
+            [[#include <stdlib.h>
+              #ifdef HAVE_UNISTD_H
+              # include <unistd.h>
+              #endif
+              #ifdef HAVE_SYS_RANDOM_H
+              # include <sys/random.h>
+              #endif]],
+            [[unsigned char buf;
+              if (&getrandom != NULL) {
+                (void) getrandom((void *) &buf, 1U, 0U);
+              }]])],
+        [AC_MSG_RESULT([yes])
+         AC_CHECK_FUNCS([getrandom])],
+        [AC_MSG_RESULT([no])])
+
 fi
 AC_SUBST([ENCRYPTION_OPT])
 

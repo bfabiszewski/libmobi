@@ -1,4 +1,37 @@
-#include <assert.h>
+/** @file randombytes.c
+ *  @brief Portable function for generating random data
+ *  
+ * Copyright (c) 2022 Bartek Fabiszewski
+ * http://www.fabiszewski.net
+ *
+ * This file is part of libmobi.
+ * Licensed under LGPL, either version 3, or any later.
+ * See <http://www.gnu.org/licenses/>
+ *
+ * This code is based on libsodium's randombytes_buf function
+ * We just extract the single function we need from libsodium and  adjust it for our use.
+ * Most of the code originates from:
+ * https://github.com/jedisct1/libsodium/blob/d250858c7445b7de94e912b529b81defe20d4aaa/src/libsodium/randombytes/sysrandom/randombytes_sysrandom.c
+ * Original code uses following license:
+ *
+ * ISC License
+ *
+ * Copyright (c) 2013-2022
+ * Frank Denis <j at pureftpd dot org>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -8,6 +41,10 @@
 # include <unistd.h>
 #endif
 #include <stdlib.h>
+
+#include "config.h"
+#include "randombytes.h"
+#include "debug.h"
 
 #include <sys/types.h>
 #ifndef _WIN32
@@ -21,6 +58,8 @@
 # include <sys/random.h>
 #endif
 #ifdef __linux__
+# define BLOCK_ON_DEV_RANDOM
+# include <poll.h>
 # ifdef HAVE_GETRANDOM
 #  define HAVE_LINUX_COMPATIBLE_GETRANDOM
 # else
@@ -37,108 +76,69 @@
 #  define HAVE_LINUX_COMPATIBLE_GETRANDOM
 # endif
 #endif
-#if !defined(NO_BLOCKING_RANDOM_POLL) && defined(__linux__)
-# define BLOCK_ON_DEV_RANDOM
-#endif
-#ifdef BLOCK_ON_DEV_RANDOM
-# include <poll.h>
-#endif
 
-#include "core.h"
-#include "private/common.h"
-#include "randombytes.h"
-#include "randombytes_sysrandom.h"
-#include "utils.h"
+#define UNUSED(x) (void)(x)
+
+typedef struct {
+    int random_data_source_fd;
+    int getrandom_available;
+} MOBIRandom;
 
 #ifdef _WIN32
-/* `RtlGenRandom` is used over `CryptGenRandom` on Microsoft Windows based systems:
- *  - `CryptGenRandom` requires pulling in `CryptoAPI` which causes unnecessary
- *     memory overhead if this API is not being used for other purposes
- *  - `RtlGenRandom` is thus called directly instead. A detailed explanation
- *     can be found here: https://blogs.msdn.microsoft.com/michael_howard/2005/01/14/cryptographically-secure-random-number-on-windows-without-using-cryptoapi/
- *
- * In spite of the disclaimer on the `RtlGenRandom` documentation page that was
- * written back in the Windows XP days, this function is here to stay. The CRT
- * function `rand_s()` directly depends on it, so touching it would break many
- * applications released since Windows XP.
- *
- * Also note that Rust, Firefox and BoringSSL (thus, Google Chrome and everything
- * based on Chromium) also depend on it, and that libsodium allows the RNG to be
- * replaced without patching nor recompiling the library.
- */
+
 # include <windows.h>
 # define RtlGenRandom SystemFunction036
 # if defined(__cplusplus)
 extern "C"
 # endif
 BOOLEAN NTAPI RtlGenRandom(PVOID RandomBuffer, ULONG RandomBufferLength);
-# pragma comment(lib, "advapi32.lib")
+# ifdef _MSC_VER
+#  pragma comment(lib, "advapi32.lib")
+# endif
 #endif
 
 #if defined(__OpenBSD__) || defined(__CloudABI__) || defined(__wasi__)
-# define HAVE_SAFE_ARC4RANDOM 1
-#endif
-
-#ifndef SSIZE_MAX
-# define SSIZE_MAX (SIZE_MAX / 2 - 1)
+# define HAVE_SAFE_ARC4RANDOM
 #endif
 
 #ifdef HAVE_SAFE_ARC4RANDOM
 
-static uint32_t
-randombytes_sysrandom(void)
-{
-    return arc4random();
-}
-
-static void
-randombytes_sysrandom_stir(void)
-{
-}
-
-static void
-randombytes_sysrandom_buf(void * const buf, const size_t size)
-{
+/**
+ @brief Read a buffer of random bytes using arc4random_buf call
+ 
+ @param[in,out] handle Handle
+ @param[in,out] buf Buffer
+ @param[in] size Buffer size
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_randombytes_sysrandom_buf(MOBIRandom *handle, void *buf, const size_t size) {
+    UNUSED(handle);
     arc4random_buf(buf, size);
-}
-
-static int
-randombytes_sysrandom_close(void)
-{
-    return 0;
+    return MOBI_SUCCESS;
 }
 
 #else /* HAVE_SAFE_ARC4RANDOM */
 
-typedef struct SysRandom_ {
-    int random_data_source_fd;
-    int initialized;
-    int getrandom_available;
-} SysRandom;
-
-static SysRandom stream = {
-    SODIUM_C99(.random_data_source_fd =) -1,
-    SODIUM_C99(.initialized =) 0,
-    SODIUM_C99(.getrandom_available =) 0
-};
-
 # ifndef _WIN32
-static ssize_t
-safe_read(const int fd, void * const buf_, size_t size)
-{
+/**
+ @brief Read a buffer of random bytes from file descriptoir
+ 
+ @param[in] fd File descriptior
+ @param[in,out] buf_ Buffer
+ @param[in] size Buffer size
+ @return Number of bytes read
+ */
+static ssize_t mobi_safe_read(const int fd, void *buf_, size_t size) {
     unsigned char *buf = (unsigned char *) buf_;
-    ssize_t        readnb;
+    ssize_t readnb;
 
-    assert(size > (size_t) 0U);
-    assert(size <= SSIZE_MAX);
     do {
-        while ((readnb = read(fd, buf, size)) < (ssize_t) 0 &&
-               (errno == EINTR || errno == EAGAIN)); /* LCOV_EXCL_LINE */
+        while ((readnb = read(fd, buf, size)) < (ssize_t) 0 && (errno == EINTR || errno == EAGAIN));
         if (readnb < (ssize_t) 0) {
-            return readnb; /* LCOV_EXCL_LINE */
+            return readnb;
         }
         if (readnb == (ssize_t) 0) {
-            break; /* LCOV_EXCL_LINE */
+            break;
         }
         size -= (size_t) readnb;
         buf += readnb;
@@ -148,58 +148,61 @@ safe_read(const int fd, void * const buf_, size_t size)
 }
 
 #  ifdef BLOCK_ON_DEV_RANDOM
-static int
-randombytes_block_on_dev_random(void)
-{
-    struct pollfd pfd;
-    int           fd;
-    int           pret;
-
-    fd = open("/dev/random", O_RDONLY);
+/**
+ @brief Block on /dev/random until enough entropy is available
+ 
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_randombytes_block_on_dev_random() {
+    int fd = open("/dev/random", O_RDONLY);
     if (fd == -1) {
-        return 0;
+        return MOBI_SUCCESS;
     }
+    struct pollfd pfd;
     pfd.fd = fd;
     pfd.events = POLLIN;
     pfd.revents = 0;
+    int pret;
     do {
         pret = poll(&pfd, 1, -1);
     } while (pret < 0 && (errno == EINTR || errno == EAGAIN));
     if (pret != 1) {
         (void) close(fd);
         errno = EIO;
-        return -1;
+        return MOBI_ERROR;
     }
-    return close(fd);
+    if (close(fd) != 0) {
+        return MOBI_ERROR;
+    }
+    return MOBI_SUCCESS;
 }
 #  endif /* BLOCK_ON_DEV_RANDOM */
 
-static int
-randombytes_sysrandom_random_dev_open(void)
-{
-/* LCOV_EXCL_START */
-    struct stat        st;
-    static const char *devices[] = {
-#  ifndef USE_BLOCKING_RANDOM
-        "/dev/urandom",
-#  endif
-        "/dev/random", NULL
-    };
-    const char       **device = devices;
-    int                fd;
+/**
+ @brief Open random device, wait for enough entropy if supported
+ 
+ @return Random device file descriptor
+ */
+static int mobi_randombytes_sysrandom_random_dev_open() {
 
 #  ifdef BLOCK_ON_DEV_RANDOM
-    if (randombytes_block_on_dev_random() != 0) {
+    if (mobi_randombytes_block_on_dev_random() != MOBI_SUCCESS) {
         return -1;
     }
 #  endif
+
+    static const char *devices[] = {
+        "/dev/urandom",
+        "/dev/random", NULL
+    };
+    const char **device = devices;
+
     do {
-        fd = open(*device, O_RDONLY);
+        int fd = open(*device, O_RDONLY);
         if (fd != -1) {
+            struct stat st;
             if (fstat(fd, &st) == 0 &&
-#  ifdef __COMPCERT__
-                1
-#  elif defined(S_ISNAM)
+#  ifdef S_ISNAM
                 (S_ISNAM(st.st_mode) || S_ISCHR(st.st_mode))
 #  else
                 S_ISCHR(st.st_mode)
@@ -219,178 +222,154 @@ randombytes_sysrandom_random_dev_open(void)
 
     errno = EIO;
     return -1;
-/* LCOV_EXCL_STOP */
 }
 
 #  ifdef HAVE_LINUX_COMPATIBLE_GETRANDOM
-static int
-_randombytes_linux_getrandom(void * const buf, const size_t size)
-{
-    int readnb;
+/**
+ @brief Read a buffer of random bytes using getrandom system call
+ In libmobi we only need small KEYSIZE buffer, so we don't have to handle buffers over 256 bytes and read chunks
+ 
+ @param[in,out] buf Buffer
+ @param[in] size Buffer size (up to 256 bytes)
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_randombytes_linux_getrandom(void *buf, const size_t size) {
 
-    assert(size <= 256U);
+    if (size > 256U) {
+        debug_print("This function can only handle buffer size up to 256 bytes (%zu requested)\n", size);
+        return MOBI_PARAM_ERR;
+    }
+    int readnb;
     do {
         readnb = getrandom(buf, size, 0);
     } while (readnb < 0 && (errno == EINTR || errno == EAGAIN));
 
-    return (readnb == (int) size) - 1;
+    if (readnb != (int) size) {
+        debug_print("Getrandom failed (%s)\n", strerror(errno));
+        return MOBI_ERROR;
+    }
+    return MOBI_SUCCESS;
 }
 
-static int
-randombytes_linux_getrandom(void * const buf_, size_t size)
-{
-    unsigned char *buf = (unsigned char *) buf_;
-    size_t         chunk_size = 256U;
-
-    do {
-        if (size < chunk_size) {
-            chunk_size = size;
-            assert(chunk_size > (size_t) 0U);
-        }
-        if (_randombytes_linux_getrandom(buf, chunk_size) != 0) {
-            return -1;
-        }
-        size -= chunk_size;
-        buf += chunk_size;
-    } while (size > (size_t) 0U);
-
-    return 0;
-}
 #  endif /* HAVE_LINUX_COMPATIBLE_GETRANDOM */
 
-static void
-randombytes_sysrandom_init(void)
-{
-    const int     errno_save = errno;
+/**
+ @brief Initialize random data source
+ 
+ @param[in,out] handle Handle
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_randombytes_sysrandom_init(MOBIRandom *handle) {
+#  define NEEDS_INIT
+    const int errno_save = errno;
 
 #  ifdef HAVE_LINUX_COMPATIBLE_GETRANDOM
     {
         unsigned char fodder[16];
 
-        if (randombytes_linux_getrandom(fodder, sizeof fodder) == 0) {
-            stream.getrandom_available = 1;
+        if (mobi_randombytes_linux_getrandom(fodder, sizeof fodder) == MOBI_SUCCESS) {
+            handle->getrandom_available = 1;
             errno = errno_save;
-            return;
+            return MOBI_SUCCESS;
         }
-        stream.getrandom_available = 0;
+        handle->getrandom_available = 0;
     }
 #  endif
 
-    if ((stream.random_data_source_fd =
-         randombytes_sysrandom_random_dev_open()) == -1) {
-        sodium_misuse(); /* LCOV_EXCL_LINE */
+    if ((handle->random_data_source_fd = mobi_randombytes_sysrandom_random_dev_open()) == -1) {
+        debug_print("Couldn't open random device (%s)\n", strerror(errno));
+        return MOBI_ERROR;
     }
     errno = errno_save;
+    return MOBI_SUCCESS;
 }
 
-# else /* _WIN32 */
-
-static void
-randombytes_sysrandom_init(void)
-{
-}
-# endif /* _WIN32 */
-
-static void
-randombytes_sysrandom_stir(void)
-{
-    if (stream.initialized == 0) {
-        randombytes_sysrandom_init();
-        stream.initialized = 1;
-    }
-}
-
-static void
-randombytes_sysrandom_stir_if_needed(void)
-{
-    if (stream.initialized == 0) {
-        randombytes_sysrandom_stir();
-    }
-}
-
-static int
-randombytes_sysrandom_close(void)
-{
-    int ret = -1;
-
-# ifndef _WIN32
-    if (stream.random_data_source_fd != -1 &&
-        close(stream.random_data_source_fd) == 0) {
-        stream.random_data_source_fd = -1;
-        stream.initialized = 0;
-        ret = 0;
+/**
+ @brief Initialize random data source
+ 
+ @param[in,out] handle Handle
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_randombytes_sysrandom_close(MOBIRandom *handle) {
+#  define NEEDS_CLOSE
+    MOBI_RET ret = MOBI_ERROR;
+    if (handle->random_data_source_fd != -1 && close(handle->random_data_source_fd) == 0) {
+        handle->random_data_source_fd = -1;
+        ret = MOBI_SUCCESS;
     }
 #  ifdef HAVE_LINUX_COMPATIBLE_GETRANDOM
-    if (stream.getrandom_available != 0) {
-        ret = 0;
+    if (handle->getrandom_available != 0) {
+        ret = MOBI_SUCCESS;
     }
 #  endif
-# else /* _WIN32 */
-    if (stream.initialized != 0) {
-        stream.initialized = 0;
-        ret = 0;
-    }
-# endif /* _WIN32 */
     return ret;
 }
 
-static void
-randombytes_sysrandom_buf(void * const buf, const size_t size)
-{
-    randombytes_sysrandom_stir_if_needed();
-# if defined(ULLONG_MAX) && defined(SIZE_MAX)
-#  if SIZE_MAX > ULLONG_MAX
-    /* coverity[result_independent_of_operands] */
-    assert(size <= ULLONG_MAX);
-#  endif
-# endif
+# endif /* _WIN32 */
+
+/**
+ @brief Read a buffer of random bytes
+ 
+ @param[in,out] handle Handle
+ @param[in,out] buf Buffer
+ @param[in] size Buffer size (up to 256 bytes)
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+static MOBI_RET mobi_randombytes_sysrandom_buf(MOBIRandom *handle, void *buf, const size_t size) {
 # ifndef _WIN32
 #  ifdef HAVE_LINUX_COMPATIBLE_GETRANDOM
-    if (stream.getrandom_available != 0) {
-        if (randombytes_linux_getrandom(buf, size) != 0) {
-            sodium_misuse(); /* LCOV_EXCL_LINE */
-        }
-        return;
+    if (handle->getrandom_available != 0) {
+        return mobi_randombytes_linux_getrandom(buf, size);
     }
 #  endif
-    if (stream.random_data_source_fd == -1 ||
-        safe_read(stream.random_data_source_fd, buf, size) != (ssize_t) size) {
-        sodium_misuse(); /* LCOV_EXCL_LINE */
+    if (handle->random_data_source_fd == -1 ||
+        mobi_safe_read(handle->random_data_source_fd, buf, size) != (ssize_t) size) {
+        return MOBI_ERROR;
     }
 # else /* _WIN32 */
-    COMPILER_ASSERT(randombytes_BYTES_MAX <= 0xffffffffUL);
-    if (size > (size_t) 0xffffffffUL) {
-        sodium_misuse(); /* LCOV_EXCL_LINE */
-    }
+    UNUSED(handle);
     if (! RtlGenRandom((PVOID) buf, (ULONG) size)) {
-        sodium_misuse(); /* LCOV_EXCL_LINE */
+        return MOBI_ERROR;
     }
 # endif /* _WIN32 */
-}
-
-static uint32_t
-randombytes_sysrandom(void)
-{
-    uint32_t r;
-
-    randombytes_sysrandom_buf(&r, sizeof r);
-
-    return r;
+    return MOBI_SUCCESS;
 }
 
 #endif /* HAVE_SAFE_ARC4RANDOM */
 
-static const char *
-randombytes_sysrandom_implementation_name(void)
-{
-    return "sysrandom";
+/**
+ @brief Fill buffer with random bytes
+ 
+ @param[in,out] buf Buffer
+ @param[in] size Buffer size (up to 256 bytes)
+ @return MOBI_RET status code (on success MOBI_SUCCESS)
+ */
+MOBI_RET mobi_randombytes(void *buf, const size_t size) {
+    
+    MOBIRandom handle = {
+        .random_data_source_fd = -1,
+        .getrandom_available = 0
+    };
+    
+    MOBI_RET ret;
+#ifdef NEEDS_INIT
+    ret = mobi_randombytes_sysrandom_init(&handle);
+    if (ret != MOBI_SUCCESS) {
+        return ret;
+    }
+#endif
+    
+    if (size > (size_t) 0U) {
+        ret = mobi_randombytes_sysrandom_buf(&handle, buf, size);
+        if (ret != MOBI_SUCCESS) {
+            debug_print("%s\n", "Generating random data failed");
+            return ret;
+        }
+    }
+#ifdef NEEDS_CLOSE
+    if (mobi_randombytes_sysrandom_close(&handle) != MOBI_SUCCESS) {
+        debug_print("%s\n", "Closing random data source failed");
+    }
+#endif
+    return MOBI_SUCCESS;
 }
-
-struct randombytes_implementation randombytes_sysrandom_implementation = {
-    SODIUM_C99(.implementation_name =) randombytes_sysrandom_implementation_name,
-    SODIUM_C99(.random =) randombytes_sysrandom,
-    SODIUM_C99(.stir =) randombytes_sysrandom_stir,
-    SODIUM_C99(.uniform =) NULL,
-    SODIUM_C99(.buf =) randombytes_sysrandom_buf,
-    SODIUM_C99(.close =) randombytes_sysrandom_close
-};

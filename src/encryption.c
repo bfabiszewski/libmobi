@@ -1454,7 +1454,7 @@ static MOBI_RET mobi_drm_generate_key(MOBIData *m) {
     
     unsigned char buf[KEYSIZE];
     
-    if (randombytes(buf, KEYSIZE) != 0) {
+    if (mobi_randombytes(buf, KEYSIZE) != MOBI_SUCCESS) {
         debug_print("Getting random buffer failed%s", "\n");
         return MOBI_ERROR;
     }

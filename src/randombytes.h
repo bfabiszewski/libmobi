@@ -11,25 +11,15 @@
 #ifndef libmobi_randombytes_h
 #define libmobi_randombytes_h
 
-#ifdef _WIN32
-# include <crtdefs.h>
-#else
-# include <unistd.h>
-#endif /* _WIN32 */
-
-#include "config.h"
-
-#if (MOBI_DEBUG)
-//# define RANDOMBYTES_DEBUG
-#endif
+#include "mobi.h"
 
 /**
  @brief Write n random bytes of high quality to buf
  
  @param[in,out] buf Buffer to be filled with random bytes
  @param[in] len Buffer length
- @return On success returns 0
+ @return On success returns MOBI_SUCCESS
  */
-int randombytes(void *buf, size_t len);
+MOBI_RET mobi_randombytes(void *buf, const size_t len);
 
 #endif
