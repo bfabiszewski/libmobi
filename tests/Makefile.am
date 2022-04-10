@@ -24,7 +24,7 @@ EXTRA_DIST = md5 \
              samples/sample-unicode-uncompressed.mobi \
              samples/sample-invalid-indx.fail
 AUTOMAKE_OPTIONS = parallel-tests
-TESTS = @PASSLIST@
+TESTS = @TESTLIST@
 XFAIL_TESTS = @FAILLIST@
 TEST_EXTENSIONS = .mobi .fail
 MOBI_LOG_COMPILER = ./test.sh
@@ -32,3 +32,11 @@ FAIL_LOG_COMPILER = ./test.sh
 
 clean-local:
 	-rm -rf tmp
+
+all-local:
+	@if test x@RUN_TESTS@ = xno; then \
+		echo "============================================================================"; \
+		echo "WARNING: All tests will be skipped, because bash was not found in your PATH."; \
+		echo "         Please install bash and rerun configure script."; \
+		echo "============================================================================"; \
+	fi

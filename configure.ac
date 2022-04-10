@@ -354,24 +354,37 @@ AC_ARG_VAR([MD5PROG], [md5 hashing program executable])
 AS_IF([test -z "$MD5PROG"], [AC_CHECK_PROG([MD5PROG], [md5sum], [md5sum -t])], [])
 AS_IF([test -z "$MD5PROG"], [AC_CHECK_PROG([MD5PROG], [md5], [md5 -r])], [])
 AS_IF([test -z "$MD5PROG"], [AC_MSG_WARN([md5 hashing program not found, some tests will be skipped])], [])
+AC_PATH_PROG([BASH_PATH], [bash])
+AS_IF(
+    [test -z "$BASH_PATH"],
+    [AC_MSG_WARN([bash not found, tests will be skipped])
+     RUN_TESTS="no"],
+    [RUN_TESTS="yes"
+     AC_SUBST([BASH_PATH])])
+AC_SUBST([RUN_TESTS])
 
-# List test files
-cur_dir=`pwd`
-cd "$srcdir"/tests
+if test x$RUN_TESTS = xyes; then
+    # List test files
+    cur_dir=`pwd`
+    cd "$srcdir"/tests
 
-CR=$'\n'
-for sample_path in samples/*.{mobi,fail}
-do
-    PASSLIST="${PASSLIST} ${sample_path} \\${CR}"
-done
-AC_SUBST([PASSLIST])
-for sample_path in samples/*.fail
-do
-    FAILLIST="${FAILLIST} ${sample_path} \\${CR}"
-done
+    for sample_path in samples/*.mobi
+    do
+        TESTLIST="${TESTLIST} ${sample_path} \\
+"
+    done
+    for sample_path in samples/*.fail
+    do
+        TESTLIST="${TESTLIST} ${sample_path} \\
+"
+        FAILLIST="${FAILLIST} ${sample_path} \\
+"
+    done
+    cd $cur_dir
+fi
+
+AC_SUBST([TESTLIST])
 AC_SUBST([FAILLIST])
-
-cd $cur_dir
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([libmobi.pc])

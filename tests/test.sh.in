@@ -1,4 +1,4 @@
-#!/bin/bash
+#!@BASH_PATH@
 # test.sh
 # Copyright (c) 2015 Bartek Fabiszewski
 # http://www.fabiszewski.net
@@ -7,7 +7,7 @@
 # Licensed under LGPL, either version 3, or any later.
 # See <http://www.gnu.org/licenses/>
 
-# Usage: test.sh filename <optional parameters passed to mobitool>
+# Usage: test.sh filename <optional parameters passed to tested tool>
 
 if [[ $# < 1 ]]; then
     die "Wrong number of input parameters: $#" 1
