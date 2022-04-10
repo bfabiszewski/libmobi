@@ -1006,11 +1006,11 @@ MOBI_RET mobi_voucher_add(MOBIData *m, const char *serial, const time_t valid_fr
     
     // convert time values to mobi format
     uint32_t from = 0;
-    if (valid_from > 0 && valid_from / 60 <= UINT32_MAX) {
+    if (valid_from > 0 && (size_t) (valid_from / 60) <= UINT32_MAX) {
         from = (uint32_t) (valid_from / 60);
     }
     uint32_t to = MOBI_NOTSET;
-    if (valid_to >= 0 && valid_to / 60 <= UINT32_MAX) {
+    if (valid_to >= 0 && (size_t) (valid_to / 60) <= UINT32_MAX) {
         to = (uint32_t) (valid_to / 60);
     }
     
