@@ -1,3 +1,4 @@
+2022-04-10: Looking for libxml2, first try pkg-config
 2022-04-04: Update MSVC project
 2022-04-02: Add support for GNU/kFreeBSD and GNU/Hurd
 2022-04-02: Check for inline, noreturn support in CMake

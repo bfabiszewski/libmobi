@@ -210,17 +210,24 @@ if test x$xmlwriter = xyes; then
 
     if test x$use_libxml2 = xyes; then
         AC_ARG_VAR([XML2_CONFIG], [path to xml2-config utility])
-        saved_CPPFLAGS=$CPPFLAGS
         AC_CHECK_PROGS([XML2_CONFIG], [xml2-config])
-        if test -n "$XML2_CONFIG"; then
-            CPPFLAGS="`$XML2_CONFIG --cflags`"
+        AC_CHECK_PROGS([PKG_CONFIG], [pkg-config])
+        AC_MSG_CHECKING([for libxml2 path supplier])
+        if test -n "$PKG_CONFIG" && $PKG_CONFIG --exists libxml-2.0; then
+            LIBXML2_CFLAGS="`$PKG_CONFIG --cflags libxml-2.0`"
+            LIBXML2_LDFLAGS="`$PKG_CONFIG --libs libxml-2.0`"
+            AC_MSG_RESULT([pkg-config])
+        elif test -n "$XML2_CONFIG"; then
             LIBXML2_CFLAGS="`$XML2_CONFIG --cflags`"
             LIBXML2_LDFLAGS="`$XML2_CONFIG --libs`"
+            AC_MSG_RESULT([xml2-config])
         else
-            CPPFLAGS=-I/usr/include/libxml2
             LIBXML2_CFLAGS=-I/usr/include/libxml2
             LIBXML2_LDFLAGS=-lxml2
+            AC_MSG_RESULT([generic])
         fi
+        saved_CPPFLAGS=$CPPFLAGS
+        CPPFLAGS="$CPPFLAGS $LIBXML2_CFLAGS"
         AC_CHECK_HEADER(
             [libxml/xmlwriter.h],
             [AC_DEFINE([USE_LIBXML2], [1], [Define if you want to use libxml2 library])],
