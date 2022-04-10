@@ -106,7 +106,7 @@
 		151185A31CB6C28500201C8A /* mobimeta.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mobimeta.c; path = tools/mobimeta.c; sourceTree = SOURCE_ROOT; };
 		151A46641909302C00FAF3F4 /* miniz.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = miniz.h; path = src/miniz.h; sourceTree = "<group>"; };
 		151A46651909312900FAF3F4 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = miniz.c; path = src/miniz.c; sourceTree = "<absolute>"; };
-		152D509E1BD79AE400E91C09 /* test.sh.in */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = test.sh.in; path = tests/test.sh.in; sourceTree = "<group>"; };
+		152D509E1BD79AE400E91C09 /* test.sh.in */ = {isa = PBXFileReference; explicitFileType = text.script.sh; name = test.sh.in; path = tests/test.sh.in; sourceTree = "<group>"; };
 		152D50A01BD7A08300E91C09 /* Makefile.am */ = {isa = PBXFileReference; explicitFileType = sourcecode.make; fileEncoding = 4; name = Makefile.am; path = tests/Makefile.am; sourceTree = "<group>"; usesTabs = 1; xcLanguageSpecificationIdentifier = xcode.lang.sh; };
 		152E5D1218F5DEB100B05EC9 /* configure.ac */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.csh; };
 		152E5D1318F5DEB100B05EC9 /* Makefile.am */ = {isa = PBXFileReference; explicitFileType = sourcecode.make; fileEncoding = 4; path = Makefile.am; sourceTree = "<group>"; usesTabs = 1; };
