@@ -34,6 +34,9 @@ The tools source may also be used as an example on how to use the library.
 ## Source:
 - [on github](https://github.com/bfabiszewski/libmobi/)
 
+## Packages:
+[![Packaging status](https://repology.org/badge/vertical-allrepos/libmobi.svg)](https://repology.org/project/libmobi/versions)
+
 ## Installation:
 
     [for git] $ ./autogen.sh
