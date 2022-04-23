@@ -30,6 +30,8 @@
 #include "opf.h"
 #endif
 
+#define MOBI_FONT_OBFUSCATED_BUFFER_COUNT 52
+
 /** @brief Lookup table for cp1252 to utf8 encoding conversion */
 static const unsigned char cp1252_to_utf8[32][3] = {
     {0xe2,0x82,0xac},
@@ -2535,10 +2537,15 @@ MOBI_RET mobi_decode_font_resource(unsigned char **decoded_font, size_t *decoded
     const uint32_t xor_flag = 2; /* bit 1 */
     if (h.flags & xor_flag && h.xor_key_len > 0) {
         /* deobfuscate */
+        if (h.data_offset > buf->maxlen || h.xor_data_off + h.xor_key_len > buf->maxlen) {
+            debug_print("%s\n", "Invalid obfuscated font data offsets");
+            mobi_buffer_free(buf);
+            return MOBI_DATA_CORRUPT;
+        }
         mobi_buffer_setpos(buf, h.data_offset);
         const unsigned char *xor_key = buf->data + h.xor_data_off;
         size_t i = 0;
-        const size_t xor_limit = h.xor_key_len * 52;
+        const size_t xor_limit = h.xor_key_len * MOBI_FONT_OBFUSCATED_BUFFER_COUNT;
         while (buf->offset < buf->maxlen && i < xor_limit) {
             buf->data[buf->offset++] ^= xor_key[i % h.xor_key_len];
             i++;
