@@ -434,11 +434,11 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
             i++;
         }
         indx->entries[entry_number].tags = malloc(tagx->tags_count * sizeof(MOBIIndexTag));
-		if (indx->entries[entry_number].tags == NULL) {
-			debug_print("Memory allocation failed (%zu bytes)\n", tagx->tags_count * sizeof(MOBIIndexTag));
-			free(ptagx);
-			return MOBI_MALLOC_FAILED;
-		}
+        if (indx->entries[entry_number].tags == NULL) {
+            debug_print("Memory allocation failed (%zu bytes)\n", tagx->tags_count * sizeof(MOBIIndexTag));
+            free(ptagx);
+            return MOBI_MALLOC_FAILED;
+        }
         i = 0;
         while (i < ptagx_count) {
             uint32_t tagvalues_count = 0;

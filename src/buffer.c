@@ -49,15 +49,15 @@ MOBIBuffer * mobi_buffer_init(const size_t len) {
  */
 MOBIBuffer * mobi_buffer_init_null(unsigned char *data, const size_t len) {
     MOBIBuffer *buf = malloc(sizeof(MOBIBuffer));
-	if (buf == NULL) {
+    if (buf == NULL) {
         debug_print("%s", "Buffer allocation failed\n");
         return NULL;
     }
     buf->data = data;
-	buf->offset = 0;
-	buf->maxlen = len;
+    buf->offset = 0;
+    buf->maxlen = len;
     buf->error = MOBI_SUCCESS;
-	return buf;
+    return buf;
 }
 
 /**
@@ -604,11 +604,11 @@ void mobi_buffer_setpos(MOBIBuffer *buf, const size_t pos) {
  @param[in] buf MOBIBuffer structure
  */
 void mobi_buffer_free(MOBIBuffer *buf) {
-	if (buf == NULL) { return; }
-	if (buf->data != NULL) {
-		free(buf->data);
-	}
-	free(buf);
+    if (buf == NULL) { return; }
+    if (buf->data != NULL) {
+        free(buf->data);
+    }
+    free(buf);
 }
 
 /**
@@ -620,6 +620,6 @@ void mobi_buffer_free(MOBIBuffer *buf) {
  @param[in] buf MOBIBuffer structure
  */
 void mobi_buffer_free_null(MOBIBuffer *buf) {
-	if (buf == NULL) { return; }
-	free(buf);
+    if (buf == NULL) { return; }
+    free(buf);
 }

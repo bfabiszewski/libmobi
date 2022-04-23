@@ -1174,10 +1174,10 @@ MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m, const MOBIRawml *
         }
         if (rawml->orth->orth_index_name) {
             opf->metadata->x_meta->default_lookup_index = calloc(OPF_META_MAX_TAGS, sizeof(char*));
-			if (opf->metadata->x_meta->default_lookup_index == NULL) {
-				debug_print("%s\n", "Memory allocation failed");
-				return MOBI_MALLOC_FAILED;
-			}
+            if (opf->metadata->x_meta->default_lookup_index == NULL) {
+                debug_print("%s\n", "Memory allocation failed");
+                return MOBI_MALLOC_FAILED;
+            }
             opf->metadata->x_meta->default_lookup_index[0] = strdup(rawml->orth->orth_index_name);
         }
     }

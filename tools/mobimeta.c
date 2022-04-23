@@ -276,14 +276,14 @@ int main(int argc, char *argv[]) {
     }
     char infile[FILENAME_MAX];
     strncpy(infile, argv[optind], FILENAME_MAX - 1);
-	infile[FILENAME_MAX - 1] = '\0';
+    infile[FILENAME_MAX - 1] = '\0';
     normalize_path(infile);
 
     if (file_args >= 2) { optind++; }
     
     char outfile[FILENAME_MAX];
     strncpy(outfile, argv[optind], FILENAME_MAX - 1);
-	outfile[FILENAME_MAX - 1] = '\0';
+    outfile[FILENAME_MAX - 1] = '\0';
     normalize_path(outfile);
 
     /* Initialize MOBIData structure */

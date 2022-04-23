@@ -1976,11 +1976,11 @@ MOBI_RET mobi_strip_mobitags(MOBIPart *part) {
         part_size += curr->size;
         
         unsigned char *new_data = malloc(part_size);
-		if (new_data == NULL) {
-			mobi_list_del_all(first);
-			debug_print("%s\n", "Memory allocation failed");
-			return MOBI_MALLOC_FAILED;
-		}
+        if (new_data == NULL) {
+            mobi_list_del_all(first);
+            debug_print("%s\n", "Memory allocation failed");
+            return MOBI_MALLOC_FAILED;
+        }
         unsigned char *data_out = new_data;
         while (first) {
             memcpy(data_out, first->fragment, first->size);
