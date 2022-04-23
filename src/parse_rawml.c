@@ -1388,6 +1388,10 @@ MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBI
     }
     for (size_t i = 0; i < infl_count; i++) {
         size_t offset = infl_groups[i];
+        if (offset >= infl->entries_count) {
+            debug_print("%s\n", "Invalid entry offset");
+            return MOBI_DATA_CORRUPT;
+        }
         uint32_t *groups;
         size_t group_cnt = mobi_get_indxentry_tagarray(&groups, &infl->entries[offset], INDX_TAGARR_INFL_GROUPS);
         uint32_t *parts;

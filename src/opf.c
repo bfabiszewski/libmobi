@@ -152,7 +152,7 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
             /* FIXME: I need some examples which use other tags */
             //mobi_get_indxentry_tagvalue(&frag_number, guide_entry, INDX_TAG_FRAG_FILE_NR);
         }
-        if (frag_number > rawml->frag->entries_count) {
+        if (frag_number >= rawml->frag->entries_count) {
             debug_print("Wrong frag entry index (%i)\n", frag_number);
             free(ref_title);
             i++;
@@ -673,9 +673,9 @@ MOBI_RET mobi_build_ncx(MOBIRawml *rawml, const OPF *opf) {
                 mobi_free_ncx(ncx, i);
                 return ret;
             }
-            if ((first_child != MOBI_NOTSET && first_child > rawml->ncx->entries_count) ||
-                (last_child != MOBI_NOTSET && last_child > rawml->ncx->entries_count) ||
-                (parent != MOBI_NOTSET && parent > rawml->ncx->entries_count)) {
+            if ((first_child != MOBI_NOTSET && first_child >= rawml->ncx->entries_count) ||
+                (last_child != MOBI_NOTSET && last_child >= rawml->ncx->entries_count) ||
+                (parent != MOBI_NOTSET && parent >= rawml->ncx->entries_count)) {
                 free(text);
                 free(target);
                 mobi_free_ncx(ncx, i);
