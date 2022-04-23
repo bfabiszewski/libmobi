@@ -1,3 +1,4 @@
+2022-04-23: Fix issue with corrupt data with empty lookup string which could lead to read beyond buffer
 2022-04-23: Fix faulty checks for array boundary which caused buffer over-read
 2022-04-23: Fix issue with corrupt files with tagvalues_count = 0 that caused heap buffer over-read
 2022-04-23: Fix issues when mobi_buffer_getpointer returns null. With corrupt data this could lead to out-of-bounds read

@@ -245,13 +245,17 @@ static MOBITrie * mobi_trie_insert_char(MOBITrie *node, char c, char *value) {
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_trie_insert_reversed(MOBITrie **root, char *string, char *value) {
+    size_t length = strlen(string);
+    if (length == 0) {
+        debug_print("Skipping empty lookup string in trie node%s", "\n");
+        return MOBI_SUCCESS;
+    }
     if (*root == NULL) {
         *root = mobi_trie_mknode();
         if (*root == NULL) {
             return MOBI_MALLOC_FAILED;
         }
     }
-    size_t length = strlen(string);
     MOBITrie *node = *root;
     while (length > 1) {
         node = mobi_trie_insert_char(node, string[length - 1], NULL);
