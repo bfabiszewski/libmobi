@@ -302,11 +302,14 @@ static size_t mobi_vouchers_get(MOBIVoucher **drm, const MOBIData *m) {
     debug_print("%s\n", "Parsing DRM data from record 0");
     for (size_t i = 0; i < count; i++) {
         drm[i] = calloc(1, sizeof(MOBIVoucher));
-		if (drm[i] == NULL) {
-			debug_print("%s\n", "Memory allocation failed");
-			mobi_buffer_free_null(buf);
-			return 0;
-		}
+        if (drm[i] == NULL) {
+            debug_print("%s\n", "Memory allocation failed");
+            mobi_buffer_free_null(buf);
+            for (size_t j = 0; j < i; j++) {
+                free(drm[j]);
+            }
+            return 0;
+        }
         drm[i]->verification = mobi_buffer_get32(buf);
         drm[i]->size = mobi_buffer_get32(buf);
         drm[i]->type = mobi_buffer_get32(buf);
@@ -315,6 +318,14 @@ static size_t mobi_vouchers_get(MOBIVoucher **drm, const MOBIData *m) {
         drm[i]->cookie = mobi_buffer_getpointer(buf, COOKIESIZE);
         debug_print("drm[%zu] verification = %#x, size = %#x, type = %#x, checksum = %#x\n",
                     i, drm[i]->verification, drm[i]->size, drm[i]->type, drm[i]->checksum);
+        if (buf->error != MOBI_SUCCESS) {
+            debug_print("%s\n", "DRM data too short");
+            mobi_buffer_free_null(buf);
+            for (size_t j = 0; j < i + 1; j++) {
+                free(drm[j]);
+            }
+            return 0;
+        }
     }
     mobi_buffer_free_null(buf);
     return count;

@@ -851,7 +851,13 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
         debug_print("%zu\t%s\t%i\t%i\t%i\n", i, entry->label, fragments_count, skel_position, skel_length);
         mobi_buffer_setpos(buf, skel_position);
         
-        MOBIFragment *first_fragment = mobi_list_add(NULL, 0, mobi_buffer_getpointer(buf, skel_length), skel_length, false);
+        unsigned char *frag_buffer = mobi_buffer_getpointer(buf, skel_length);
+        if (frag_buffer == NULL) {
+            debug_print("%s\n", "Fragment data beyond buffer");
+            mobi_buffer_free_null(buf);
+            return MOBI_DATA_CORRUPT;
+        }
+        MOBIFragment *first_fragment = mobi_list_add(NULL, 0, frag_buffer, skel_length, false);
         MOBIFragment *current_fragment = first_fragment;
         while (fragments_count--) {
             entry = &rawml->frag->entries[j];
@@ -926,7 +932,14 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
             }
             skel_length += frag_length;
             
-            current_fragment = mobi_list_insert(current_fragment, insert_position, mobi_buffer_getpointer(buf, frag_length), frag_length, false, insert_position);
+            frag_buffer = mobi_buffer_getpointer(buf, frag_length);
+            if (frag_buffer == NULL) {
+                debug_print("%s\n", "Fragment data beyond buffer");
+                mobi_buffer_free_null(buf);
+                mobi_list_del_all(first_fragment);
+                return MOBI_DATA_CORRUPT;
+            }
+            current_fragment = mobi_list_insert(current_fragment, insert_position, frag_buffer, frag_length, false, insert_position);
             j++;
             
         }

@@ -1,3 +1,4 @@
+2022-04-23: Fix issues when mobi_buffer_getpointer returns null. With corrupt data this could lead to out-of-bounds read
 2022-04-13: Add packaging status [skip ci]
 2022-04-10: Make random generation return proper error codes
 2022-04-10: Rewrite randombytes for libmobi
