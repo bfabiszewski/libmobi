@@ -51,7 +51,7 @@ static void print_usage(const char *progname) {
     printf("       -e        encrypt (required)\n");
     printf("       -s serial set device serial (may be specified multiple times)\n");
     printf("       -f date   set validity period from date (yyyy-mm-dd) when encrypting (inclusive)\n");
-    printf("       -t date   set validity period to date (yyyy-mm-dd) when encrypting (inclusive)\n");
+    printf("       -t date   set validity period to date (yyyy-mm-dd) when encrypting (inclusive)\n\n");
     
     printf("       Common options:\n");
     printf("       -o dir    save output to dir folder\n");

@@ -44,6 +44,7 @@
         -s serial set device serial (may be specified multiple times)
         -f date   set validity period from date (yyyy-mm-dd) when encrypting (inclusive)
         -t date   set validity period to date (yyyy-mm-dd) when encrypting (inclusive)
+
         Common options:
         -o dir    save output to dir folder
         -h        show this usage summary and exit
