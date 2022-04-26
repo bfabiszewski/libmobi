@@ -1413,6 +1413,10 @@ MOBI_RET mobi_reconstruct_infl(char *outstring, const MOBIIndx *infl, const MOBI
             
             unsigned char decoded[INDX_INFLBUF_SIZEMAX + 1];
             memset(decoded, 0, INDX_INFLBUF_SIZEMAX + 1);
+            if (parts[j] >= infl->entries_count) {
+                debug_print("%s\n", "Invalid entry offset");
+                return MOBI_DATA_CORRUPT;
+            }
             unsigned char *rule = (unsigned char *) infl->entries[parts[j]].label;
             memcpy(decoded, label, label_length);
             int decoded_length = (int) label_length;

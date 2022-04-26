@@ -1,8 +1,9 @@
+2022-04-26: Fix array boundary check when parsing inflections which could result in buffer over-read with corrupt input
 2022-04-23: Fix formatting
 2022-04-23: Fix checking boundary of deobfuscation key which could cause buffer over-read with corrupt data
 2022-04-23: Fix issue with corrupt data with empty lookup string which could lead to read beyond buffer
-2022-04-23: Fix faulty checks for array boundary which caused buffer over-read
-2022-04-23: Fix issue with corrupt files with tagvalues_count = 0 that caused heap buffer over-read
+2022-04-23: Fix faulty checks for array boundary which caused buffer over-read with corrupt input
+2022-04-23: Fix issue with corrupt files with tagvalues_count = 0 that caused null pointer dereference
 2022-04-23: Fix issues when mobi_buffer_getpointer returns null. With corrupt data this could lead to out-of-bounds read
 2022-04-13: Add packaging status [skip ci]
 2022-04-10: Make random generation return proper error codes
