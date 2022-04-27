@@ -1152,24 +1152,30 @@ MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m, const MOBIRawml *
     if (mobi_is_dictionary(m)) {
         if (opf->metadata->x_meta->dictionary_in_lang == NULL) {
             if (m->mh && m->mh->dict_input_lang) {
-                opf->metadata->x_meta->dictionary_in_lang = calloc(OPF_META_MAX_TAGS, sizeof(char*));
-                if (opf->metadata->x_meta->dictionary_in_lang == NULL) {
-                    debug_print("%s\n", "Memory allocation failed");
-                    return MOBI_MALLOC_FAILED;
-                }
                 uint32_t dict_lang_in = *m->mh->dict_input_lang;
-                opf->metadata->x_meta->dictionary_in_lang[0] = strdup(mobi_get_locale_string(dict_lang_in));
+                const char *lang = mobi_get_locale_string(dict_lang_in);
+                if (lang) {
+                    opf->metadata->x_meta->dictionary_in_lang = calloc(OPF_META_MAX_TAGS, sizeof(char*));
+                    if (opf->metadata->x_meta->dictionary_in_lang == NULL) {
+                        debug_print("%s\n", "Memory allocation failed");
+                        return MOBI_MALLOC_FAILED;
+                    }
+                    opf->metadata->x_meta->dictionary_in_lang[0] = strdup(lang);
+                }
             }
         }
         if (opf->metadata->x_meta->dictionary_out_lang == NULL) {
             if (m->mh && m->mh->dict_output_lang) {
-                opf->metadata->x_meta->dictionary_out_lang = calloc(OPF_META_MAX_TAGS, sizeof(char*));
-                if (opf->metadata->x_meta->dictionary_out_lang == NULL) {
-                    debug_print("%s\n", "Memory allocation failed");
-                    return MOBI_MALLOC_FAILED;
+                uint32_t dict_lang_out = *m->mh->dict_output_lang;
+                const char *lang = mobi_get_locale_string(dict_lang_out);
+                if (lang) {
+                    opf->metadata->x_meta->dictionary_out_lang = calloc(OPF_META_MAX_TAGS, sizeof(char*));
+                    if (opf->metadata->x_meta->dictionary_out_lang == NULL) {
+                        debug_print("%s\n", "Memory allocation failed");
+                        return MOBI_MALLOC_FAILED;
+                    }
+                    opf->metadata->x_meta->dictionary_out_lang[0] = strdup(lang);
                 }
-                uint32_t dict_lang_in = *m->mh->dict_output_lang;
-                opf->metadata->x_meta->dictionary_out_lang[0] = strdup(mobi_get_locale_string(dict_lang_in));
             }
         }
         if (rawml->orth->orth_index_name) {

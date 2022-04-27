@@ -641,7 +641,7 @@ static const char *mobi_locale[MOBI_LANG_MAX][MOBI_REGION_MAX] = {
  See mobi_locale array.
  
  @param[in] locale_number Mobipocket locale number (as stored in MOBI header)
- @return Pointer to locale string in mobi_locale array
+ @return Pointer to locale string in mobi_locale array or NULL on error
  */
 const char * mobi_get_locale_string(const uint32_t locale_number) {
     uint8_t lang_code = locale_number & 0xffU;

@@ -330,7 +330,7 @@ void print_summary(const MOBIData *m) {
             *m->mh->dict_input_lang && *m->mh->dict_output_lang) {
             const char *locale_in = mobi_get_locale_string(*m->mh->dict_input_lang);
             const char *locale_out = mobi_get_locale_string(*m->mh->dict_output_lang);
-            printf(": %s => %s", locale_in, locale_out);
+            printf(": %s => %s", locale_in ? locale_in : "unknown", locale_out ? locale_out : "unknown");
         }
         printf("\n");
     }
