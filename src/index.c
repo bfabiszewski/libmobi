@@ -961,17 +961,13 @@ MOBI_RET mobi_decode_infl(unsigned char *decoded, int *decoded_size, const unsig
             }
             pos -= c - 10;
             dir = 0;
-            if (pos < 0 || pos > *decoded_size) {
-                debug_print("Position setting failed (%s)\n", decoded);
-                return MOBI_DATA_CORRUPT;
-            }
         }
         else {
             if (mod == 'i') {
                 const unsigned char *s = decoded + pos;
                 unsigned char *d = decoded + pos + 1;
                 const int l = *decoded_size - pos;
-                if (l < 0 || d + l > decoded + INDX_INFLBUF_SIZEMAX) {
+                if (pos < 0 || l < 0 || d + l > decoded + INDX_INFLBUF_SIZEMAX) {
                     debug_print("Out of buffer in %s at pos: %i\n", decoded, pos);
                     return MOBI_DATA_CORRUPT;
                 }
@@ -984,7 +980,7 @@ MOBI_RET mobi_decode_infl(unsigned char *decoded, int *decoded_size, const unsig
                 const unsigned char *s = decoded + pos + 1;
                 unsigned char *d = decoded + pos;
                 const int l = *decoded_size - pos;
-                if (l < 0 || d + l > decoded + INDX_INFLBUF_SIZEMAX) {
+                if (pos < 0 || l < 0 || s + l > decoded + INDX_INFLBUF_SIZEMAX) {
                     debug_print("Out of buffer in %s at pos: %i\n", decoded, pos);
                     return MOBI_DATA_CORRUPT;
                 }

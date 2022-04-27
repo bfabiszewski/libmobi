@@ -1,3 +1,4 @@
+2022-04-27: Fix wrong boundary checks in inflections parser resulting in stack buffer over-read with corrupt input
 2022-04-26: Fix text formatting
 2022-04-26: Fix array boundary check when parsing inflections which could result in buffer over-read with corrupt input
 2022-04-23: Fix formatting
