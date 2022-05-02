@@ -36,7 +36,7 @@
  */
 #define MOBI_NOTSET UINT32_MAX
 
-#define MOBI_ENCRYPTON_NONE 0 /**< Text record encryption type: none */
+#define MOBI_ENCRYPTION_NONE 0 /**< Text record encryption type: none */
 #define MOBI_ENCRYPTION_V1 1 /**< Text record encryption type: old mobipocket */
 #define MOBI_ENCRYPTION_V2 2 /**< Text record encryption type: mobipocket */
 

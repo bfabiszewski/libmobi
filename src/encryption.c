@@ -1188,7 +1188,7 @@ static void mobi_drm_unset(MOBIData *m) {
             *m->mh->drm_flags = 0;
         }
     }
-    m->rh->encryption_type = MOBI_ENCRYPTON_NONE;
+    m->rh->encryption_type = MOBI_ENCRYPTION_NONE;
     
     mobi_drmkey_delete(m);
 }

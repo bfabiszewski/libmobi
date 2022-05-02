@@ -1,3 +1,4 @@
+2022-05-02: Fix typo in macro name
 2022-04-27: Fix undefined behavior when passing null to strdup
 2022-04-27: Fix wrong boundary checks in inflections parser resulting in stack buffer over-read with corrupt input
 2022-04-26: Fix text formatting
