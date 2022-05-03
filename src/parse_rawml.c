@@ -107,7 +107,7 @@ MOBI_RET mobi_search_links_kf7(MOBIResult *result, const unsigned char *data_sta
                     result->value[i++] = (char) *data++;
                 }
                 /* self closing tag '/>' */
-                if (*(data - 1) == '/' && *data == '>') {
+                if (data <= data_end && *(data - 1) == '/' && *data == '>') {
                     --data; --i;
                 }
                 result->end = data;
@@ -182,7 +182,7 @@ MOBI_RET mobi_find_attrvalue(MOBIResult *result, const unsigned char *data_start
                 result->value[i++] = (char) *data++;
             }
             /* self closing tag '/>' */
-            if (*(data - 1) == '/' && *data == '>') {
+            if (data <= data_end && *(data - 1) == '/' && *data == '>') {
                 --data; --i;
             }
             result->end = data;
@@ -354,7 +354,7 @@ size_t mobi_get_attribute_value(char *value, const unsigned char *data, const si
                 length--;
             }
             /* self closing tag '/>' */
-            if (*(data - 1) == '/' && *data == '>') {
+            if (length && *(data - 1) == '/' && *data == '>') {
                 value--;
             }
             *value = '\0';
