@@ -29,11 +29,11 @@
 /**
  @brief Read index entry label from buffer pointing at index record data
  
- @param[in,out] output Output string
+ @param[in,out] output Output buffer (INDX_LABEL_SIZEMAX + 1 bytes)
  @param[in,out] buf MOBIBuffer structure, offset pointing at index entry label
  @param[in] length Number of bytes to be read
  @param[in] has_ligatures Decode ligatures if true
- @return Size of read label
+ @return Length of output string (without null terminator), on error buf->error set to MOBI_RET status
  */
 size_t mobi_indx_get_label(unsigned char *output, MOBIBuffer *buf, const size_t length, const size_t has_ligatures) {
     if (!output) {
@@ -248,9 +248,9 @@ uint16_t mobi_ordt_lookup(const MOBIOrdt *ordt, const uint16_t offset) {
  
  @param[in] ordt MOBIOrdt structure (ORDT data and metadata)
  @param[in,out] buf MOBIBuffer structure with input string
- @param[in,out] output Output buffer (INDX_LABEL_SIZEMAX bytes)
+ @param[in,out] output Output buffer (INDX_LABEL_SIZEMAX + 1 bytes)
  @param[in] length Length of input string contained in buf
- @return Number of bytes read
+ @return Length of output string (without null terminator)
  */
 size_t mobi_getstring_ordt(const MOBIOrdt *ordt, MOBIBuffer *buf, unsigned char *output, size_t length) {
     size_t i = 0;
@@ -362,12 +362,16 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
         debug_print("Label length too long: %zu\n", label_length);
         return MOBI_DATA_CORRUPT;
     }
-    char text[INDX_LABEL_SIZEMAX];
+    char text[INDX_LABEL_SIZEMAX + 1];
     /* FIXME: what is ORDT1 for? */
     if (ordt->ordt2) {
         label_length = mobi_getstring_ordt(ordt, buf, (unsigned char*) text, label_length);
     } else {
         label_length = mobi_indx_get_label((unsigned char*) text, buf, label_length, indx->ligt_entries_count);
+        if (buf->error != MOBI_SUCCESS) {
+            debug_print("Buffer error reading label: %d\n", buf->error);
+            return MOBI_DATA_CORRUPT;
+        }
     }
     indx->entries[entry_number].label = malloc(label_length + 1);
     if (indx->entries[entry_number].label == NULL) {

@@ -1,3 +1,4 @@
+2022-05-05: Fix: index entry label not being zero-terminated with corrupt input
 2022-05-03: Fix boundary checking error in markup search, that could cause buffer over-read with corrupt input
 2022-05-02: Fix typo in macro name
 2022-04-27: Fix undefined behavior when passing null to strdup
