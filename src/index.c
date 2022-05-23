@@ -679,14 +679,16 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
             }
             size_t i = 0;
             while (i < entries_count) {
-                ret = mobi_parse_index_entry(indx, idxt, tagx, ordt, buf, i++);
+                ret = mobi_parse_index_entry(indx, idxt, tagx, ordt, buf, i);
                 if (ret != MOBI_SUCCESS) {
+                    indx->entries_count += i;
                     mobi_buffer_free_null(buf);
                     free(offsets);
                     return ret;
                 }
-                indx->entries_count++;
+                i++;
             }
+            indx->entries_count += entries_count;
         }
         free(offsets);
     }
