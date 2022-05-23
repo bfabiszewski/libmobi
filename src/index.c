@@ -395,6 +395,8 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
         MOBIPtagx *ptagx = malloc(tagx->tags_count * sizeof(MOBIPtagx));
         if (ptagx == NULL) {
             debug_print("Memory allocation failed (%zu bytes)\n", tagx->tags_count * sizeof(MOBIPtagx));
+            free(indx->entries[entry_number].label);
+            indx->entries[entry_number].label = NULL;
             return MOBI_MALLOC_FAILED;
         }
         uint32_t ptagx_count = 0;
@@ -440,6 +442,8 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
         indx->entries[entry_number].tags = malloc(tagx->tags_count * sizeof(MOBIIndexTag));
         if (indx->entries[entry_number].tags == NULL) {
             debug_print("Memory allocation failed (%zu bytes)\n", tagx->tags_count * sizeof(MOBIIndexTag));
+            free(indx->entries[entry_number].label);
+            indx->entries[entry_number].label = NULL;
             free(ptagx);
             return MOBI_MALLOC_FAILED;
         }
@@ -470,6 +474,13 @@ static MOBI_RET mobi_parse_index_entry(MOBIIndx *indx, const MOBIIdxt idxt, cons
                 indx->entries[entry_number].tags[i].tagvalues = malloc(arr_size);
                 if (indx->entries[entry_number].tags[i].tagvalues == NULL) {
                     debug_print("Memory allocation failed (%zu bytes)\n", arr_size);
+                    free(indx->entries[entry_number].label);
+                    indx->entries[entry_number].label = NULL;
+                    for (size_t j = 0; j < i; j++) {
+                        free(indx->entries[entry_number].tags[j].tagvalues);
+                    }
+                    free(indx->entries[entry_number].tags);
+                    indx->entries[entry_number].tags = NULL;
                     free(ptagx);
                     return MOBI_MALLOC_FAILED;
                 }
@@ -674,8 +685,8 @@ MOBI_RET mobi_parse_indx(const MOBIPdbRecord *indx_record, MOBIIndx *indx, MOBIT
                     free(offsets);
                     return ret;
                 }
+                indx->entries_count++;
             }
-            indx->entries_count += entries_count;
         }
         free(offsets);
     }
