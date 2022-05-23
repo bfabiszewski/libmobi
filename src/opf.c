@@ -103,6 +103,10 @@ MOBI_RET mobi_build_opf_guide(OPF *opf, const MOBIRawml *rawml) {
     if (count == 0) {
         return MOBI_SUCCESS;
     }
+    if (rawml->frag == NULL) {
+        debug_print("%s\n", "Missing frag part");
+        return MOBI_DATA_CORRUPT;
+    }
     opf->guide = malloc(sizeof(OPFguide));
     if (opf->guide == NULL) {
         debug_print("%s\n", "Memory allocation failed");
@@ -1178,7 +1182,7 @@ MOBI_RET mobi_build_opf_metadata(OPF *opf,  const MOBIData *m, const MOBIRawml *
                 }
             }
         }
-        if (rawml->orth->orth_index_name) {
+        if (rawml->orth && rawml->orth->orth_index_name) {
             opf->metadata->x_meta->default_lookup_index = calloc(OPF_META_MAX_TAGS, sizeof(char*));
             if (opf->metadata->x_meta->default_lookup_index == NULL) {
                 debug_print("%s\n", "Memory allocation failed");

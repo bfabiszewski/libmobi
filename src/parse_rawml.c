@@ -817,6 +817,11 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
         mobi_buffer_free_null(buf);
         return MOBI_SUCCESS;
     }
+    if (rawml->frag == NULL) {
+        debug_print("%s", "Missing frag part\n");
+        mobi_buffer_free_null(buf);
+        return MOBI_DATA_CORRUPT;
+    }
     /* parse skeleton data */
     size_t i = 0;
     size_t j = 0;
