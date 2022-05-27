@@ -1,3 +1,4 @@
+2022-05-27: Fix potential null pointer dereference on corrupt input when inflections CNCX record is not initialized
 2022-05-23: Fix index entries count
 2022-05-23: Prevent leak of index entries on corrupt data
 2022-05-23: Add checks for fragments part in case of corrupt data

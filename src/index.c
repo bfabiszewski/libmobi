@@ -1019,14 +1019,14 @@ MOBI_RET mobi_decode_infl(unsigned char *decoded, int *decoded_size, const unsig
  Matches are made agains reversed string and all its substrings
  
  @param[in,out] infl_strings Array of returned strings
- @param[in,out] root Root node of the tree
- @param[in,out] string Index entry number
+ @param[in] root Root node of the tree
+ @param[in] string Index entry number
  @return Number of returned strings
  */
 size_t mobi_trie_get_inflgroups(char **infl_strings, MOBITrie * const root, const char *string) {
     /* travers trie and get values for each substring */
     if (root == NULL) {
-        return MOBI_PARAM_ERR;
+        return 0;
     }
     size_t count = 0;
     size_t length = strlen(string);
@@ -1060,11 +1060,14 @@ size_t mobi_trie_get_inflgroups(char **infl_strings, MOBITrie * const root, cons
  @brief Insert inversed inlection string for given entry into trie structure
  
  @param[in,out] root Root node of the tree, created if NULL
- @param[in,out] indx MOBIIndx infl index records
- @param[in,out] i Index entry number
+ @param[in] indx MOBIIndx infl index records
+ @param[in] i Index entry number
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
 MOBI_RET mobi_trie_insert_infl(MOBITrie **root, const MOBIIndx *indx, size_t i) {
+    if (indx->cncx_record == NULL) {
+        return MOBI_DATA_CORRUPT;
+    }
     MOBIIndexEntry e = indx->entries[i];
     char *inflected = e.label;
     for (size_t j = 0; j < e.tags_count; j++) {
