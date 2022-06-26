@@ -801,7 +801,7 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
     }
     MOBIPart *curr = rawml->markup;
     /* not skeleton data, just copy whole part to markup */
-    if (rawml->skel == NULL) {
+    if (rawml->skel == NULL || rawml->skel->entries_count == 0) {
         unsigned char *data = malloc(buf->maxlen);
         if (data == NULL) {
             debug_print("%s", "Memory allocation failed\n");
@@ -1224,6 +1224,11 @@ MOBI_RET mobi_reconstruct_links_kf8(const MOBIRawml *rawml) {
     for (i = 0; i < 2; i++) {
         MOBIPart *part = parts[i];
         while (part) {
+            if (part->data == NULL || part->size == 0) {
+                debug_print("Skipping empty part%s", "\n");
+                part = part->next;
+                continue;
+            }
             unsigned char *data_in = part->data;
             result.start = part->data;
             const unsigned char *data_end = part->data + part->size - 1;
