@@ -258,7 +258,7 @@ static uint32_t mobi_buffer_get_varlen_internal(MOBIBuffer *buf, size_t *len, co
             if (buf->offset + 1 > buf->maxlen) {
                 debug_print("%s", "End of buffer\n");
                 buf->error = MOBI_BUFFER_END;
-                return val;
+                return 0;
             }
             byte = buf->data[buf->offset++];
             val <<= 7;
@@ -267,7 +267,7 @@ static uint32_t mobi_buffer_get_varlen_internal(MOBIBuffer *buf, size_t *len, co
             if (buf->offset < 1) {
                 debug_print("%s", "End of buffer\n");
                 buf->error = MOBI_BUFFER_END;
-                return val;
+                return 0;
             }
             byte = buf->data[buf->offset--];
             val = val | (uint32_t)(byte & mask) << shift;
