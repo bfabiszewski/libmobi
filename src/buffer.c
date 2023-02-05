@@ -241,41 +241,49 @@ uint32_t mobi_buffer_get32(MOBIBuffer *buf) {
  
  Reads maximum 4 bytes from the buffer. Stops when byte has bit 7 set.
  
+ This function has a limitation while reading backwards.
+ In such case it will not read first byte in a buffer, as it would cause buffer offset to underflow.
+ That means that going bacwards it cannot read variable length values that are placed at the beginning of a buffer.
+ This will result in an error.
+ 
  @param[in] buf MOBIBuffer structure containing data
  @param[out] len Value will be increased by number of bytes read
  @param[in] direction 1 - read buffer forward, -1 - read buffer backwards
  @return Read value, 0 if end of buffer is encountered
  */
 static uint32_t mobi_buffer_get_varlen_internal(MOBIBuffer *buf, size_t *len, const int direction) {
+    bool has_stop = false;
     uint32_t val = 0;
     uint8_t byte_count = 0;
-    uint8_t byte;
-    const uint8_t stop_flag = 0x80;
-    const uint8_t mask = 0x7f;
-    uint32_t shift = 0;
-    do {
-        if (direction == 1) {
-            if (buf->offset + 1 > buf->maxlen) {
-                debug_print("%s", "End of buffer\n");
-                buf->error = MOBI_BUFFER_END;
-                return val;
+    size_t max_count = direction == 1 ? buf->maxlen - buf->offset : buf->offset;
+    if (buf->offset < buf->maxlen && max_count) {
+        max_count = max_count < 4 ? max_count : 4;
+        uint8_t byte;
+        const uint8_t stop_flag = 0x80;
+        const uint8_t mask = 0x7f;
+        uint32_t shift = 0;
+        unsigned char *p = buf->data + buf->offset;
+        do {
+            if (direction == 1) {
+                byte = *p++;
+                val <<= 7;
+                val |= (byte & mask);
+            } else {
+                byte = *p--;
+                val = val | (uint32_t)(byte & mask) << shift;
+                shift += 7;
             }
-            byte = buf->data[buf->offset++];
-            val <<= 7;
-            val |= (byte & mask);
-        } else {
-            if (buf->offset < 1) {
-                debug_print("%s", "End of buffer\n");
-                buf->error = MOBI_BUFFER_END;
-                return val;
-            }
-            byte = buf->data[buf->offset--];
-            val = val | (uint32_t)(byte & mask) << shift;
-            shift += 7;
-        }        
-        (*len)++;
-        byte_count++;
-    } while (!(byte & stop_flag) && (byte_count < 4));
+            byte_count++;
+            has_stop = byte & stop_flag;
+        } while (!has_stop && (byte_count < max_count));
+    }
+    if (!has_stop) {
+        debug_print("%s", "End of buffer\n");
+        buf->error = MOBI_BUFFER_END;
+        return 0;
+    }
+    *len += byte_count;
+    buf->offset = direction == 1 ? buf->offset + byte_count : buf->offset - byte_count;
     return val;
 }
 
@@ -296,6 +304,10 @@ uint32_t mobi_buffer_get_varlen(MOBIBuffer *buf, size_t *len) {
  @brief Reads variable length value from MOBIBuffer going backwards
  
  Reads maximum 4 bytes from the buffer. Stops when byte has bit 7 set.
+ 
+ This function has a limitation. It will not read first byte in a buffer, as it would cause buffer offset to underflow.
+ That means that it cannot read variable length values that are placed at the beginning of a buffer.
+ This will result in an error.
  
  @param[in] buf MOBIBuffer structure containing data
  @param[out] len Value will be increased by number of bytes read

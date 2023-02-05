@@ -1,3 +1,4 @@
+2023-02-05: Refactor mobi_buffer_get_varlen_internal to be compatible with other buffer functions. Update documentation with information about mobi_buffer_get_varlen_dec limitation.
 2022-06-26: Fix undefined behavior with null pointer arithmetics in case of corrupt input
 2022-05-28: Version 0.11
 2022-05-27: Fix potential null pointer dereference on corrupt input when inflections CNCX record is not initialized
