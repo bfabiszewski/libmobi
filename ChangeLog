@@ -1,3 +1,4 @@
+2023-02-21: Replace deprecated functions
 2023-02-21: Try to reconstruct sources even on broken indices
 2023-02-05: Refactor mobi_buffer_get_varlen_internal to be compatible with other buffer functions. Update documentation with information about mobi_buffer_get_varlen_dec limitation.
 2022-06-26: Fix undefined behavior with null pointer arithmetics in case of corrupt input

@@ -722,7 +722,7 @@ int xmlTextWriterStartAttributeNS(xmlTextWriterPtr writer,
                 debug_print("%s\n", "Memory allocation failed");
                 return XML_ERROR;
             }
-            sprintf(prefixed, "%s:%s", namespace, prefix);
+            snprintf(prefixed, length + 1, "%s:%s", namespace, prefix);
             MOBI_RET ret = mobi_xml_save_ns(writer, prefixed, (char *) namespaceURI);
             free(prefixed);
             if (ret != MOBI_SUCCESS) {
@@ -743,7 +743,7 @@ int xmlTextWriterStartAttributeNS(xmlTextWriterPtr writer,
             debug_print("%s\n", "Memory allocation failed");
             return XML_ERROR;
         }
-        sprintf(prefixed, "%s:%s", prefix, name);
+        snprintf(prefixed, length + 1, "%s:%s", prefix, name);
         int ret = xmlTextWriterStartAttribute(writer, (xmlChar *)prefixed);
         free(prefixed);
         if (ret == XML_ERROR) {
@@ -802,7 +802,7 @@ int xmlTextWriterStartElementNS(xmlTextWriterPtr writer,
             debug_print("%s\n", "Memory allocation failed");
             return XML_ERROR;
         }
-        sprintf(prefixed, "%s:%s", prefix, name);
+        snprintf(prefixed, length + 1, "%s:%s", prefix, name);
         int ret = xmlTextWriterStartElement(writer, (xmlChar *)prefixed);
         free(prefixed);
         if (ret == XML_ERROR) { return XML_ERROR; }
@@ -818,7 +818,7 @@ int xmlTextWriterStartElementNS(xmlTextWriterPtr writer,
                 debug_print("%s\n", "Memory allocation failed");
                 return XML_ERROR;
             }
-            sprintf(prefixed, "%s:%s", namespace, prefix);
+            snprintf(prefixed, length + 1, "%s:%s", namespace, prefix);
             MOBI_RET ret = mobi_xml_save_ns(writer, prefixed, (char *) namespaceURI);
             free(prefixed);
             if (ret != MOBI_SUCCESS) {

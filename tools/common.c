@@ -463,7 +463,6 @@ void print_exth(const MOBIData *m) {
             free(str);
         } else {
             /* known tag */
-            unsigned i = 0;
             size_t size = curr->size;
             unsigned char *data = curr->data;
             switch (tag.type) {
@@ -485,7 +484,9 @@ void print_exth(const MOBIData *m) {
                     /* binary */
                 case EXTH_BINARY:
                 {
-                    char *str = malloc(2 * size + 1);
+                    unsigned i = 0;
+                    const size_t str_len = 2 * size + 1;
+                    char *str = malloc(str_len);
                     if (!str) {
                         printf("Memory allocation failed\n");
                         exit(1);
@@ -493,7 +494,7 @@ void print_exth(const MOBIData *m) {
                     str[0] = '\0';
                     while (size) {
                         uint8_t val8 = *data++;
-                        sprintf(&str[i], "%02x", val8);
+                        snprintf(&str[i], str_len - i, "%02x", val8);
                         i += 2;
                         size--;
                     }
