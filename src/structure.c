@@ -432,18 +432,18 @@ MOBIFragment * mobi_list_add(MOBIFragment *curr, size_t raw_offset, unsigned cha
  @brief Allocate fragment, fill with data,
  insert into linked list at given offset
  
- Starts to search for offset at curr fragment.
+ Starts to search for offset at given fragment. The pointer to input fragment will be replaced by newly added one.
  
- @param[in] curr Fragment where search starts
- @param[in] raw_offset Fragment offset in raw markup,
- SIZE_MAX if not present in original markup
- @param[in] fragment Fragment data
+ @param[in,out] fragment Fragment where search starts, on success pointer to new fragment structure filled with data
+ @param[in] raw_offset Fragment offset in raw markup, SIZE_MAX if not present in original markup
+ @param[in] data Fragment data
  @param[in] size Size data
  @param[in] is_malloc is_maloc data
  @param[in] offset offset where new chunk will be inserted
- @return Fragment structure filled with data
+ @return MOBI_RET status code (on success MOBI_SUCCESS, on offset not found MOBI_DATA_CORRUPT)
  */
-MOBIFragment * mobi_list_insert(MOBIFragment *curr, size_t raw_offset, unsigned char *fragment, const size_t size, const bool is_malloc, const size_t offset) {
+MOBI_RET mobi_list_insert(MOBIFragment **fragment, size_t raw_offset, unsigned char *data, const size_t size, const bool is_malloc, const size_t offset) {
+    MOBIFragment *curr = *fragment;
     MOBIFragment *prev = NULL;
     while (curr) {
         if (curr->raw_offset != SIZE_MAX && curr->raw_offset <= offset && curr->raw_offset + curr->size >= offset ) {
@@ -453,22 +453,21 @@ MOBIFragment * mobi_list_insert(MOBIFragment *curr, size_t raw_offset, unsigned 
         curr = curr->next;
     }
     if (!curr) {
-        /* FIXME: return value is same as with malloc error */
         debug_print("Offset not found: %zu\n", offset);
         if (is_malloc) {
-            free(fragment);
+            free(data);
         }
-        return NULL;
+        return MOBI_DATA_CORRUPT;
     }
     MOBIFragment *new = calloc(1, sizeof(MOBIFragment));
     if (new == NULL) {
         if (is_malloc) {
-            free(fragment);
+            free(data);
         }
-        return NULL;
+        return MOBI_MALLOC_FAILED;
     }
     new->raw_offset = raw_offset;
-    new->fragment = fragment;
+    new->fragment = data;
     new->size = size;
     new->is_malloc = is_malloc;
     MOBIFragment *new2 = NULL;
@@ -497,7 +496,8 @@ MOBIFragment * mobi_list_insert(MOBIFragment *curr, size_t raw_offset, unsigned 
             new->size = tmp.size;
             new->is_malloc = tmp.is_malloc;
             new->next = tmp.next;
-            return curr;
+            *fragment = curr;
+            return MOBI_SUCCESS;
         }
     } else if (curr->raw_offset + curr->size == offset) {
         /* append chunk */
@@ -509,9 +509,9 @@ MOBIFragment * mobi_list_insert(MOBIFragment *curr, size_t raw_offset, unsigned 
         if (new2 == NULL) {
             free(new);
             if (is_malloc) {
-                free(fragment);
+                free(data);
             }
-            return NULL;
+            return MOBI_MALLOC_FAILED;
         }
         size_t rel_offset = offset - curr->raw_offset;
         new2->next = curr->next;
@@ -533,7 +533,8 @@ MOBIFragment * mobi_list_insert(MOBIFragment *curr, size_t raw_offset, unsigned 
             curr = curr->next;
         }
     }
-    return new;
+    *fragment = new;
+    return MOBI_SUCCESS;
 }
 
 /**

@@ -931,11 +931,10 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
             insert_position -= curr_position;
             if (skel_length < insert_position) {
                 debug_print("Insert position (%u) after part end (%u)\n", insert_position, skel_length);
-                // FIXME: shouldn't the fragment be ignored?
-                // For now insert it at the end.
+                /* FIXME: shouldn't the fragment be ignored? */
+                /* For now insert it at the end. */
                 insert_position = skel_length;
             }
-            skel_length += frag_length;
             
             frag_buffer = mobi_buffer_getpointer(buf, frag_length);
             if (frag_buffer == NULL) {
@@ -944,7 +943,16 @@ MOBI_RET mobi_reconstruct_parts(MOBIRawml *rawml) {
                 mobi_list_del_all(first_fragment);
                 return MOBI_DATA_CORRUPT;
             }
-            current_fragment = mobi_list_insert(current_fragment, insert_position, frag_buffer, frag_length, false, insert_position);
+
+            ret = mobi_list_insert(&current_fragment, insert_position, frag_buffer, frag_length, false, insert_position);
+            if (ret == MOBI_SUCCESS) {
+                skel_length += frag_length;
+            } else if (ret != MOBI_DATA_CORRUPT) {
+                /* give up; on data corrupt try to skip broken entry */
+                mobi_buffer_free_null(buf);
+                mobi_list_del_all(first_fragment);
+                return ret;
+            }
             j++;
             
         }
@@ -1623,27 +1631,31 @@ MOBI_RET mobi_reconstruct_orth(const MOBIRawml *rawml, MOBIFragment *first, size
         if (entry_startpos < prev_startpos) {
             curr = first;
         }
-        curr = mobi_list_insert(curr, SIZE_MAX,
-                                (unsigned char *) entry_text,
-                                entry_length, true, entry_startpos);
+
+        ret = mobi_list_insert(&curr, SIZE_MAX,
+                               (unsigned char *) entry_text,
+                               entry_length, true, entry_startpos);
         prev_startpos = entry_startpos;
-        if (curr == NULL) {
-            debug_print("%s\n", "Memory allocation failed");
-            mobi_trie_free(infl_trie);
-            return MOBI_MALLOC_FAILED;
-        }
-        *new_size += curr->size;
-        if (entry_textlen > 0) {
-            /* FIXME: avoid end_tag duplication */
-            curr = mobi_list_insert(curr, SIZE_MAX,
-                                    (unsigned char *) strdup(end_tag),
-                                    end_tag_len, true, entry_startpos + entry_textlen);
-            if (curr == NULL) {
-                debug_print("%s\n", "Memory allocation failed");
-                mobi_trie_free(infl_trie);
-                return MOBI_MALLOC_FAILED;
-            }
+
+        if (ret == MOBI_SUCCESS) {
             *new_size += curr->size;
+            if (entry_textlen > 0) {
+                /* FIXME: avoid end_tag duplication */
+                ret = mobi_list_insert(&curr, SIZE_MAX,
+                                       (unsigned char *) strdup(end_tag),
+                                       end_tag_len, true, entry_startpos + entry_textlen);
+                if (ret == MOBI_SUCCESS) {
+                    *new_size += curr->size;
+                } else if (ret != MOBI_DATA_CORRUPT) {
+                    mobi_trie_free(infl_trie);
+                    return ret;
+                }
+
+            }
+        } else if (ret != MOBI_DATA_CORRUPT) {
+            /* give up; on data corrupt try to skip broken entry */
+            mobi_trie_free(infl_trie);
+            return ret;
         }
         i++;
     }
@@ -1792,16 +1804,19 @@ MOBI_RET mobi_reconstruct_links_kf7(const MOBIRawml *rawml) {
         const uint32_t offset = links->data[i];
         char anchor[MOBI_ATTRVALUE_MAXSIZE + 1];
         snprintf(anchor, MOBI_ATTRVALUE_MAXSIZE + 1, "<a id=\"%010u\"></a>", offset);
-        curr = mobi_list_insert(curr, SIZE_MAX,
+
+        ret = mobi_list_insert(&curr, SIZE_MAX,
                                (unsigned char *) strdup(anchor),
-                                strlen(anchor), true, offset);
-        if (curr == NULL) {
+                               strlen(anchor), true, offset);
+        if (ret == MOBI_SUCCESS) {
+            new_size += curr->size;
+        } else if (ret != MOBI_DATA_CORRUPT) {
+            /* give up; on data corrupt try to skip broken entry */
             mobi_list_del_all(first);
             array_free(links);
-            debug_print("%s\n", "Memory allocation failed");
-            return MOBI_MALLOC_FAILED;
+            return ret;
         }
-        new_size += curr->size;
+
         i++;
     }
     array_free(links);

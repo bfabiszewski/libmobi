@@ -59,8 +59,8 @@ typedef struct MOBIFragment {
 } MOBIFragment;
 
 MOBIFragment * mobi_list_add(MOBIFragment *curr, size_t raw_offset, unsigned char *fragment, const size_t size, const bool is_malloc);
-MOBIFragment * mobi_list_insert(MOBIFragment *curr, size_t raw_offset, unsigned char *fragment, const size_t size, const bool is_malloc, const size_t offset);
 MOBIFragment * mobi_list_del(MOBIFragment *curr);
+MOBI_RET mobi_list_insert(MOBIFragment **curr, size_t raw_offset, unsigned char *fragment, const size_t size, const bool is_malloc, const size_t offset);
 void mobi_list_del_all(MOBIFragment *first);
 
 #endif
