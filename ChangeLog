@@ -1,3 +1,4 @@
+2023-07-11: Fix clang warning about missing function prototypes (-Wstrict-prototypes)
 2023-02-21: Update Xcode project settings
 2023-02-21: Replace deprecated functions
 2023-02-21: Try to reconstruct sources even on broken indices

@@ -189,7 +189,7 @@ static MOBI_RET mobi_pk1_encrypt(unsigned char *out, const unsigned char *in, si
  
  @return Number of parsed records
  */
-static MOBIDrm * mobi_drm_init() {
+static MOBIDrm * mobi_drm_init(void) {
     
     MOBIDrm *drm = calloc(1, sizeof(MOBIDrm));
     if (drm == NULL) {

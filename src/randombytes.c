@@ -153,7 +153,7 @@ static ssize_t mobi_safe_read(const int fd, void *buf_, size_t size) {
  
  @return MOBI_RET status code (on success MOBI_SUCCESS)
  */
-static MOBI_RET mobi_randombytes_block_on_dev_random() {
+static MOBI_RET mobi_randombytes_block_on_dev_random(void) {
     int fd = open("/dev/random", O_RDONLY);
     if (fd == -1) {
         return MOBI_SUCCESS;
@@ -183,7 +183,7 @@ static MOBI_RET mobi_randombytes_block_on_dev_random() {
  
  @return Random device file descriptor
  */
-static int mobi_randombytes_sysrandom_random_dev_open() {
+static int mobi_randombytes_sysrandom_random_dev_open(void) {
 
 #  ifdef BLOCK_ON_DEV_RANDOM
     if (mobi_randombytes_block_on_dev_random() != MOBI_SUCCESS) {
