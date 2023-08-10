@@ -61,7 +61,10 @@ endif(USE_XMLWRITER)
 
 if(MOBI_DEBUG)
     add_definitions(-DMOBI_DEBUG)
-    add_compile_options(-pedantic -Wall -Wextra -Werror)
+    message(STATUS "CMAKE_CXX_COMPILER_ID=${CMAKE_C_COMPILER_ID}")
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+        add_compile_options(-pedantic -Wall -Wextra -Werror)
+    endif()
 endif(MOBI_DEBUG)
 
 if(MOBI_DEBUG_ALLOC)
