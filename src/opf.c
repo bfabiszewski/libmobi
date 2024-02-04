@@ -24,6 +24,7 @@
 #pragma clang diagnostic ignored "-Wdocumentation"
 #endif
 #include <libxml/encoding.h>
+#include <libxml/parser.h>
 #include <libxml/xmlwriter.h>
 #ifdef __clang__
 #pragma clang diagnostic pop

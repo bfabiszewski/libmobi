@@ -1,3 +1,4 @@
+2024-02-04: Fix: missing header with libxml2 >= 2.12
 2024-02-04: Max index count value is too low for some dictionaries
 2023-08-10: Fix CMake debug build with MSVC, fixes #46
 2023-07-11: Clean up unused value
